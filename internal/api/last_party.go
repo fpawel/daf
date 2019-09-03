@@ -2,9 +2,8 @@ package api
 
 import (
 	"github.com/fpawel/comm/modbus"
-	"github.com/fpawel/mil82/internal/data"
-	"github.com/fpawel/mil82/internal/last_party"
-	"github.com/fpawel/mil82/internal/mil82"
+	"github.com/fpawel/daf/internal/data"
+	"github.com/fpawel/daf/internal/last_party"
 	"strconv"
 )
 

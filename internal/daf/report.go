@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/fpawel/comm/modbus"
-	"github.com/fpawel/mil82/internal/data"
+	"github.com/fpawel/daf/internal/data"
 	"math"
 	"strconv"
 	"strings"

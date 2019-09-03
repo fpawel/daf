@@ -2,9 +2,8 @@ package api
 
 import (
 	"github.com/fpawel/comm/modbus"
-	"github.com/fpawel/mil82/internal/api/types"
-	"github.com/fpawel/mil82/internal/data"
-	"github.com/fpawel/mil82/internal/mil82"
+	"github.com/fpawel/daf/internal/api/types"
+	"github.com/fpawel/daf/internal/data"
 	"time"
 )
 

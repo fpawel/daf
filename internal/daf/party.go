@@ -1,21 +1,19 @@
 package daf
 
-import "github.com/fpawel/mil82/internal/data"
+import "github.com/fpawel/daf/internal/data"
 
 type Party struct {
 	data.Party
-	Products    []data.Product
-	ProductType ProductType
+	Products []data.Product
 }
 
 func NewParty(partyID int64) Party {
 	x := Party{
 		Party: data.GetParty(partyID),
 	}
-	if err := data.DB.Select(&x.Products, `SELECT product_id, addr, serial FROM product WHERE party_id = ?`, partyID); err != nil {
+	if err := data.DB.Select(&x.Products, `SELECT product_id, serial FROM product WHERE party_id = ?`, partyID); err != nil {
 		panic(err)
 	}
-	x.ProductType = ProductTypeByName(x.Party.ProductType)
 	return x
 }
 

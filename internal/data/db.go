@@ -2,8 +2,8 @@ package data
 
 import (
 	"database/sql"
+	"github.com/fpawel/daf/internal"
 	"github.com/fpawel/gohelp"
-	"github.com/fpawel/mil82/internal"
 	"github.com/jmoiron/sqlx"
 	"path/filepath"
 )
@@ -39,7 +39,7 @@ func LastParty() (party Party) {
 
 func Products(partyID int64) (products []Product) {
 	if err := DB.Select(&products, `
-SELECT product_id, serial, addr FROM product 
+SELECT product_id, serial  FROM product 
 WHERE party_id = ? 
 ORDER BY product_id`, partyID); err != nil {
 		panic(err)

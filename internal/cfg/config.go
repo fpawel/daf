@@ -4,79 +4,84 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/fpawel/comm/modbus"
+	"github.com/fpawel/daf/internal/data"
 	"github.com/fpawel/gohelp/must"
-	"github.com/fpawel/mil82/internal/data"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
-	"time"
 )
 
 type Config struct {
-	UserAppSettings
-	PlacesUncheck []int
-	Vars          []Var
-	ProductTypes  []ProductType
+	ComportProducts        string  `toml:"comport_products" comment:"СОМ порт приборов"`
+	ComportHart            string  `toml:"comport_hart" comment:"СОМ порт HART модема"`
+	DurationBlowGasMinutes int     `toml:"duration_blow_gas" comment:"длительность продувки газа в минутах"`
+	DurationBlowAirMinutes int     `toml:"duration_blow_air" comment:"длительность продувки воздуха в минутах"`
+	Network                []Place `toml:"network" comment:"сеть MODBUS"`
 }
 
-type Var struct {
-	Code modbus.Var `db:"var"`
-	Name string     `db:"name"`
+type Place struct {
+	Place     int         `toml:"place" comment:"номер места"`
+	Addr      modbus.Addr `toml:"addr" comment:"адрес прибора MODBUS"`
+	Uncheck   bool        `toml:"uncheck" comment:"false - опрашивать данный адрес, true - не опрашивать"`
+	Serial    int         `toml:"serial" comment:"серийный номер прибора, подключенного к данному месту. Только для чтения. Устанавливается при создании загрузки."`
+	ProductID int64       `toml:"product_id" comment:"номер прибора, подключенного к данному месту. Только для чтения. Устанавливается при создании загрузки."`
 }
 
-type UserAppSettings struct {
-	ComportProducts,
-	ComportTemperature,
-	ComportGas string
-	TemperatureMinus,
-	TemperaturePlus float64
-	BlowGasMinutes,
-	BlowAirMinutes,
-	HoldTemperatureMinutes int
-	InterrogateProductVarIntervalMillis int
-}
-
-func (x UserAppSettings) InterrogateProductVarInterval() time.Duration {
-	return time.Duration(x.InterrogateProductVarIntervalMillis) * time.Millisecond
-}
-
-func Set(v Config) {
+func SetConfig(v Config) {
 	mu.Lock()
 	defer mu.Unlock()
 	must.UnmarshalJSON(must.MarshalJSON(&v), &config)
+	v.Network = v.Places()
 	must.WriteFile(fileName(), must.MarshalIndentJSON(&config, "", "    "), 0666)
 	return
 }
 
-func Get() (result Config) {
+func GetConfig() (result Config) {
 	mu.Lock()
 	defer mu.Unlock()
 	must.UnmarshalJSON(must.MarshalJSON(&config), &result)
+	result.Network = result.Places()
 	return
 }
 
+func (c Config) PlaceAddr(place int) modbus.Addr {
+	for i, x := range c.Network {
+		if i == place {
+			return x.Addr
+		}
+	}
+	return 1
+}
+
 func (c Config) PlaceChecked(place int) bool {
-	for _, x := range c.PlacesUncheck {
-		if x == place {
-			return false
+	for i, x := range c.Network {
+		if i == place {
+			return !x.Uncheck
 		}
 	}
 	return true
 }
 
-func (c *Config) SetPlaceChecked(place int, checked bool) {
-	if checked {
-		b := c.PlacesUncheck[:0]
-		for _, x := range c.PlacesUncheck {
-			if x != place {
-				b = append(b, x)
-			}
-		}
-		c.PlacesUncheck = b
-	} else {
-		c.PlacesUncheck = append(c.PlacesUncheck, place)
+func (c Config) Places() (places []Place) {
+	var products []data.Product
+	if err := data.DB.Select(&products, `
+SELECT product_id, serial  FROM product 
+WHERE party_id = (SELECT party_id FROM last_party) 
+ORDER BY product_id`); err != nil {
+		panic(err)
 	}
+	places = make([]Place, len(products))
+	for i := range products {
+		places[i].Place = i
+		places[i].Serial = products[i].Serial
+		places[i].ProductID = products[i].ProductID
+		if i < len(c.Network) {
+			places[i].Addr = c.Network[i].Addr
+			places[i].Uncheck = c.Network[i].Uncheck
+		}
+	}
+	return
 }
 
 func fileName() string {
@@ -84,56 +89,22 @@ func fileName() string {
 }
 
 var (
-	mu     sync.Mutex
-	config = func() Config{
-		c := Config{
-			UserAppSettings: UserAppSettings{
-				BlowGasMinutes:         5,
-				BlowAirMinutes:         1,
-				HoldTemperatureMinutes: 120,
-				TemperatureMinus:       -60,
-				TemperaturePlus:        80,
-			},
-			ProductTypes: []ProductType{
-				{N1: 0, N2: 0, Component: CO2, Scale: Sc4, K4: 5, K14: 0.1, K45: 60, K35: 5, K50: 0, TempMinus: -40, TempPlus: 80},
-				{N1: 0, N2: 1, Component: CO2, Scale: Sc10, K4: 5, K14: 0.1, K45: 60, K35: 5, K50: 0, TempMinus: -40, TempPlus: 80},
-				{N1: 0, N2: 2, Component: CO2, Scale: Sc20, K4: 5, K14: 0.1, K45: 60, K35: 5, K50: 0, TempMinus: -40, TempPlus: 80},
-				{N1: 1, N2: 0, Component: CH4, Scale: Sc100, K4: 7.5, K14: 0.5, K45: 60, K35: 5, K50: 0, TempMinus: -40, TempPlus: 80},
-				{N1: 1, N2: 1, Component: CH4, Scale: Sc100, K4: 7.5, K14: 0.5, K45: 60, K35: 5, K50: 0, TempMinus: -60, TempPlus: 60},
-				{N1: 2, N2: 0, Component: C3H8, Scale: Sc50, K4: 12.5, K14: 0.5, K45: 30, K35: 5, K50: 0, TempMinus: -40, TempPlus: 60},
-				{N1: 2, N2: 1, Component: C3H8, Scale: Sc50, K4: 12.5, K14: 0.5, K45: 30, K35: 5, K50: 0, TempMinus: -60, TempPlus: 60},
-				{N1: 3, N2: 0, Component: C3H8, Scale: Sc100, K4: 12.5, K14: 0.5, K45: 30, K35: 5, K50: 0, TempMinus: -40, TempPlus: 60},
-				{N1: 3, N2: 1, Component: C3H8, Scale: Sc100, K4: 12.5, K14: 0.5, K45: 30, K35: 5, K50: 0, TempMinus: -60, TempPlus: 60},
-				{N1: 4, N2: 0, Component: CH4, Scale: Sc100, K4: 7.5, K14: 0.5, K45: 60, K35: 5, K50: 0, TempMinus: -60, TempPlus: 80},
-				{N1: 5, N2: 0, Component: C6H14, Scale: Sc50, K4: 1, K14: 30, K45: 30, K35: 5, K50: 0, TempMinus: 15, TempPlus: 80, ScaleBeg: 5},
-				{N1: 10, N2: 0, Component: CO2, Scale: Sc4, K4: 1, K14: 30, K45: 30, K35: 1, K50: 1, TempMinus: -40, TempPlus: 80},
-				{N1: 10, N2: 1, Component: CO2, Scale: Sc10, K4: 1, K14: 30, K45: 30, K35: 1, K50: 1, TempMinus: -40, TempPlus: 80},
-				{N1: 10, N2: 2, Component: CO2, Scale: Sc20, K4: 1, K14: 30, K45: 30, K35: 1, K50: 1, TempMinus: -40, TempPlus: 80},
-				{N1: 10, N2: 3, Component: CO2, Scale: Sc4, K4: 1, K14: 30, K45: 30, K35: 1, K50: 1, TempMinus: -60, TempPlus: 80},
-				{N1: 10, N2: 4, Component: CO2, Scale: Sc10, K4: 1, K14: 30, K45: 30, K35: 1, K50: 1, TempMinus: -60, TempPlus: 80},
-				{N1: 10, N2: 5, Component: CO2, Scale: Sc20, K4: 1, K14: 30, K45: 30, K35: 1, K50: 1, TempMinus: -60, TempPlus: 80},
-				{N1: 11, N2: 0, Component: CH4, Scale: Sc100, K4: 1, K14: 30, K45: 30, K35: 1, K50: 1, TempMinus: -40, TempPlus: 80},
-				{N1: 11, N2: 1, Component: CH4, Scale: Sc100, K4: 1, K14: 30, K45: 30, K35: 1, K50: 1, TempMinus: -60, TempPlus: 80},
-				{N1: 13, N2: 0, Component: C3H8, Scale: Sc100, K4: 1, K14: 30, K45: 30, K35: 1, K50: 1, TempMinus: -40, TempPlus: 80},
-				{N1: 13, N2: 1, Component: C3H8, Scale: Sc100, K4: 1, K14: 30, K45: 30, K35: 1, K50: 1, TempMinus: -60, TempPlus: 80},
-				{N1: 14, N2: 0, Component: CH4, Scale: Sc100, K4: 1, K14: 30, K45: 30, K35: 1, K50: 1, TempMinus: -60, TempPlus: 80},
-				{N1: 16, N2: 0, Component: C3H8, Scale: Sc100, K4: 1, K14: 30, K45: 30, K35: 1, K50: 1, TempMinus: -60, TempPlus: 80},
-			},
-		}
-
-		if err := data.DB.Select(&c.Vars, `SELECT var, name FROM var ORDER BY var`); err != nil {
-			panic(err)
-		}
-
+	mu            sync.Mutex
+	defaultConfig = Config{
+		ComportProducts:        "COM1",
+		ComportHart:            "COM2",
+		DurationBlowGasMinutes: 5,
+		DurationBlowAirMinutes: 1,
+	}
+	config = func() Config {
+		c := defaultConfig
 		b, err := ioutil.ReadFile(fileName())
 		if err != nil {
-			fmt.Println(err, "файл", fileName())
+			fmt.Println(err, fileName())
+			return c
 		}
-		if err == nil {
-			err = json.Unmarshal(b, &c)
-			if err != nil {
-				fmt.Println(err, "файл", fileName())
-			}
+		if err = json.Unmarshal(b, &c); err != nil {
+			fmt.Println(err, fileName())
 		}
 		return c
 	}()
