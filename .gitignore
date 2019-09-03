@@ -1,0 +1,15 @@
+debug/
+Win32/
+bin/
+__history/
+__recovery/
+.vscode/
+.idea/
+build/
+!build/assets/
+*.exe
+*.qtpl.go
+internal/api/notify/api_generated.go
+*.identcache
+*.local
+*.stat
