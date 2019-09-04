@@ -12,7 +12,7 @@ uses
 type
     EHostApplicationPanic = class(Exception);
 
-    TMainFormMil82 = class(TForm)
+    TMainFormDaf = class(TForm)
         ImageList4: TImageList;
         PageControlMain: TPageControl;
         TabSheetParty: TTabSheet;
@@ -47,7 +47,6 @@ type
         LabelStatusBottom1: TLabel;
         N821: TMenuItem;
         TabSheetData: TTabSheet;
-    ToolButton5: TToolButton;
         procedure FormShow(Sender: TObject);
         procedure FormCreate(Sender: TObject);
         procedure PageControlMainDrawTab(Control: TCustomTabControl;
@@ -63,7 +62,6 @@ type
         procedure ToolButton3Click(Sender: TObject);
         procedure N821Click(Sender: TObject);
         procedure ToolButtonStopClick(Sender: TObject);
-    procedure ToolButton5Click(Sender: TObject);
     procedure ToolButton1Click(Sender: TObject);
     private
         { Private declarations }
@@ -78,7 +76,7 @@ type
     end;
 
 var
-    MainFormMil82: TMainFormMil82;
+    MainFormDaf: TMainFormDaf;
 
 implementation
 
@@ -87,7 +85,7 @@ implementation
 uses UnitFormLastParty, vclutils, JclDebug, ioutils,  app,
     services, UnitFormAppConfig, notify_services, HttpRpcClient, superobject,
      dateutils, math, HttpExceptions, UnitFormData,
-    stringgridutils, UnitFormModalMessage, UnitFormPartyData, UnitFormEditText;
+    stringgridutils, UnitFormModalMessage, UnitFormEditText, UnitFormDataTable;
 
 function color_work_result(r: Integer): Tcolor;
 begin
@@ -99,7 +97,7 @@ begin
         exit(clRed);
 end;
 
-procedure TMainFormMil82.FormCreate(Sender: TObject);
+procedure TMainFormDaf.FormCreate(Sender: TObject);
 begin
     Application.OnException := AppException;
     LabelStatusTop.Caption := '';
@@ -108,7 +106,7 @@ begin
     LabelStatusBottom1.Caption := '';
 end;
 
-procedure TMainFormMil82.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TMainFormDaf.FormClose(Sender: TObject; var Action: TCloseAction);
 var
     wp: WINDOWPLACEMENT;
     fs: TFileStream;
@@ -126,7 +124,7 @@ begin
 
 end;
 
-procedure TMainFormMil82.FormShow(Sender: TObject);
+procedure TMainFormDaf.FormShow(Sender: TObject);
 var
     FileName: String;
     wp: WINDOWPLACEMENT;
@@ -151,15 +149,7 @@ begin
         Show;
     end;
 
-    with FormPartyData do
-    begin
-        Font.Assign(self.Font);
-        Parent := FormData;
-        BorderStyle := bsNone;
-        Align := alClient;
-        // FetchParty(0);
-        Show;
-    end;
+    
 
     with FormData do
     begin
@@ -223,7 +213,7 @@ begin
     NotifyServices_SetEnabled(true);
 end;
 
-procedure TMainFormMil82.FormResize(Sender: TObject);
+procedure TMainFormDaf.FormResize(Sender: TObject);
 begin
     if PanelMessageBox.Visible then
     begin
@@ -233,7 +223,7 @@ begin
     end;
 end;
 
-procedure TMainFormMil82.PageControlMainChange(Sender: TObject);
+procedure TMainFormDaf.PageControlMainChange(Sender: TObject);
 var
     PageControl: TPageControl;
 begin
@@ -250,13 +240,13 @@ begin
 
 end;
 
-procedure TMainFormMil82.PageControlMainDrawTab(Control: TCustomTabControl;
+procedure TMainFormDaf.PageControlMainDrawTab(Control: TCustomTabControl;
 TabIndex: Integer; const Rect: TRect; Active: Boolean);
 begin
     PageControl_DrawVerticalTab(Control, TabIndex, Rect, Active);
 end;
 
-procedure TMainFormMil82.TimerPerformingTimer(Sender: TObject);
+procedure TMainFormDaf.TimerPerformingTimer(Sender: TObject);
 var
     v: Integer;
 begin
@@ -267,22 +257,22 @@ begin
             Color := clRed;
 end;
 
-procedure TMainFormMil82.ToolButton1Click(Sender: TObject);
+procedure TMainFormDaf.ToolButton1Click(Sender: TObject);
 begin
     FormEditText.Show;
 end;
 
-procedure TMainFormMil82.ToolButton2Click(Sender: TObject);
+procedure TMainFormDaf.ToolButton2Click(Sender: TObject);
 begin
     TRunnerSvc.Cancel;
 end;
 
-procedure TMainFormMil82.ToolButton3Click(Sender: TObject);
+procedure TMainFormDaf.ToolButton3Click(Sender: TObject);
 begin
     PanelMessageBox.Hide;
 end;
 
-procedure TMainFormMil82.ToolButton4Click(Sender: TObject);
+procedure TMainFormDaf.ToolButton4Click(Sender: TObject);
 begin
     with ToolButton4 do
         with ClientToScreen(Point(0, Height)) do
@@ -296,47 +286,34 @@ begin
         end;
 end;
 
-procedure TMainFormMil82.ToolButton5Click(Sender: TObject);
-var
-    r: Integer;
-begin
-    r := MessageBox(Handle, 'Подтвердите необходимость создания новой партии.',
-      'Запрос подтверждения', mb_IconQuestion or mb_YesNo);
-    if r <> mrYes then
-        exit;
-    TPartiesSvc.CreateNewParty('');
-    FormLastParty.reload_data;
-
-end;
-
-procedure TMainFormMil82.ToolButtonRunClick(Sender: TObject);
+procedure TMainFormDaf.ToolButtonRunClick(Sender: TObject);
 begin
     with ToolButtonRun do
         with ClientToScreen(Point(0, Height)) do
             PopupMenu1.Popup(x, Y);
 end;
 
-procedure TMainFormMil82.ToolButtonStopClick(Sender: TObject);
+procedure TMainFormDaf.ToolButtonStopClick(Sender: TObject);
 begin
     TRunnerSvc.SkipDelay;
 end;
 
-procedure TMainFormMil82.HandleCopydata(var Message: TMessage);
+procedure TMainFormDaf.HandleCopydata(var Message: TMessage);
 begin
     notify_services.HandleCopydata(Message);
 end;
 
-procedure TMainFormMil82.N1Click(Sender: TObject);
+procedure TMainFormDaf.N1Click(Sender: TObject);
 begin
     TRunnerSvc.RunReadVars;
 end;
 
-procedure TMainFormMil82.N821Click(Sender: TObject);
+procedure TMainFormDaf.N821Click(Sender: TObject);
 begin
     TRunnerSvc.RunMainWork;
 end;
 
-procedure TMainFormMil82.AppException(Sender: TObject; E: Exception);
+procedure TMainFormDaf.AppException(Sender: TObject; E: Exception);
 var
     stackList: TJclStackInfoList; // JclDebug.pas
     sl: TStringList;
@@ -393,7 +370,7 @@ begin
     end;
 end;
 
-procedure TMainFormMil82.SetupDelay(i: TDelayInfo);
+procedure TMainFormDaf.SetupDelay(i: TDelayInfo);
 var
     v: TDateTime;
 begin
@@ -410,7 +387,7 @@ begin
       inttostr(ceil(ProgressBar1.Position * 100 / ProgressBar1.Max)) + '%';
 end;
 
-procedure TMainFormMil82.OnWorkComplete(x: TWorkResultInfo);
+procedure TMainFormDaf.OnWorkComplete(x: TWorkResultInfo);
 var
     s: string;
 begin
@@ -468,7 +445,7 @@ begin
     FormLastParty.OnWorkComplete;
 end;
 
-procedure TMainFormMil82.OnWarning(content: string);
+procedure TMainFormDaf.OnWarning(content: string);
 var
     s: string;
 begin

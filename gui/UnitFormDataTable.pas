@@ -1,4 +1,4 @@
-unit UnitFormPartyData;
+unit UnitFormDataTable;
 
 interface
 
@@ -19,7 +19,7 @@ type
         Detail: string;
     end;
 
-    TFormPartyData = class(TForm)
+    TFormDataTable = class(TForm)
         StringGrid2: TStringGrid;
         procedure StringGrid2DrawCell(Sender: TObject; ACol, ARow: integer;
           Rect: TRect; State: TGridDrawState);
@@ -32,31 +32,31 @@ type
         FMeregedRows: TArray<TMeregedRow>;
         FRows: TArray<TArray<string>>;
 
-        FCells : TDictionary<TCoord,TCellDetail>;
+        FCells: TDictionary<TCoord, TCellDetail>;
 
     public
         { Public declarations }
-        procedure FetchParty(partyID: int64);
+        procedure SetTable(ATable: TArray<TArray<string>>);
     end;
 
-var
-    FormPartyData: TFormPartyData;
+//var
+//    FormDataTable: TFormDataTable;
 
 implementation
 
 {$R *.dfm}
 
-uses stringgridutils, UnitFormPopup, app, services;
+uses types, StrUtils, stringgridutils, UnitFormPopup, app, services;
 
-function coord(x,y:integer):TCoord;
+function coord(x, y: integer): TCoord;
 begin
-    result.X := x;
-    Result.Y := y;
+    result.x := x;
+    result.y := y;
 end;
 
-procedure TFormPartyData.FormCreate(Sender: TObject);
+procedure TFormDataTable.FormCreate(Sender: TObject);
 begin
-    FCells := TDictionary<TCoord,TCellDetail>.create;
+    FCells := TDictionary<TCoord, TCellDetail>.create;
     with StringGrid2 do
     begin
         ColCount := 10;
@@ -70,12 +70,12 @@ begin
     end;
 end;
 
-procedure TFormPartyData.FormShow(Sender: TObject);
+procedure TFormDataTable.FormShow(Sender: TObject);
 begin
-    FetchParty(0);
+    //
 end;
 
-procedure TFormPartyData.StringGrid2DblClick(Sender: TObject);
+procedure TFormDataTable.StringGrid2DblClick(Sender: TObject);
 var
     r: TRect;
     pt: TPoint;
@@ -84,9 +84,9 @@ begin
 
     with StringGrid2 do
     begin
-        if not FCells.ContainsKey(coord(Row,Col)) then
+        if not FCells.ContainsKey(coord(Row, Col)) then
             exit;
-        c := FCells[coord(Row,Col)];
+        c := FCells[coord(Row, Col)];
 
         if length(c.Detail) = 0 then
             exit;
@@ -95,13 +95,13 @@ begin
         FormPopup.RichEdit1.Font.Color := c.Color;
         r := CellRect(Col, Row);
         pt := StringGrid2.ClientToScreen(r.TopLeft);
-        FormPopup.Left := pt.X + ColWidths[Col] + 3;
-        FormPopup.Top := pt.Y + RowHeights[Row] + 3;
+        FormPopup.Left := pt.x + ColWidths[Col] + 3;
+        FormPopup.Top := pt.y + RowHeights[Row] + 3;
         FormPopup.Show;
     end;
 end;
 
-procedure TFormPartyData.StringGrid2DrawCell(Sender: TObject;
+procedure TFormDataTable.StringGrid2DrawCell(Sender: TObject;
   ACol, ARow: integer; Rect: TRect; State: TGridDrawState);
 var
     grd: TStringGrid;
@@ -150,7 +150,7 @@ begin
 
 end;
 
-procedure TFormPartyData.StringGrid2TopLeftChanged(Sender: TObject);
+procedure TFormDataTable.StringGrid2TopLeftChanged(Sender: TObject);
 var
     ACol, ARow: integer;
 begin
@@ -168,30 +168,30 @@ begin
     end;
 end;
 
-procedure TFormPartyData.FetchParty(partyID: int64);
+procedure TFormDataTable.SetTable(ATable: TArray<TArray<string>>);
 var
-    xs: TArray<TArray<string>>;
     _row: TArray<string>;
     ACol, ARow, I: integer;
+    s:string;
+    strs:TStringDynArray;
+    cc : TCellDetail;
 begin
-
+    FCells.Clear;
     FMeregedRows := [];
-    if partyID = 0 then
-        partyID := TLastPartySvc.Party.partyID;
-    xs := TPartiesSvc.ReportParty(partyID);
+    StringGrid_Clear(StringGrid2);
 
     with StringGrid2 do
     begin
 
-        ColCount := length(xs[0]);
-        RowCount := length(xs);
+        ColCount := length(ATable[0]);
+        RowCount := length(ATable);
 
-        for I := 0 to length(xs[0]) - 1 do
-            Cells[I, 0] := xs[0][I];
+        for I := 0 to length(ATable[0]) - 1 do
+            Cells[I, 0] := ATable[0][I];
 
         ARow := 0;
 
-        for _row in xs do
+        for _row in ATable do
         begin
 
             if length(_row) = 1 then
@@ -205,7 +205,23 @@ begin
             begin
 
                 for ACol := 0 to ColCount - 1 do
-                    Cells[ACol, ARow] := _row[ACol];
+                begin
+                    s := _row[ACol];
+                    strs := SplitString(S, ';');
+
+                    if Length(strs) > 0 then
+                        Cells[ACol, ARow] := strs[0];
+
+                    if Length(strs) > 2 then
+                        cc.Detail := strs[2];
+
+                    if Length(strs) > 1 then
+                    begin
+                        cc.Color := StringToColor(strs[1]);
+                        FCells.Add(Coord(ACol,ARow), cc);
+                    end;
+
+                end;
 
             end;
             ARow := ARow + 1;

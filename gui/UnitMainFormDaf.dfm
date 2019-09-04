@@ -1,4 +1,4 @@
-object MainFormMil82: TMainFormMil82
+object MainFormDaf: TMainFormDaf
   Left = 0
   Top = 0
   Caption = 'MainFormDaf'
@@ -24,7 +24,7 @@ object MainFormMil82: TMainFormMil82
     Height = 21
     Align = alBottom
     Caption = 'LabelStatus'
-    ExplicitWidth = 80
+    ExplicitWidth = 79
   end
   object PageControlMain: TPageControl
     Left = 0
@@ -403,9 +403,9 @@ object MainFormMil82: TMainFormMil82
       end
     end
     object ToolBar3: TToolBar
-      Left = 897
+      Left = 925
       Top = 0
-      Width = 96
+      Width = 68
       Height = 31
       Align = alRight
       ButtonHeight = 30
@@ -415,15 +415,8 @@ object MainFormMil82: TMainFormMil82
       EdgeOuter = esNone
       Images = ImageList4
       TabOrder = 1
-      object ToolButton5: TToolButton
-        Left = 0
-        Top = 0
-        Caption = 'ToolButton5'
-        ImageIndex = 11
-        OnClick = ToolButton5Click
-      end
       object ToolButton1: TToolButton
-        Left = 30
+        Left = 0
         Top = 0
         Hint = #1055#1088#1077#1088#1074#1072#1090#1100' '#1074#1099#1087#1086#1083#1085#1077#1085#1080#1077
         Caption = 'ToolButtonStop'
@@ -433,7 +426,7 @@ object MainFormMil82: TMainFormMil82
         OnClick = ToolButton1Click
       end
       object ToolButton4: TToolButton
-        Left = 60
+        Left = 30
         Top = 0
         Caption = 'ToolButton4'
         ImageIndex = 3
@@ -443,7 +436,7 @@ object MainFormMil82: TMainFormMil82
     object PanelDelay: TPanel
       Left = 174
       Top = 0
-      Width = 723
+      Width = 751
       Height = 31
       Align = alClient
       Alignment = taLeftJustify
@@ -458,7 +451,7 @@ object MainFormMil82: TMainFormMil82
       ParentFont = False
       TabOrder = 2
       Visible = False
-      ExplicitWidth = 756
+      ExplicitWidth = 723
       object LabelDelayElepsedTime: TLabel
         AlignWithMargins = True
         Left = 5
@@ -480,7 +473,7 @@ object MainFormMil82: TMainFormMil82
       end
       object LabelProgress: TLabel
         AlignWithMargins = True
-        Left = 651
+        Left = 679
         Top = 3
         Width = 31
         Height = 25
@@ -495,11 +488,11 @@ object MainFormMil82: TMainFormMil82
         Font.Style = []
         ParentFont = False
         Layout = tlCenter
-        ExplicitLeft = 684
+        ExplicitLeft = 651
         ExplicitHeight = 18
       end
       object ToolBar6: TToolBar
-        Left = 687
+        Left = 715
         Top = 0
         Width = 36
         Height = 31
@@ -511,7 +504,7 @@ object MainFormMil82: TMainFormMil82
         EdgeOuter = esNone
         Images = ImageList4
         TabOrder = 0
-        ExplicitLeft = 720
+        ExplicitLeft = 687
         object ToolButtonStop: TToolButton
           Left = 0
           Top = 0
@@ -528,7 +521,7 @@ object MainFormMil82: TMainFormMil82
       object Panel2: TPanel
         Left = 68
         Top = 0
-        Width = 578
+        Width = 606
         Height = 31
         Align = alClient
         Alignment = taLeftJustify
@@ -542,18 +535,18 @@ object MainFormMil82: TMainFormMil82
         ParentBackground = False
         ParentFont = False
         TabOrder = 1
-        ExplicitWidth = 611
+        ExplicitWidth = 578
         DesignSize = (
-          578
+          606
           31)
         object ProgressBar1: TProgressBar
           Left = 3
           Top = 8
-          Width = 572
+          Width = 600
           Height = 15
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
-          ExplicitWidth = 605
+          ExplicitWidth = 572
         end
       end
     end

@@ -30,7 +30,7 @@ func LastParty() (party Party) {
 	if err == sql.ErrNoRows {
 		DB.MustExec(`
 INSERT INTO party DEFAULT VALUES;
-INSERT INTO product(party_id, serial) VALUES ((SELECT last_party.party_id FROM last_party), 1);
+INSERT INTO product(party_id, serial) VALUES ((SELECT party_id FROM last_party), 1);
 `)
 		err = DB.Get(&party, `SELECT * FROM last_party`)
 	}

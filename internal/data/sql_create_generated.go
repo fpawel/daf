@@ -24,29 +24,36 @@ CREATE TABLE IF NOT EXISTS party
     c4           REAL                NOT NULL CHECK ( c4 >= 0 ) DEFAULT 2000
 );
 
+
+DROP VIEW IF EXISTS last_party;
+CREATE VIEW IF NOT EXISTS last_party AS
+SELECT *
+FROM party
+ORDER BY created_at DESC
+LIMIT 1;
+
 CREATE TABLE IF NOT EXISTS product
 (
     product_id INTEGER PRIMARY KEY NOT NULL,
     party_id   INTEGER             NOT NULL,
-    created_at TIMESTAMP           NOT NULL DEFAULT (datetime('now')) UNIQUE,
     serial     INTEGER             NOT NULL CHECK (serial > 0 ),
     UNIQUE (party_id, serial),
     FOREIGN KEY (party_id) REFERENCES party (party_id) ON DELETE CASCADE
 );
 
--- CREATE TABLE IF NOT EXISTS product_test_concentration
--- (
---     product_id    INTEGER NOT NULL,
---     test          INTEGER NOT NULL CHECK (test BETWEEN 1 AND 7),
---     concentration REAL    NOT NULL,
---     current       REAL    NOT NULL,
---     thr1          BOOLEAN NOT NULL,
---     thr2          BOOLEAN NOT NULL,
---     PRIMARY KEY (product_id, test),
---     FOREIGN KEY (product_id) REFERENCES product (product_id) ON DELETE CASCADE
--- );
+CREATE TABLE IF NOT EXISTS product_test
+(
+    product_id    INTEGER NOT NULL,
+    test          INTEGER NOT NULL CHECK (test BETWEEN 1 AND 7),
+    concentration REAL    NOT NULL,
+    current       REAL    NOT NULL,
+    thr1          BOOLEAN NOT NULL,
+    thr2          BOOLEAN NOT NULL,
+    PRIMARY KEY (product_id, test),
+    FOREIGN KEY (product_id) REFERENCES product (product_id) ON DELETE CASCADE
+);
 
-CREATE TABLE IF NOT EXISTS product_test_entry
+CREATE TABLE IF NOT EXISTS product_work
 (
     product_id INTEGER   NOT NULL,
     work       TEXT      NOT NULL,
@@ -57,11 +64,8 @@ CREATE TABLE IF NOT EXISTS product_test_entry
     FOREIGN KEY (product_id) REFERENCES product (product_id) ON DELETE CASCADE
 );
 
-CREATE VIEW IF NOT EXISTS last_party AS
-SELECT *
-FROM party
-ORDER BY created_at DESC
-LIMIT 1;
+
+
 
 
 CREATE VIEW IF NOT EXISTS last_party_products AS

@@ -30,11 +30,12 @@ object FormLastParty: TFormLastParty
     RowCount = 1
     FixedRows = 0
     GradientEndColor = clBlack
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing]
     TabOrder = 0
     OnDrawCell = StringGrid1DrawCell
     OnMouseDown = StringGrid1MouseDown
-    ExplicitLeft = 39
-    ExplicitTop = -2
+    OnSelectCell = StringGrid1SelectCell
+    OnSetEditText = StringGrid1SetEditText
     ColWidths = (
       64
       64
@@ -74,6 +75,27 @@ object FormLastParty: TFormLastParty
       ImageIndex = 3
       Wrap = True
       Style = tbsSeparator
+    end
+    object ToolButtonStop: TToolButton
+      Left = 0
+      Top = 38
+      Hint = #1044#1086#1073#1072#1074#1080#1090#1100' '#1087#1088#1080#1073#1086#1088' '#1074' '#1087#1072#1088#1090#1080#1102
+      Caption = 'ToolButtonStop'
+      ImageIndex = 1
+      ParentShowHint = False
+      Wrap = True
+      ShowHint = True
+      OnClick = ToolButtonStopClick
+    end
+    object ToolButton1: TToolButton
+      Left = 0
+      Top = 68
+      Hint = #1059#1076#1072#1083#1080#1090#1100' '#1087#1088#1080#1073#1086#1088' '#1080#1079' '#1087#1072#1088#1090#1080#1080
+      Caption = 'ToolButton1'
+      ImageIndex = 2
+      ParentShowHint = False
+      ShowHint = True
+      OnClick = ToolButton1Click
     end
   end
   object ImageList1: TImageList

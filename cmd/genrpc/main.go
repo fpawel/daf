@@ -16,10 +16,10 @@ func main() {
 		Name: "daf",
 		Dir:  filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "fpawel", "daf", "gui", "api"),
 		Types: []r.Type{
-			r.TypeOf((*api.LastPartySvc)(nil)),
+			r.TypeOf((*api.PartySvc)(nil)),
 			r.TypeOf((*cfg.ConfigSvc)(nil)),
 			r.TypeOf((*api.RunnerSvc)(nil)),
-			r.TypeOf((*api.PartiesSvc)(nil)),
+			r.TypeOf((*api.ProductsSvc)(nil)),
 		},
 	}, delphirpc.SrcNotify{
 		PeerWindowClassName:   "TMainFormDaf",

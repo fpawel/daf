@@ -37,7 +37,7 @@ uses
   ujsonrpc in 'utils\jsonrpc\ujsonrpc.pas',
   app in 'app.pas',
   UnitFormLastParty in 'UnitFormLastParty.pas' {FormLastParty},
-  UnitMainFormDaf in 'UnitMainFormDaf.pas' {MainFormMil82},
+  UnitMainFormDaf in 'UnitMainFormDaf.pas' {MainFormDaf},
   vclutils in 'utils\vclutils.pas',
   UnitFormAppConfig in 'UnitFormAppConfig.pas' {FormAppConfig},
   comport in 'utils\comport.pas',
@@ -48,7 +48,7 @@ uses
   UnitFormData in 'UnitFormData.pas' {FormData},
   UnitFormModalMessage in 'UnitFormModalMessage.pas' {FormModalMessage},
   UnitFormPopup in 'UnitFormPopup.pas' {FormPopup},
-  UnitFormPartyData in 'UnitFormPartyData.pas' {FormPartyData},
+  UnitFormDataTable in 'UnitFormDataTable.pas' {FormDataTable},
   UnitFormEditText in 'UnitFormEditText.pas' {FormEditText};
 
 {$R *.res}
@@ -56,13 +56,12 @@ uses
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.CreateForm(TMainFormMil82, MainFormMil82);
+  Application.CreateForm(TMainFormDaf, MainFormDaf);
   Application.CreateForm(TFormLastParty, FormLastParty);
   Application.CreateForm(TFormAppConfig, FormAppConfig);
   Application.CreateForm(TFormData, FormData);
   Application.CreateForm(TFormModalMessage, FormModalMessage);
   Application.CreateForm(TFormPopup, FormPopup);
-  Application.CreateForm(TFormPartyData, FormPartyData);
   Application.CreateForm(TFormEditText, FormEditText);
   Application.Run;
 end.

@@ -21,6 +21,14 @@ CREATE TABLE IF NOT EXISTS party
     c4           REAL                NOT NULL CHECK ( c4 >= 0 ) DEFAULT 2000
 );
 
+
+DROP VIEW IF EXISTS last_party;
+CREATE VIEW IF NOT EXISTS last_party AS
+SELECT *
+FROM party
+ORDER BY created_at DESC
+LIMIT 1;
+
 CREATE TABLE IF NOT EXISTS product
 (
     product_id INTEGER PRIMARY KEY NOT NULL,
@@ -45,19 +53,14 @@ CREATE TABLE IF NOT EXISTS product_test
 CREATE TABLE IF NOT EXISTS product_work
 (
     product_id INTEGER   NOT NULL,
+    stored_at  TIMESTAMP NOT NULL,
     work       TEXT      NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
     ok         BOOlEAN   NOT NULL,
     message    TEXT      NOT NULL,
     PRIMARY KEY (product_id, work),
     FOREIGN KEY (product_id) REFERENCES product (product_id) ON DELETE CASCADE
 );
 
-CREATE VIEW IF NOT EXISTS last_party AS
-SELECT *
-FROM party
-ORDER BY created_at DESC
-LIMIT 1;
 
 
 CREATE VIEW IF NOT EXISTS last_party_products AS

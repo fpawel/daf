@@ -20,7 +20,6 @@ type
     Panel17: TPanel;
     Panel18: TPanel;
     ComboBoxComportHart: TComboBox;
-    Button1: TButton;
         procedure FormCreate(Sender: TObject);
         procedure FormDeactivate(Sender: TObject);
         procedure FormShow(Sender: TObject);
@@ -66,7 +65,7 @@ end;
 procedure TFormAppConfig.FormShow(Sender: TObject);
 var
     s: string;
-    v: TConfig;
+    v: TGuiSettings;
 
     p: TParty;
 
@@ -89,7 +88,7 @@ end;
 
 procedure TFormAppConfig.ComboBoxComportProductsChange(Sender: TObject);
 var
-    v: TConfig;
+    v: TGuiSettings;
 begin
     if not FEnableOnEdit then
         exit;

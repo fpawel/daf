@@ -142,7 +142,7 @@
             <Form>FormLastParty</Form>
         </DCCReference>
         <DCCReference Include="UnitMainFormDaf.pas">
-            <Form>MainFormMil82</Form>
+            <Form>MainFormDaf</Form>
         </DCCReference>
         <DCCReference Include="utils\vclutils.pas"/>
         <DCCReference Include="UnitFormAppConfig.pas">
@@ -164,8 +164,8 @@
             <Form>FormPopup</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="UnitFormPartyData.pas">
-            <Form>FormPartyData</Form>
+        <DCCReference Include="UnitFormDataTable.pas">
+            <Form>FormDataTable</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="UnitFormEditText.pas">
@@ -195,20 +195,19 @@
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k260.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp260.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="C:\FR6\LibD26\dclfs26.bpl">File C:\FR6\LibD26\dclfs26.bpl not found</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="3">
+                <DeployFile LocalName="..\build\dafgui.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>dafgui.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="tools.png" Configuration="Debug" Class="UWP_DelphiLogo44">
                     <Platform Name="Win32">
                         <RemoteDir>Assets\</RemoteDir>
                         <RemoteName>Logo44x44.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="..\build\dafgui.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>dafgui.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

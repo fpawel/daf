@@ -7,7 +7,7 @@ uses
     Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
     System.Classes, Vcl.Graphics,
     Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Grids,
-    Vcl.ComCtrls;
+    Vcl.ComCtrls, UnitFormDataTable;
 
 type
 
@@ -17,6 +17,7 @@ type
         ComboBox1: TComboBox;
         Splitter1: TSplitter;
         StringGrid1: TStringGrid;
+        Panel2: TPanel;
         procedure FormCreate(Sender: TObject);
         procedure ComboBox1Change(Sender: TObject);
         procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: integer;
@@ -29,7 +30,10 @@ type
     private
         { Private declarations }
         FYearMonth: TArray<TYearMonth>;
-        FParties: TArray<TPartyCatalogue>;
+        FProducts: TArray<TProductInfo>;
+        FFormDataTable1, FFormDataTable2: TFormDataTable;
+
+        procedure FetchProductData(productID: int64);
 
     public
         { Public declarations }
@@ -44,7 +48,7 @@ implementation
 {$R *.dfm}
 
 uses app, HttpClient, services, dateutils, stringgridutils, stringutils,
-    UnitFormPopup, UnitFormPartyData;
+    UnitFormPopup;
 
 function NewMeregedRow(ARow: integer; Atext: string): TMeregedRow;
 begin
@@ -54,7 +58,8 @@ end;
 
 procedure TFormData.FormCreate(Sender: TObject);
 begin
-    //
+    FFormDataTable1 := TFormDataTable.Create(self);
+    FFormDataTable2 := TFormDataTable.Create(self);
 end;
 
 procedure TFormData.FormShow(Sender: TObject);
@@ -65,11 +70,9 @@ end;
 
 procedure TFormData.ListBox1Click(Sender: TObject);
 begin
-    if StringGrid1.Row - 1 >= length(FParties) then
+    if StringGrid1.Row - 1 >= length(FProducts) then
         exit;
-    FormPartyData.Parent := self;
-    FormPartyData.Align := alClient;
-    FormPartyData.FetchParty(FParties[StringGrid1.Row - 1].partyID);
+    FetchProductData(FProducts[StringGrid1.Row - 1].productID);
 end;
 
 procedure TFormData.Panel1Resize(Sender: TObject);
@@ -79,8 +82,9 @@ begin
         ColWidths[0] := 70;
         ColWidths[1] := 70;
         ColWidths[2] := 70;
-        ColWidths[3] := Panel1.Width - ColWidths[0] - ColWidths[1] -
-          ColWidths[2] - 10;
+        ColWidths[3] := 70;
+        ColWidths[4] := Panel1.Width - ColWidths[0] - ColWidths[1] -
+          ColWidths[2] - ColWidths[3] - 10;
         Repaint;
     end;
 
@@ -125,11 +129,10 @@ var
     tbs: TTabSheet;
     I: integer;
 begin
-    if ARow - 1 >= length(FParties) then
+    if ARow - 1 >= length(FProducts) then
         exit;
-
-    FormPartyData.FetchParty(FParties[ARow - 1].partyID);
-    Caption := 'Загрузка ' + IntToStr(FParties[ARow - 1].partyID);
+    FetchProductData(FProducts[ARow - 1].productID);
+    Caption := 'ДАФ-М ' + IntToStr(FProducts[ARow - 1].productID);
 end;
 
 procedure TFormData.ComboBox1Change(Sender: TObject);
@@ -140,29 +143,31 @@ begin
 
     with StringGrid1 do
     begin
-        ColCount := 4;
+        ColCount := 5;
 
         OnSelectCell := nil;
         with FYearMonth[ComboBox1.ItemIndex] do
-            FParties := TPartiesSvc.PartiesOfYearMonth(year, month);
-        RowCount := length(FParties) + 1;
+            FProducts := TProductsSvc.ProductsOfYearMonth(year, month);
+        RowCount := length(FProducts) + 1;
         if RowCount = 1 then
             exit;
 
         FixedRows := 1;
         Cells[0, 0] := 'День';
         Cells[1, 0] := 'Вермя';
-        Cells[2, 0] := '№';
-        Cells[3, 0] := 'Исполнение';
+        Cells[2, 0] := 'ID';
+        Cells[3, 0] := 'ДАФ-М';
+        Cells[4, 0] := 'Загрузка';
 
-        for I := 0 to length(FParties) - 1 do
-            with FParties[I] do
+        for I := 0 to length(FProducts) - 1 do
+            with FProducts[I] do
             begin
                 Cells[0, I + 1] := IntToStr2(day);
                 Cells[1, I + 1] :=
                   Format('%s:%s', [IntToStr2(hour), IntToStr2(minute)]);
-                Cells[2, I + 1] := IntToStr(partyID);
-                Cells[3, I + 1] := FParties[I].ProductType;
+                Cells[2, I + 1] := IntToStr(productID);
+                Cells[3, I + 1] := IntToStr(Serial);
+                Cells[4, I + 1] := IntToStr(partyID);
             end;
 
         Row := RowCount - 1;
@@ -181,7 +186,7 @@ var
     ym: TYearMonth;
 begin
     ComboBox1.Clear;
-    FYearMonth := TPartiesSvc.YearsMonths;
+    FYearMonth := TProductsSvc.YearsMonths;
     if length(FYearMonth) = 0 then
         with ym do
         begin
@@ -197,6 +202,34 @@ begin
 
     ComboBox1.ItemIndex := 0;
     ComboBox1Change(nil);
+end;
+
+procedure TFormData.FetchProductData(productID: int64);
+var pp :TProductPassport;
+begin
+    pp := TProductsSvc.IndividualPassport(productID);
+    with FFormDataTable1 do
+    begin
+        Font.Assign(self.Font);
+        Parent := Panel2;
+        BorderStyle := bsNone;
+        Align := alTop;
+        SetTable(pp.T1);
+        with StringGrid2 do
+            FFormDataTable1.Height := DefaultRowHeight * RowCount + 50;
+        Show;
+    end;
+
+    with FFormDataTable2 do
+    begin
+        Font.Assign(self.Font);
+        Parent := Panel2;
+        BorderStyle := bsNone;
+        Align := alClient;
+        SetTable(pp.T2);
+        Show;
+    end;
+
 end;
 
 end.

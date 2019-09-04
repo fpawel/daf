@@ -42,7 +42,7 @@ func runWork(workName string, work func(x worker) error) {
 			wgWork.Done()
 		}()
 
-		notify.WorkStarted(worker.log.Info, workName)
+		go notify.WorkStarted(worker.log.Info, workName)
 		err := work(worker)
 		if err == nil {
 			worker.log.Info("выполнено успешно")

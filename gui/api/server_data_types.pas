@@ -7,63 +7,62 @@ uses Grijjy.Bson, Grijjy.Bson.Serialization;
 
 type
     
+    TProduct = record
+    public
+        ProductID : Int64;
+        Serial : Integer;
+        Place : Integer;
+        Addr : Byte;
+        Checked : Boolean;
+        
+    end;
+    
     TParty = record
     public
-        C1 : Double;
-        C3 : Double;
-        Scale : Double;
-        Thr1Prod : Double;
-        Thr2Test : Double;
         Component : Integer;
+        C2 : Double;
+        AbsErrRng : Double;
+        Thr1Prod : Double;
+        Thr1Test : Double;
+        ProductType : Integer;
+        Scale : Double;
+        AbsErrLim : Double;
         RelErrLim : Double;
         Thr2Prod : Double;
         PartyID : Int64;
-        AbsErrLim : Double;
-        C2 : Double;
         C4 : Double;
-        AbsErrRng : Double;
-        Thr1Test : Double;
-        ProductType : Integer;
+        Thr2Test : Double;
+        C1 : Double;
+        C3 : Double;
         CreatedAt : TDateTime;
         
     end;
     
-    TProduct = record
+    TGuiSettings = record
     public
-        Addr : Byte;
-        Checked : Boolean;
-        ProductID : Int64;
-        Serial : Integer;
-        Place : Integer;
-        
-    end;
-    
-    TPlace = record
-    public
-        Addr : Byte;
-        Checked : Boolean;
-        
-    end;
-    
-    TConfig = record
-    public
-        DurationBlowAirMinutes : Integer;
-        PauseReadPlaceMillis : Integer;
-        Network : TArray<TPlace>;
         ComportProducts : string;
         ComportHart : string;
         DurationBlowGasMinutes : Integer;
+        DurationBlowAirMinutes : Integer;
+        PauseReadPlaceMillis : Integer;
         
     end;
     
-    TPartyCatalogue = record
+    TProductPassport = record
     public
-        PartyID : Int64;
-        ProductType : string;
-        Last : Boolean;
+        T1 : TArray<TArray<string>>;
+        T2 : TArray<TArray<string>>;
+        
+    end;
+    
+    TProductInfo = record
+    public
+        Serial : Integer;
         Day : Integer;
         Hour : Integer;
         Minute : Integer;
+        ProductID : Int64;
+        PartyID : Int64;
         
     end;
     
@@ -91,9 +90,9 @@ type
     
     TWorkResultInfo = record
     public
+        Work : string;
         Result : Integer;
         Message : string;
-        Work : string;
         
     end;
     

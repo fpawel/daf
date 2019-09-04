@@ -12,17 +12,31 @@ import (
 )
 
 type Config struct {
-	ComportProducts        string  `toml:"comport_products" comment:"СОМ порт приборов"`
-	ComportHart            string  `toml:"comport_hart" comment:"СОМ порт HART модема"`
-	DurationBlowGasMinutes int     `toml:"duration_blow_gas" comment:"длительность продувки газа в минутах"`
-	DurationBlowAirMinutes int     `toml:"duration_blow_air" comment:"длительность продувки воздуха в минутах"`
-	PauseReadPlaceMillis   int     `toml:"pause_read_place" comment:"длительность паузы между опросом мест стенда"`
-	Network                []Place `toml:"network" comment:"сеть MODBUS"`
+	GuiSettings
+	Network []Place
+}
+
+type GuiSettings struct {
+	ComportProducts        string `toml:"comport_products" comment:"СОМ порт приборов"`
+	ComportHart            string `toml:"comport_hart" comment:"СОМ порт HART модема"`
+	DurationBlowGasMinutes int    `toml:"duration_blow_gas" comment:"длительность продувки газа в минутах"`
+	DurationBlowAirMinutes int    `toml:"duration_blow_air" comment:"длительность продувки воздуха в минутах"`
+	PauseReadPlaceMillis   int    `toml:"pause_read_place" comment:"длительность паузы между опросом мест стенда"`
 }
 
 type Place struct {
 	Addr    modbus.Addr `toml:"addr" comment:"адрес прибора MODBUS"`
 	Checked bool        `toml:"check" comment:"true - опрашивать данный адрес, false - не опрашивать"`
+}
+
+func (x *Config) SetAddrAtPlace(place int, addr modbus.Addr) {
+
+	if place >= len(x.Network) {
+		xs := make([]Place, place+1)
+		copy(xs, x.Network)
+		x.Network = xs
+	}
+	x.Network[place].Addr = addr
 }
 
 func Save() {
@@ -76,10 +90,12 @@ func save() {
 var (
 	mu            sync.Mutex
 	defaultConfig = Config{
-		ComportProducts:        "COM1",
-		ComportHart:            "COM2",
-		DurationBlowGasMinutes: 5,
-		DurationBlowAirMinutes: 1,
+		GuiSettings: GuiSettings{
+			ComportProducts:        "COM1",
+			ComportHart:            "COM2",
+			DurationBlowGasMinutes: 5,
+			DurationBlowAirMinutes: 1,
+		},
 		Network: []Place{
 			{
 				Addr:    1,

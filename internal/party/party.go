@@ -46,7 +46,7 @@ LIMIT ?,1`, place); err != nil && err != sql.ErrNoRows {
 func Products() (products []Product) {
 	if err := data.DB.Select(&products, `
 SELECT product_id, serial FROM product 
-WHERE party_id = (SELECT party_id FROM party) 
+WHERE party_id = (SELECT party_id FROM last_party) 
 ORDER BY product_id`); err != nil {
 		panic(err)
 	}

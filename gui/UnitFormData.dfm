@@ -75,7 +75,6 @@ object FormData: TFormData
       Height = 555
       Align = alClient
       BorderStyle = bsNone
-      ColCount = 4
       DefaultRowHeight = 22
       DefaultDrawing = False
       FixedColor = clBackground
@@ -97,9 +96,25 @@ object FormData: TFormData
         64
         64
         64
+        64
         64)
       RowHeights = (
         22)
     end
+  end
+  object Panel2: TPanel
+    Left = 275
+    Top = 0
+    Width = 725
+    Height = 592
+    Align = alClient
+    BevelOuter = bvNone
+    Caption = 'Panel2'
+    ShowCaption = False
+    TabOrder = 1
+    ExplicitLeft = 736
+    ExplicitTop = 376
+    ExplicitWidth = 185
+    ExplicitHeight = 41
   end
 end

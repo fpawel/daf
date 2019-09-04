@@ -153,8 +153,8 @@ var
     acol, arow: integer;
 begin
     with grd do
-        for acol := 1 to colcount - 1 do
-            for arow := 1 to rowcount - 1 do
+        for acol := 0 to colcount - 1 do
+            for arow := 0 to rowcount - 1 do
                 Cells[acol, arow] := '';
 end;
 

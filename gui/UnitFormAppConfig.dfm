@@ -3,7 +3,7 @@ object FormAppConfig: TFormAppConfig
   Top = 0
   BorderStyle = bsToolWindow
   Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
-  ClientHeight = 162
+  ClientHeight = 105
   ClientWidth = 307
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
@@ -30,7 +30,6 @@ object FormAppConfig: TFormAppConfig
     Align = alTop
     Caption = #1057#1054#1052' '#1087#1086#1088#1090#1099
     TabOrder = 0
-    ExplicitWidth = 300
     object Panel1: TPanel
       Left = 2
       Top = 23
@@ -40,7 +39,6 @@ object FormAppConfig: TFormAppConfig
       BevelOuter = bvNone
       BorderWidth = 1
       TabOrder = 0
-      ExplicitWidth = 296
       object Shape1: TShape
         Left = 1
         Top = 36
@@ -93,7 +91,6 @@ object FormAppConfig: TFormAppConfig
       BevelOuter = bvNone
       BorderWidth = 1
       TabOrder = 1
-      ExplicitWidth = 296
       object Panel18: TPanel
         Left = 1
         Top = 1
@@ -126,13 +123,5 @@ object FormAppConfig: TFormAppConfig
           'COM1')
       end
     end
-  end
-  object Button1: TButton
-    Left = 168
-    Top = 110
-    Width = 131
-    Height = 43
-    Caption = #1044#1086#1087#1086#1083#1085#1080#1090#1077#1083#1100#1085#1086
-    TabOrder = 1
   end
 end

@@ -16,10 +16,10 @@ import (
 func startHttpServer() func() {
 
 	for _, svcObj := range []interface{}{
-		new(api.LastPartySvc),
+		new(api.PartySvc),
 		new(cfg.ConfigSvc),
 		api.NewRunnerSvc(runner{}),
-		new(api.PartiesSvc),
+		new(api.ProductsSvc),
 	} {
 		must.AbortIf(rpc.Register(svcObj))
 	}

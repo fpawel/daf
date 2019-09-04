@@ -1,7 +1,7 @@
-object FormPartyData: TFormPartyData
+object FormDataTable: TFormDataTable
   Left = 0
   Top = 0
-  Caption = 'FormPartyData'
+  Caption = 'FormDataTable'
   ClientHeight = 419
   ClientWidth = 749
   Color = clHighlightText
@@ -43,8 +43,6 @@ object FormPartyData: TFormPartyData
     OnDblClick = StringGrid2DblClick
     OnDrawCell = StringGrid2DrawCell
     OnTopLeftChanged = StringGrid2TopLeftChanged
-    ExplicitTop = 31
-    ExplicitHeight = 385
     ColWidths = (
       64
       64
