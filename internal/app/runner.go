@@ -2,11 +2,7 @@ package app
 
 import (
 	"github.com/ansel1/merry"
-	"github.com/fpawel/comm"
-	"github.com/fpawel/mil82/internal/api/notify"
-	"github.com/fpawel/mil82/internal/cfg"
-	"github.com/fpawel/mil82/internal/dseries"
-	"github.com/fpawel/mil82/internal/last_party"
+	"github.com/fpawel/daf/internal/party"
 )
 
 type runner struct{}
@@ -24,19 +20,18 @@ func (_ runner) SkipDelay() {
 func (_ runner) RunMainWork() {
 	runWork("настройка", func(x worker) error {
 
-		if len(last_party.CheckedProducts()) == 0 {
+		if len(party.CheckedProducts()) == 0 {
 			return errNoCheckedProducts.Here()
 		}
 
-		dseries.CreateNewBucket("настройка МИЛ-82")
-		notify.NewChart(x.log.Info)
+		//dseries.CreateNewBucket("настройка МИЛ-82")
+		//notify.NewChart(x.log.Info)
+		//defer dseries.Save()
 
-		defer dseries.Save()
-
-		if err := blowGas(x, 1); err != nil {
+		if err := x.blowGas(1); err != nil {
 			return err
 		}
-		if err := blowGas(x, 2); err != nil {
+		if err := x.blowGas(2); err != nil {
 			return err
 		}
 		return nil
@@ -46,28 +41,17 @@ func (_ runner) RunMainWork() {
 func (_ runner) RunReadVars() {
 
 	runWork("опрос", func(x worker) error {
-		if len(last_party.CheckedProducts()) == 0 {
+		if len(party.CheckedProducts()) == 0 {
 			return errNoCheckedProducts.Here()
 		}
-		vars := cfg.Get().Vars
-		dseries.CreateNewBucket("опрос МИЛ-82")
-		notify.NewChart(x.log.Info)
-		defer dseries.Save()
 		for {
-			products := last_party.CheckedProducts()
-			if len(products) == 0 {
+			if len(party.CheckedProducts()) == 0 {
 				return errNoCheckedProducts.Here()
 			}
-		loopProducts:
-			for _, p := range products {
-				for _, v := range vars {
-					_, err := readProductVar(x, p.Addr, v.Code)
-					if err != nil {
-						if merry.Is(err, comm.Err) {
-							continue loopProducts
-						}
-						return err
-					}
+			for _, p := range party.CheckedProducts() {
+				_, _, err := x.readPlace(p)
+				if err != nil || !isDeviceError(err) {
+					return err
 				}
 			}
 		}

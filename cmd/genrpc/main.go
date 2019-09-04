@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/fpawel/daf/internal/api"
+	"github.com/fpawel/daf/internal/api/types"
+	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/gohelp/delphi/delphirpc"
-	"github.com/fpawel/mil82/internal/api"
-	"github.com/fpawel/mil82/internal/api/types"
-	"github.com/fpawel/mil82/internal/dseries"
 	"os"
 	"path/filepath"
 	r "reflect"
@@ -13,18 +13,17 @@ import (
 func main() {
 
 	delphirpc.WriteSources(delphirpc.SrcServices{
-		Dir: filepath.Join(os.Getenv("DELPHIPATH"),
-			"src", "github.com", "fpawel", "mil82gui", "api"),
+		Name: "daf",
+		Dir:  filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "fpawel", "daf", "gui", "api"),
 		Types: []r.Type{
 			r.TypeOf((*api.LastPartySvc)(nil)),
-			r.TypeOf((*api.ConfigSvc)(nil)),
+			r.TypeOf((*cfg.ConfigSvc)(nil)),
 			r.TypeOf((*api.RunnerSvc)(nil)),
-			r.TypeOf((*dseries.ChartsSvc)(nil)),
 			r.TypeOf((*api.PartiesSvc)(nil)),
 		},
 	}, delphirpc.SrcNotify{
-		PeerWindowClassName:   "TMainFormMil82",
-		ServerWindowClassName: "Mil82ServerWindow",
+		PeerWindowClassName:   "TMainFormDaf",
+		ServerWindowClassName: "DafServerWindow",
 		Dir: filepath.Join(os.Getenv("GOPATH"),
 			"src", "github.com", "fpawel", "daf", "internal", "api", "notify"),
 		Types: []delphirpc.NotifyServiceType{
@@ -33,12 +32,12 @@ func main() {
 				r.TypeOf((*string)(nil)).Elem(),
 			},
 			{
-				"ReadVar",
-				r.TypeOf((*types.AddrVarValue)(nil)).Elem(),
+				"ReadProductValue",
+				r.TypeOf((*types.ProductValue)(nil)).Elem(),
 			},
 			{
-				"AddrError",
-				r.TypeOf((*types.AddrError)(nil)).Elem(),
+				"ProductError",
+				r.TypeOf((*types.ProductError)(nil)).Elem(),
 			},
 			{
 				"WorkStarted",
@@ -63,10 +62,6 @@ func main() {
 			{
 				"Status",
 				r.TypeOf((*string)(nil)).Elem(),
-			},
-			{
-				"NewChart",
-				r.TypeOf((*struct{})(nil)).Elem(),
 			},
 		},
 	})

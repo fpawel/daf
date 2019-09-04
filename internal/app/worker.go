@@ -6,11 +6,11 @@ import (
 	"github.com/ansel1/merry"
 	"github.com/fpawel/comm"
 	"github.com/fpawel/comm/comport"
+	"github.com/fpawel/daf/internal/api/notify"
+	"github.com/fpawel/daf/internal/api/types"
+	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/gohelp"
 	"github.com/fpawel/gohelp/myfmt"
-	"github.com/fpawel/mil82/internal/api/notify"
-	"github.com/fpawel/mil82/internal/api/types"
-	"github.com/fpawel/mil82/internal/cfg"
 	"github.com/powerman/structlog"
 	"strings"
 	"sync"
@@ -18,12 +18,10 @@ import (
 )
 
 type worker struct {
-	log   *structlog.Logger
-	ctx   context.Context
-	works []string
-	portProducts,
-	portTemp,
-	portGas *comport.ReadWriter
+	log                    *structlog.Logger
+	ctx                    context.Context
+	works                  []string
+	portProducts, portHart *comport.ReadWriter
 }
 
 func runWork(workName string, work func(x worker) error) {
@@ -40,8 +38,7 @@ func runWork(workName string, work func(x worker) error) {
 	go func() {
 		defer func() {
 			log.ErrIfFail(worker.portProducts.Close)
-			log.ErrIfFail(worker.portGas.Close)
-			log.ErrIfFail(worker.portTemp.Close)
+			log.ErrIfFail(worker.portHart.Close)
 			wgWork.Done()
 		}()
 
@@ -68,11 +65,12 @@ func newWorker(ctx context.Context, name string) worker {
 		log:   gohelp.NewLogWithSuffixKeys("work", fmt.Sprintf("`%s`", name)),
 		ctx:   ctx,
 		works: []string{name},
+
 		portProducts: comport.NewReadWriter(func() comport.Config {
 			return comport.Config{
 				Baud:        9600,
 				ReadTimeout: time.Millisecond,
-				Name:        cfg.Get().ComportProducts,
+				Name:        cfg.GetConfig().ComportProducts,
 			}
 		}, func() comm.Config {
 			return comm.Config{
@@ -82,31 +80,19 @@ func newWorker(ctx context.Context, name string) worker {
 			}
 		}),
 
-		portGas: comport.NewReadWriter(func() comport.Config {
+		portHart: comport.NewReadWriter(func() comport.Config {
 			return comport.Config{
-				Baud:        9600,
+				Name:        cfg.GetConfig().ComportHart,
+				Baud:        1200,
 				ReadTimeout: time.Millisecond,
-				Name:        cfg.Get().ComportGas,
+				Parity:      comport.ParityOdd,
+				StopBits:    comport.Stop1,
 			}
 		}, func() comm.Config {
 			return comm.Config{
 				ReadByteTimeoutMillis: 50,
-				ReadTimeoutMillis:     1000,
-				MaxAttemptsRead:       3,
-			}
-		}),
-
-		portTemp: comport.NewReadWriter(func() comport.Config {
-			return comport.Config{
-				Baud:        9600,
-				ReadTimeout: time.Millisecond,
-				Name:        cfg.Get().ComportTemperature,
-			}
-		}, func() comm.Config {
-			return comm.Config{
-				ReadByteTimeoutMillis: 50,
-				ReadTimeoutMillis:     1000,
-				MaxAttemptsRead:       3,
+				ReadTimeoutMillis:     2000,
+				MaxAttemptsRead:       5,
 			}
 		}),
 	}

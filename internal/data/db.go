@@ -28,7 +28,10 @@ func GetParty(partyID int64) (party Party) {
 func LastParty() (party Party) {
 	err := DB.Get(&party, `SELECT * FROM last_party`)
 	if err == sql.ErrNoRows {
-		DB.MustExec(`INSERT INTO last_party DEFAULT VALUES`)
+		DB.MustExec(`
+INSERT INTO party DEFAULT VALUES;
+INSERT INTO product(party_id, serial) VALUES ((SELECT last_party.party_id FROM last_party), 1);
+`)
 		err = DB.Get(&party, `SELECT * FROM last_party`)
 	}
 	if err != nil {

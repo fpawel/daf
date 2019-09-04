@@ -2,16 +2,18 @@ package app
 
 import (
 	"context"
+	"github.com/fpawel/daf/internal/api/notify"
+	"github.com/fpawel/daf/internal/cfg"
+	"github.com/fpawel/daf/internal/data"
 	"github.com/fpawel/gohelp/winapp"
-	"github.com/fpawel/mil82/internal/api/notify"
-	"github.com/fpawel/mil82/internal/data"
-	"github.com/fpawel/mil82/internal/dseries"
 	"github.com/lxn/win"
 	"github.com/powerman/structlog"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"sync"
+	"syscall"
 )
 
 func Run() {
@@ -25,17 +27,25 @@ func Run() {
 		log.Fatal("daf.exe already executing")
 	}
 
-	log.Println("charts: updated at", dseries.UpdatedAt())
-
 	var cancel func()
 	ctxApp, cancel = context.WithCancel(context.TODO())
 	closeHttpServer := startHttpServer()
 
-	if os.Getenv("ELCO_SKIP_RUN_PEER") != "true" {
-		if err := exec.Command(filepath.Join(filepath.Dir(os.Args[0]), "mil82gui.exe")).Start(); err != nil {
+	if os.Getenv("DAF_SKIP_RUN_PEER") != "true" {
+		if err := exec.Command(filepath.Join(filepath.Dir(os.Args[0]), "dafgui.exe")).Start(); err != nil {
 			panic(err)
 		}
 	}
+
+	go func() {
+		done := make(chan os.Signal, 1)
+		signal.Notify(done, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+		<-done
+		log.Info("signal close accepted")
+		notify.Window.Close()
+		return
+	}()
+
 	// цикл оконных сообщений
 	for {
 		var msg win.MSG
@@ -49,7 +59,8 @@ func Run() {
 	closeHttpServer()
 	notify.Window.Close()
 	log.ErrIfFail(data.DB.Close)
-	log.ErrIfFail(dseries.Close)
+	cfg.Save()
+	log.Debug("all canceled and closed")
 }
 
 var (

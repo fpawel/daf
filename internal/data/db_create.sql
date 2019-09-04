@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS product
     FOREIGN KEY (party_id) REFERENCES party (party_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS product_test_concentration
+CREATE TABLE IF NOT EXISTS product_test
 (
     product_id    INTEGER NOT NULL,
     test          INTEGER NOT NULL CHECK (test BETWEEN 1 AND 7),
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS product_test_concentration
     FOREIGN KEY (product_id) REFERENCES product (product_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS product_test_entry
+CREATE TABLE IF NOT EXISTS product_work
 (
     product_id INTEGER   NOT NULL,
     work       TEXT      NOT NULL,

@@ -1,10 +1,13 @@
 package api
 
 import (
+	"fmt"
 	"github.com/fpawel/comm/modbus"
 	"github.com/fpawel/daf/internal/api/types"
+	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/data"
-	"time"
+	"github.com/fpawel/daf/internal/report"
+	"github.com/pelletier/go-toml"
 )
 
 type PartiesSvc struct{}
@@ -47,8 +50,8 @@ ORDER BY created_at`, x.Year, x.Month); err != nil {
 	return nil
 }
 
-func (_ *PartiesSvc) PartyProductsValues(x [2]int64, r *mil82.Table) error {
-	*r = mil82.NewParty(x[0]).Report(modbus.Var(x[1]))
+func (_ *PartiesSvc) ReportParty(x [1]int64, r *report.Table) error {
+	*r = report.Party(x[0])
 	return nil
 }
 
@@ -60,8 +63,58 @@ func (_ *PartiesSvc) PartyProducts(x [1]int64, r *[]data.Product) error {
 	return nil
 }
 
-func (_ *PartiesSvc) NewParty(_ struct{}, _ *struct{}) error {
-	data.DB.MustExec(`INSERT INTO party(created_at) VALUES(?)`, time.Now())
-	data.DB.MustExec(`INSERT INTO product(party_id, serial, addr) VALUES ( (SELECT last_party.party_id FROM last_party), 1, 1)`)
+func (x *PartiesSvc) NewPartyTemplate(_ struct{}, r *string) error {
+	return tomlStringify(r, addrSerials{
+		{
+			Addr:   1,
+			Serial: 100,
+		},
+		{
+			Addr:   2,
+			Serial: 100,
+		},
+		{
+			Addr:   3,
+			Serial: 100,
+		},
+	})
+}
+
+func (x *PartiesSvc) CreateNewParty(s [1]string, _ *struct{}) error {
+	var p addrSerials
+	if err := toml.Unmarshal([]byte(s[0]), &p); err != nil {
+		return err
+	}
+	if _, err := data.DB.Exec(`BEGIN TRANSACTION; INSERT INTO party DEFAULT VALUES;`); err != nil {
+		return err
+	}
+	partyID := data.LastParty().PartyID
+	c := cfg.GetConfig()
+	for i, x := range p {
+		if _, err := data.DB.Exec(`INSERT INTO product(party_id, serial) VALUES ( ?, ?)`, partyID, x.Serial); err != nil {
+			data.DB.MustExec(`ROLLBACK;`)
+			return fmt.Errorf("serial=%d: %v", x.Serial, err)
+		}
+		if i < len(c.Network) {
+			c.Network[i].Addr = x.Addr
+		}
+	}
+	data.DB.MustExec(`COMMIT;`)
+	cfg.SetConfig(c)
 	return nil
 }
+
+func tomlStringify(r *string, x interface{}) error {
+	b, err := toml.Marshal(x)
+	if err != nil {
+		return err
+	}
+	*r = string(b)
+	return nil
+}
+
+type addrSerial struct {
+	Addr   modbus.Addr `toml:"addr" comment:"адрес прибора MODBUS"`
+	Serial int         `toml:"serial" comment:"серийный номер прибора"`
+}
+type addrSerials = []addrSerial

@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/fpawel/mil82/internal/app"
+	"github.com/fpawel/daf/internal/app"
 	"github.com/powerman/structlog"
 	"os"
 	"path/filepath"

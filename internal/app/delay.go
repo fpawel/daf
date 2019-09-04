@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/ansel1/merry"
+	"github.com/fpawel/daf/internal/api/notify"
+	"github.com/fpawel/daf/internal/api/types"
+	"github.com/fpawel/daf/internal/cfg"
+	"github.com/fpawel/daf/internal/party"
 	"github.com/fpawel/gohelp"
 	"github.com/fpawel/gohelp/myfmt"
-	"github.com/fpawel/mil82/internal/api/notify"
-	"github.com/fpawel/mil82/internal/api/types"
-	"github.com/fpawel/mil82/internal/cfg"
-	"github.com/fpawel/mil82/internal/last_party"
 	"time"
 )
 
@@ -37,35 +37,28 @@ func delay(x worker, duration time.Duration, name string) error {
 			go notify.EndDelay(x.log.Info, "elapsed", myfmt.FormatDuration(time.Since(startTime)))
 		}()
 		for {
-			products := last_party.CheckedProducts()
-			if len(products) == 0 {
+			if len(party.CheckedProducts()) == 0 {
 				return merry.New("для опроса необходимо установить галочку для как минимум одиного прибора")
 			}
-
-			for _, p := range products {
-				for _, v := range cfg.Get().Vars {
-					_, err := readProductVar(x, p.Addr, v.Code)
-					if ctxRootWork.Err() != nil {
-						return ctxRootWork.Err()
-					}
-					if x.ctx.Err() != nil {
-						return nil // задержка истекла или пропущена пользователем
-					}
-					if err != nil {
-						err = merry.Appendf(err, "запрос регистра $%X", v.Code).
-							Appendf("нет связи с прибором $%X", p.Addr).
-							Append("фоновый опрос")
-						if err = x.raiseWarning(err); err != nil {
-							return err
-						}
-					}
-					go notify.Delay(nil, types.DelayInfo{
-						What:           name,
-						TotalSeconds:   int(duration.Seconds()),
-						ElapsedSeconds: int(time.Since(startTime).Seconds()),
-					})
-					pause(x.ctx.Done(), millis(cfg.Get().InterrogateProductVarIntervalMillis))
+			for _, p := range party.CheckedProducts() {
+				_, _, err := x.readPlace(p)
+				if ctxRootWork.Err() != nil {
+					return ctxRootWork.Err()
 				}
+				if x.ctx.Err() != nil {
+					return nil // задержка истекла или пропущена пользователем
+				}
+				if err != nil {
+					if err = x.raiseWarning(merry.Append(err, "фоновый опрос")); err != nil {
+						return err
+					}
+				}
+				go notify.Delay(nil, types.DelayInfo{
+					What:           name,
+					TotalSeconds:   int(duration.Seconds()),
+					ElapsedSeconds: int(time.Since(startTime).Seconds()),
+				})
+				pause(x.ctx.Done(), millis(cfg.GetConfig().PauseReadPlaceMillis))
 			}
 		}
 	})

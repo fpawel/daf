@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"github.com/fpawel/comm/modbus"
 )
 
 type YearMonth struct {
@@ -14,14 +13,14 @@ type TempPlusMinus struct {
 	TempPlus, TempMinus float64
 }
 
-type AddrVarValue struct {
-	Addr    modbus.Addr
-	VarCode modbus.Var
-	Value   float64
+type ProductValue struct {
+	Place  int
+	Column string
+	Value  float64
 }
 
-type AddrError struct {
-	Addr    modbus.Addr
+type ProductError struct {
+	Place   int
 	Message string
 }
 
