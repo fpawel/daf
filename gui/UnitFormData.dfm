@@ -16,7 +16,7 @@ object FormData: TFormData
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
-    Left = 270
+    Left = 337
     Top = 0
     Width = 5
     Height = 592
@@ -26,17 +26,16 @@ object FormData: TFormData
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 270
+    Width = 337
     Height = 592
     Align = alLeft
     BevelOuter = bvNone
-    Constraints.MinWidth = 265
     TabOrder = 0
     OnResize = Panel1Resize
     object Panel3: TPanel
       Left = 0
       Top = 0
-      Width = 270
+      Width = 337
       Height = 31
       Align = alTop
       Alignment = taLeftJustify
@@ -51,6 +50,7 @@ object FormData: TFormData
       ParentBackground = False
       ParentFont = False
       TabOrder = 0
+      ExplicitWidth = 270
       object ComboBox1: TComboBox
         Left = 77
         Top = 2
@@ -71,7 +71,7 @@ object FormData: TFormData
       AlignWithMargins = True
       Left = 3
       Top = 34
-      Width = 264
+      Width = 331
       Height = 555
       Align = alClient
       BorderStyle = bsNone
@@ -92,6 +92,7 @@ object FormData: TFormData
       TabOrder = 1
       OnDrawCell = StringGrid1DrawCell
       OnSelectCell = StringGrid1SelectCell
+      ExplicitWidth = 264
       ColWidths = (
         64
         64
@@ -103,18 +104,16 @@ object FormData: TFormData
     end
   end
   object Panel2: TPanel
-    Left = 275
+    Left = 342
     Top = 0
-    Width = 725
+    Width = 658
     Height = 592
     Align = alClient
     BevelOuter = bvNone
     Caption = 'Panel2'
     ShowCaption = False
     TabOrder = 1
-    ExplicitLeft = 736
-    ExplicitTop = 376
-    ExplicitWidth = 185
-    ExplicitHeight = 41
+    ExplicitLeft = 275
+    ExplicitWidth = 725
   end
 end

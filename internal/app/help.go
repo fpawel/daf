@@ -10,11 +10,11 @@ import (
 	"time"
 )
 
-func boolToFloat(b bool) float64 {
+func formatOnOf(b bool) string {
 	if b {
-		return 1
+		return "ВКЛ"
 	}
-	return 0
+	return "выкл"
 }
 
 func pause(chDone <-chan struct{}, d time.Duration) {

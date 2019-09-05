@@ -18,6 +18,8 @@ import (
 
 func Run() {
 
+	log := structlog.New()
+
 	// Преверяем, не было ли приложение запущено ранее.
 	// Если было, выдвигаем окно UI приложения на передний план и завершаем процесс.
 	if notify.ServerWindowAlreadyExists {
@@ -68,5 +70,5 @@ var (
 	cancelWorkFunc = func() {}
 	skipDelayFunc  = func() {}
 	wgWork         sync.WaitGroup
-	log            = structlog.New()
+	//log            = structlog.New()
 )

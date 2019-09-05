@@ -16,7 +16,7 @@ type TempPlusMinus struct {
 type ProductValue struct {
 	Place  int
 	Column string
-	Value  float64
+	Value  string
 }
 
 type ProductError struct {

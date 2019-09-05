@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/fpawel/comm/modbus"
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/data"
@@ -43,7 +44,6 @@ func (_ *PartySvc) AddNewProduct(_ struct{}, r *[]party.Product) error {
 	for _, x := range products {
 		addresses[x.Addr] = a
 		serials[x.Serial] = a
-
 	}
 	serial, addr := 1, modbus.Addr(1)
 	for ; addr <= modbus.Addr(255); addr++ {
@@ -61,9 +61,33 @@ INSERT INTO product( party_id, serial)
 VALUES (?,?)`, data.LastParty().PartyID, serial, addr)
 
 	c := cfg.GetConfig()
-	c.SetAddrAtPlace(len(products), addr)
+	c.EnsurePlace(len(products))
+	c.Network[len(products)].Addr = addr
 	cfg.SetConfig(c)
 	*r = party.Products()
+	return nil
+}
+
+func (_ *PartySvc) SetProductAddr(x struct {
+	Place int
+	Addr  modbus.Addr
+}, _ *struct{}) error {
+	if x.Addr < 1 || x.Addr > 127 {
+		return fmt.Errorf("адрес MODBUS %d: должен быть от 1 до 127", x.Addr)
+	}
+	c := cfg.GetConfig()
+	addresses := make(map[modbus.Addr]int)
+	for i, y := range party.Products() {
+		if i != x.Place {
+			addresses[y.Addr] = i
+		}
+	}
+	if i, f := addresses[x.Addr]; f {
+		return fmt.Errorf("адрес MODBUS %d для места %d дублирует адрес места %d", x.Addr, x.Place, i)
+	}
+	c.EnsurePlace(x.Place)
+	c.Network[x.Place].Addr = x.Addr
+	cfg.SetConfig(c)
 	return nil
 }
 

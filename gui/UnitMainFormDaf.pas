@@ -146,6 +146,7 @@ begin
         Parent := TabSheetParty;
         BorderStyle := bsNone;
         Align := alClient;
+        reload_data;
         Show;
     end;
 
@@ -188,7 +189,7 @@ begin
         begin
             LabelStatusBottom1.Font.Color := clNavy;
             LabelStatusBottom1.Caption := Format('%d: %s=%s',
-              [x.Place, x.Column, floatToStr(x.Value)]);
+              [x.Place, x.Column, x.Value]);
             FormLastParty.OnProductValue(x);
         end
 

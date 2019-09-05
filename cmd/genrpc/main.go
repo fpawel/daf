@@ -12,9 +12,8 @@ import (
 
 func main() {
 
-	delphirpc.WriteSources(delphirpc.SrcServices{
-		Name: "daf",
-		Dir:  filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "fpawel", "daf", "gui", "api"),
+	delphirpc.WriteSources("daf", delphirpc.SrcServices{
+		Dir: filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "fpawel", "daf", "gui", "api"),
 		Types: []r.Type{
 			r.TypeOf((*api.PartySvc)(nil)),
 			r.TypeOf((*cfg.ConfigSvc)(nil)),

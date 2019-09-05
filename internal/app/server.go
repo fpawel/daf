@@ -5,6 +5,7 @@ import (
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/gohelp/must"
 	"github.com/powerman/rpc-codec/jsonrpc2"
+	"github.com/powerman/structlog"
 	"github.com/tdewolff/minify"
 	"github.com/tdewolff/minify/html"
 	"golang.org/x/sys/windows/registry"
@@ -46,6 +47,9 @@ func startHttpServer() func() {
 	if err := key.SetStringValue("addr", addr); err != nil {
 		panic(err)
 	}
+
+	log := structlog.New()
+
 	log.ErrIfFail(key.Close)
 	log.Debug(addr)
 

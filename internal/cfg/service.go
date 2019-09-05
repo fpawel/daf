@@ -1,8 +1,6 @@
 package cfg
 
 import (
-	"fmt"
-	"github.com/fpawel/comm/modbus"
 	"github.com/fpawel/daf/internal/data"
 	"github.com/pelletier/go-toml"
 )
@@ -10,13 +8,13 @@ import (
 type ConfigSvc struct{}
 
 type guiSettings struct {
-	Sets  GuiSettings        `toml:"sets" comment:"параметры связи и технологического процесса"`
+	App   GuiSettings        `toml:"app" comment:"параметры связи и технологического процесса"`
 	Party data.PartySettings `toml:"party" comment:"параметры текущей загрузки"`
 }
 
 func getSets() guiSettings {
 	return guiSettings{
-		Sets:  GetConfig().GuiSettings,
+		App:   GetConfig().GuiSettings,
 		Party: data.LastParty().PartySettings,
 	}
 }
@@ -45,7 +43,7 @@ WHERE party_id = (SELECT party_id FROM party)`,
 		p.Thr1Test, p.Thr2Test,
 		p.AbsErrRng, p.AbsErrLim, p.RelErrLim)
 	c := GetConfig()
-	c.GuiSettings = x.Sets
+	c.GuiSettings = x.App
 	SetConfig(c)
 }
 
@@ -72,14 +70,7 @@ func (_ *ConfigSvc) SetPlaceChecked(x struct {
 	Checked bool
 }, _ *struct{}) error {
 	c := GetConfig()
-	if x.Place < 0 || x.Place >= len(c.Network) {
-		return fmt.Errorf("номер места %d: должен быть в диапазоне от 0 до %d", x.Place, len(c.Network)-1)
-	}
-	if x.Place >= len(c.Network) {
-		xs := make([]Place, x.Place+1)
-		copy(xs, c.Network)
-		c.Network = xs
-	}
+	c.EnsurePlace(x.Place)
 	c.Network[x.Place].Checked = x.Checked
 	SetConfig(c)
 	return nil
@@ -94,30 +85,6 @@ func (_ *ConfigSvc) SetConfig(x struct{ C GuiSettings }, _ *struct{}) error {
 
 func (_ *ConfigSvc) GetConfig(_ struct{}, r *GuiSettings) error {
 	*r = GetConfig().GuiSettings
-	return nil
-}
-
-func (_ *ConfigSvc) SetPlaceAddr(x struct {
-	Place int
-	Addr  modbus.Addr
-}, _ *struct{}) error {
-
-	c := GetConfig()
-	if x.Place >= len(c.Network) {
-		xs := make([]Place, x.Place+1)
-		copy(xs, c.Network)
-		c.Network = xs
-	}
-	if x.Addr < 1 || x.Addr > 127 {
-		return fmt.Errorf("адрес MODBUS %d: должен быть от 1 до 127", x.Addr)
-	}
-	for place, p := range c.Network {
-		if p.Addr == x.Addr && place != x.Place {
-			return fmt.Errorf("адрес MODBUS %d: дублирует адрес места %d", x.Addr, place)
-		}
-	}
-	c.Network[x.Place].Addr = x.Addr
-	SetConfig(c)
 	return nil
 }
 

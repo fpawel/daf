@@ -37,8 +37,8 @@ func runWork(workName string, work func(x worker) error) {
 
 	go func() {
 		defer func() {
-			log.ErrIfFail(worker.portProducts.Close)
-			log.ErrIfFail(worker.portHart.Close)
+			worker.log.ErrIfFail(worker.portProducts.Close)
+			worker.log.ErrIfFail(worker.portHart.Close)
 			wgWork.Done()
 		}()
 

@@ -295,7 +295,6 @@ object FormEditText: TFormEditText
     TabOrder = 1
     Zoom = 100
     OnChange = RichEdit1Change
-    ExplicitHeight = 657
   end
   object ImageList4: TImageList
     ColorDepth = cd32Bit

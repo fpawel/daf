@@ -76,15 +76,16 @@ begin
 end;
 
 procedure TFormData.Panel1Resize(Sender: TObject);
+var ACol:integer;
 begin
+
     with StringGrid1 do
     begin
-        ColWidths[0] := 70;
-        ColWidths[1] := 70;
-        ColWidths[2] := 70;
-        ColWidths[3] := 70;
-        ColWidths[4] := Panel1.Width - ColWidths[0] - ColWidths[1] -
-          ColWidths[2] - ColWidths[3] - 10;
+//        Panel1.Constraints.MinWidth := ColWidths[0] + ColWidths[1] +
+//          ColWidths[2] + 10;
+        ColWidths[ColCount-1] := Panel1.Width - 10;
+        for ACol := ColCount-2 downto 0 do
+            ColWidths[ColCount-1] := ColWidths[ColCount-1] - ColWidths[ACol];
         Repaint;
     end;
 
@@ -104,7 +105,9 @@ begin
     cnv.Brush.Color := clWhite;
 
     if gdSelected in State then
-        cnv.Brush.Color := clGradientInactiveCaption;
+        cnv.Brush.Color := clGradientInactiveCaption
+    else if gdFixed in State then
+        cnv.Brush.Color := cl3DLight;
 
     ta := taLeftJustify;
     case ACol of
@@ -155,9 +158,9 @@ begin
         FixedRows := 1;
         Cells[0, 0] := 'Äåíü';
         Cells[1, 0] := 'Âåğìÿ';
-        Cells[2, 0] := 'ID';
-        Cells[3, 0] := 'ÄÀÔ-Ì';
-        Cells[4, 0] := 'Çàãğóçêà';
+        Cells[2, 0] := '¹ ÄÀÔ';
+        Cells[3, 0] := 'Ñåğ.¹';
+        Cells[4, 0] := '¹ ïàğòèè';
 
         for I := 0 to length(FProducts) - 1 do
             with FProducts[I] do
@@ -177,6 +180,7 @@ begin
         StringGrid1SelectCell(StringGrid1, 1, Row, CanSelect);
 
     end;
+    StringGrid_SetupColumnsWidth(StringGrid1);
 
 end;
 
@@ -216,7 +220,7 @@ begin
         Align := alTop;
         SetTable(pp.T1);
         with StringGrid2 do
-            FFormDataTable1.Height := DefaultRowHeight * RowCount + 50;
+            FFormDataTable1.Height := DefaultRowHeight * RowCount + 20;
         Show;
     end;
 
@@ -227,7 +231,7 @@ begin
         BorderStyle := bsNone;
         Align := alClient;
         SetTable(pp.T2);
-        Show;
+        Visible := StringGrid2.RowCount > 1;
     end;
 
 end;

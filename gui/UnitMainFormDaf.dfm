@@ -24,7 +24,7 @@ object MainFormDaf: TMainFormDaf
     Height = 21
     Align = alBottom
     Caption = 'LabelStatus'
-    ExplicitWidth = 79
+    ExplicitWidth = 80
   end
   object PageControlMain: TPageControl
     Left = 0
@@ -48,14 +48,26 @@ object MainFormDaf: TMainFormDaf
     object TabSheetData: TTabSheet
       Caption = #1044#1072#1085#1085#1099#1077
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
     object TabSheetJournal: TTabSheet
       Caption = #1046#1091#1088#1085#1072#1083
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
     object TabSheetCharts: TTabSheet
       Caption = #1043#1088#1072#1092#1080#1082#1080
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
   end
   object PanelMessageBox: TPanel
@@ -451,7 +463,6 @@ object MainFormDaf: TMainFormDaf
       ParentFont = False
       TabOrder = 2
       Visible = False
-      ExplicitWidth = 723
       object LabelDelayElepsedTime: TLabel
         AlignWithMargins = True
         Left = 5
@@ -488,7 +499,6 @@ object MainFormDaf: TMainFormDaf
         Font.Style = []
         ParentFont = False
         Layout = tlCenter
-        ExplicitLeft = 651
         ExplicitHeight = 18
       end
       object ToolBar6: TToolBar
@@ -504,7 +514,6 @@ object MainFormDaf: TMainFormDaf
         EdgeOuter = esNone
         Images = ImageList4
         TabOrder = 0
-        ExplicitLeft = 687
         object ToolButtonStop: TToolButton
           Left = 0
           Top = 0
@@ -535,7 +544,6 @@ object MainFormDaf: TMainFormDaf
         ParentBackground = False
         ParentFont = False
         TabOrder = 1
-        ExplicitWidth = 578
         DesignSize = (
           606
           31)
@@ -546,7 +554,6 @@ object MainFormDaf: TMainFormDaf
           Height = 15
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
-          ExplicitWidth = 572
         end
       end
     end

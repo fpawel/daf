@@ -9,6 +9,8 @@ import (
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/party"
 	"github.com/fpawel/gohelp"
+	"github.com/fpawel/gohelp/myfmt"
+	"strconv"
 )
 
 var (
@@ -57,38 +59,41 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 	if err != nil {
 		return result, merry.Appendf(err, "ЭН6408: место %d", p.Place)
 	}
-	go notify.ReadProductValue(log.Debug, types.ProductValue{
+	go notify.ReadProductValue(x.log.Debug, types.ProductValue{
 		Place:  p.Place,
 		Column: "Ток",
-		Value:  result.Current,
+		Value:  myfmt.FormatFloat(result.Current, -1),
 	})
-	go notify.ReadProductValue(log.Debug, types.ProductValue{
+	go notify.ReadProductValue(x.log.Debug, types.ProductValue{
 		Place:  p.Place,
 		Column: "Реле 1",
-		Value:  boolToFloat(result.Threshold1),
+		Value:  formatOnOf(result.Threshold1),
 	})
-	go notify.ReadProductValue(log.Debug, types.ProductValue{
+	go notify.ReadProductValue(x.log.Debug, types.ProductValue{
 		Place:  p.Place,
 		Column: "Реле 2",
-		Value:  boolToFloat(result.Threshold2),
+		Value:  formatOnOf(result.Threshold2),
 	})
 	return result, nil
 }
 
-func (x worker) dafReadUInt16(p party.Product, Var devVar) (uint16, error) {
+func (x worker) dafReadUInt16(p party.Product, Var devVar, formatFunc func(int) string) (uint16, error) {
 	log := logProduct(x.log, p)
-	log = gohelp.LogPrependSuffixKeys(log, "параметр_ДАФ", Var.Name)
+	log = gohelp.LogPrependSuffixKeys(log, "var", Var.Name)
 	value, err := modbus.Read3UInt16(log, x.ctx, x.portProducts, p.Addr, Var.Code)
 	if err == nil {
-		notify.ReadProductValue(log.Debug, types.ProductValue{
+		if formatFunc == nil {
+			formatFunc = strconv.Itoa
+		}
+		go notify.ReadProductValue(x.log.Debug, types.ProductValue{
 			Place:  p.Place,
 			Column: Var.Name,
-			Value:  float64(value),
+			Value:  formatFunc(int(value)),
 		})
 		return value, err
 	}
 	if isDeviceError(err) {
-		notify.ProductError(log.PrintErr, types.ProductError{
+		go notify.ProductError(x.log.PrintErr, types.ProductError{
 			Place:   p.Place,
 			Message: err.Error(),
 		})
@@ -96,20 +101,25 @@ func (x worker) dafReadUInt16(p party.Product, Var devVar) (uint16, error) {
 	return 0, err
 }
 
-func (x worker) dafReadFloat(p party.Product, Var devVar) (float64, error) {
+func (x worker) dafReadFloat(p party.Product, Var devVar, formatFunc func(float64) string) (float64, error) {
 	log := logProduct(x.log, p)
-	log = gohelp.LogPrependSuffixKeys(log, "параметр_ДАФ", Var.Name)
+	log = gohelp.LogPrependSuffixKeys(log, "var", Var.Name)
 	value, err := modbus.Read3BCD(log, x.ctx, x.portProducts, p.Addr, Var.Code)
 	if err == nil {
-		notify.ReadProductValue(log.Debug, types.ProductValue{
+		if formatFunc == nil {
+			formatFunc = func(f float64) string {
+				return myfmt.FormatFloat(value, -1)
+			}
+		}
+		go notify.ReadProductValue(x.log.Debug, types.ProductValue{
 			Place:  p.Place,
 			Column: Var.Name,
-			Value:  value,
+			Value:  formatFunc(value),
 		})
 		return value, err
 	}
 	if isDeviceError(err) {
-		notify.ProductError(log.PrintErr, types.ProductError{
+		go notify.ProductError(x.log.PrintErr, types.ProductError{
 			Place:   p.Place,
 			Message: err.Error(),
 		})
@@ -127,11 +137,11 @@ func (x worker) dafReadIndication(p party.Product) (r DafIndication, err error) 
 		{varThr2, &r.Threshold2},
 		{varFailureCode, &r.Failure},
 	} {
-		if *a.p, err = x.dafReadFloat(p, a.Var); err != nil {
+		if *a.p, err = x.dafReadFloat(p, a.Var, nil); err != nil {
 			return
 		}
 	}
-	if r.Mode, err = x.dafReadUInt16(p, varMode); err == nil {
+	if r.Mode, err = x.dafReadUInt16(p, varMode, nil); err == nil {
 		return
 	}
 	return
@@ -141,12 +151,15 @@ func (x worker) dafReadInfo(p party.Product) (r DafInfo, err error) {
 	for _, a := range []struct {
 		Var devVar
 		p   *float64
+		f   func(float64) string
 	}{
-		{varGas, &r.Gas},
-		{varSoftVer, &r.Version},
-		{varSoftVerID, &r.VersionID},
+		{varGas, &r.Gas, nil},
+		{varSoftVer, &r.Version, nil},
+		{varSoftVerID, &r.VersionID, func(f float64) string {
+			return fmt.Sprintf("%X", int(f))
+		}},
 	} {
-		if *a.p, err = x.dafReadFloat(p, a.Var); err != nil {
+		if *a.p, err = x.dafReadFloat(p, a.Var, a.f); err != nil {
 			return
 		}
 	}

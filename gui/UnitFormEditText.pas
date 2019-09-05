@@ -76,9 +76,11 @@ end;
 
 procedure TFormEditText.Colorize;
 var
-    iPos, iPosWord, iLen, n: integer;
+    ASelStart, iPos, iPosWord, iLen, n: integer;
+
 
 begin
+    ASelStart := RichEdit1.SelStart;
     RichEdit1.Hide;
     iLen := Length(RichEdit1.Lines.Text);
 
@@ -129,9 +131,12 @@ begin
 
         iPos := RichEdit1.FindText('=', iPos + 1, iLen, []);
     end;
+    RichEdit1.SelStart := ASelStart ;
+    RichEdit1.SelLength := 0 ;
     RichEdit1.Show;
-    RichEdit1.SelLength := 0;
+    //RichEdit1.SelLength := 0;
     ToolButton2.Enabled := false;
+
 end;
 
 end.

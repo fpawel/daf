@@ -29,14 +29,19 @@ type Place struct {
 	Checked bool        `toml:"check" comment:"true - опрашивать данный адрес, false - не опрашивать"`
 }
 
-func (x *Config) SetAddrAtPlace(place int, addr modbus.Addr) {
-
+func (x *Config) EnsurePlace(place int) {
+	if place < 0 {
+		panic("place must be positive")
+	}
 	if place >= len(x.Network) {
 		xs := make([]Place, place+1)
-		copy(xs, x.Network)
+		n := copy(xs, x.Network)
+		for i := range xs[n:] {
+			xs[n:][i].Addr = 1
+			xs[n:][i].Checked = true
+		}
 		x.Network = xs
 	}
-	x.Network[place].Addr = addr
 }
 
 func Save() {

@@ -20,31 +20,31 @@ type
     TParty = record
     public
         Component : Integer;
-        C2 : Double;
-        AbsErrRng : Double;
-        Thr1Prod : Double;
-        Thr1Test : Double;
-        ProductType : Integer;
         Scale : Double;
+        Thr1Prod : Double;
+        CreatedAt : TDateTime;
+        ProductType : Integer;
+        C1 : Double;
         AbsErrLim : Double;
         RelErrLim : Double;
         Thr2Prod : Double;
-        PartyID : Int64;
-        C4 : Double;
         Thr2Test : Double;
-        C1 : Double;
+        C2 : Double;
+        C4 : Double;
+        AbsErrRng : Double;
+        Thr1Test : Double;
         C3 : Double;
-        CreatedAt : TDateTime;
+        PartyID : Int64;
         
     end;
     
     TGuiSettings = record
     public
+        DurationBlowAirMinutes : Integer;
+        PauseReadPlaceMillis : Integer;
         ComportProducts : string;
         ComportHart : string;
         DurationBlowGasMinutes : Integer;
-        DurationBlowAirMinutes : Integer;
-        PauseReadPlaceMillis : Integer;
         
     end;
     
@@ -57,12 +57,12 @@ type
     
     TProductInfo = record
     public
-        Serial : Integer;
         Day : Integer;
         Hour : Integer;
         Minute : Integer;
         ProductID : Int64;
         PartyID : Int64;
+        Serial : Integer;
         
     end;
     
@@ -77,7 +77,7 @@ type
     public
         Place : Integer;
         Column : string;
-        Value : Double;
+        Value : string;
         
     end;
     

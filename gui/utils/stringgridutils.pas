@@ -345,13 +345,15 @@ end;
 procedure StringGrid_SetupColumnWidth(grd: TStringGrid; acol: integer);
 var
     w, arow: integer;
+    s:string;
 begin
     with grd do
     begin
-        //ColWidths[acol] := DefaultColWidth;
+        ColWidths[acol] := DefaultColWidth;
         for arow := 0 to rowcount - 1 do
         begin
-            w := Canvas.TextWidth(Cells[acol, arow]);
+            s := Cells[acol, arow];
+            w := Canvas.TextWidth(s);
             if ColWidths[acol] < w + 5 then
                 ColWidths[acol] := w + 5;
         end;

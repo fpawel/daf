@@ -56,15 +56,13 @@ CREATE TABLE IF NOT EXISTS product_test
 CREATE TABLE IF NOT EXISTS product_work
 (
     product_id INTEGER   NOT NULL,
+    stored_at  TIMESTAMP NOT NULL,
     work       TEXT      NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
     ok         BOOlEAN   NOT NULL,
     message    TEXT      NOT NULL,
     PRIMARY KEY (product_id, work),
     FOREIGN KEY (product_id) REFERENCES product (product_id) ON DELETE CASCADE
 );
-
-
 
 
 

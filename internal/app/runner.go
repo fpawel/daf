@@ -3,17 +3,20 @@ package app
 import (
 	"github.com/ansel1/merry"
 	"github.com/fpawel/daf/internal/party"
+	"github.com/powerman/structlog"
 )
 
 type runner struct{}
 
 func (_ runner) Cancel() {
 	cancelWorkFunc()
+	log := structlog.New()
 	log.Info("выполнение прервано")
 }
 
 func (_ runner) SkipDelay() {
 	skipDelayFunc()
+	log := structlog.New()
 	log.Info("задержка прервана")
 }
 
@@ -41,18 +44,24 @@ func (_ runner) RunMainWork() {
 func (_ runner) RunReadVars() {
 
 	runWork("опрос", func(x worker) error {
-		if len(party.CheckedProducts()) == 0 {
-			return errNoCheckedProducts.Here()
-		}
+
+		nfoRead := false
 		for {
 			if len(party.CheckedProducts()) == 0 {
 				return errNoCheckedProducts.Here()
 			}
 			for _, p := range party.CheckedProducts() {
-				_, _, err := x.readPlace(p)
-				if err != nil || !isDeviceError(err) {
+				if _, _, err := x.readPlace(p); err != nil && !isDeviceError(err) {
 					return err
 				}
+			}
+			if !nfoRead {
+				for _, p := range party.CheckedProducts() {
+					if _, err := x.dafReadInfo(p); err != nil && !isDeviceError(err) {
+						return err
+					}
+				}
+				nfoRead = true
 			}
 		}
 	})

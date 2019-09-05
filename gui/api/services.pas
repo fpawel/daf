@@ -13,6 +13,7 @@ type
         class procedure NewParty;static;
         class function Party:TParty;static;
         class function Products:TArray<TProduct>;static;
+        class procedure SetProductAddr(Place:Integer; Addr:Byte);static;
         class procedure SetProductSerial(ProductID:Int64; SerialStr:string);static;
          
     end;
@@ -24,7 +25,6 @@ type
         class procedure SetConfig(C:TGuiSettings);static;
         class function SetConfigToml(param1:string):string;static;
         class function SetDefault:string;static;
-        class procedure SetPlaceAddr(Place:Integer; Addr:Byte);static;
         class procedure SetPlaceChecked(Place:Integer; Checked:Boolean);static;
          
     end;
@@ -48,6 +48,8 @@ type
     end;
 
     
+
+function GetHttpServerAddr: string;
 
 implementation 
 
@@ -119,6 +121,16 @@ begin
 end;
 
 
+class procedure TPartySvc.SetProductAddr(Place:Integer; Addr:Byte);
+var
+    req : ISuperobject;s:string;
+begin
+    req := SO;
+    SuperObject_SetField(req, 'Place', Place); SuperObject_SetField(req, 'Addr', Addr); 
+    ThttpRpcClient.GetResponse(GetHttpServerAddr + '/rpc', 'PartySvc.SetProductAddr', req); 
+end;
+
+
 class procedure TPartySvc.SetProductSerial(ProductID:Int64; SerialStr:string);
 var
     req : ISuperobject;s:string;
@@ -176,16 +188,6 @@ begin
     req := SO;
     
     SuperObject_Get(ThttpRpcClient.GetResponse(GetHttpServerAddr + '/rpc', 'ConfigSvc.SetDefault', req), Result); 
-end;
-
-
-class procedure TConfigSvc.SetPlaceAddr(Place:Integer; Addr:Byte);
-var
-    req : ISuperobject;s:string;
-begin
-    req := SO;
-    SuperObject_SetField(req, 'Place', Place); SuperObject_SetField(req, 'Addr', Addr); 
-    ThttpRpcClient.GetResponse(GetHttpServerAddr + '/rpc', 'ConfigSvc.SetPlaceAddr', req); 
 end;
 
 
