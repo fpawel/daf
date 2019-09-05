@@ -172,10 +172,6 @@
             <Form>FormEditText</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="UnitFormTomlEditor.pas">
-            <Form>FormTomlEditor</Form>
-            <FormType>dfm</FormType>
-        </DCCReference>
         <DCCReference Include="utils\richeditutils.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>

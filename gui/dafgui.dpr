@@ -50,7 +50,6 @@ uses
   UnitFormPopup in 'UnitFormPopup.pas' {FormPopup},
   UnitFormDataTable in 'UnitFormDataTable.pas' {FormDataTable},
   UnitFormEditText in 'UnitFormEditText.pas' {FormEditText},
-  UnitFormTomlEditor in 'UnitFormTomlEditor.pas' {FormTomlEditor},
   richeditutils in 'utils\richeditutils.pas';
 
 {$R *.res}
