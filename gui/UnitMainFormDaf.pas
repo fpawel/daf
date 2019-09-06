@@ -175,25 +175,7 @@ begin
 
     SetOnWorkComplete(OnWorkComplete);
 
-    SetOnProductError(
-        procedure(x: TProductError)
-        begin
-            FormLastParty.OnProductError(x);
-            LabelStatusBottom1.Font.Color := clRed;
-            LabelStatusBottom1.Caption := Format('%d: %s',
-              [x.Place, x.Message]);
-        end);
-
-    SetOnReadProductValue(
-        procedure(x: TProductValue)
-        begin
-            LabelStatusBottom1.Font.Color := clNavy;
-            LabelStatusBottom1.Caption := Format('%d: %s=%s',
-              [x.Place, x.Column, x.Value]);
-            FormLastParty.OnProductValue(x);
-        end
-
-      );
+    SetOnPlaceConnection(FormLastParty.OnProductConnection);
 
     SetOnDelay(SetupDelay);
 

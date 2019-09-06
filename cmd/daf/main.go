@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 func main() {
@@ -22,7 +21,9 @@ func main() {
 	flag.Parse()
 
 	structlog.DefaultLogger.
-		SetLogFormat(structlog.JSON).
+		//SetLogFormat(structlog.JSON).
+		//SetTimeFormat(time.RFC3339Nano).
+		//SetTimeValFormat(time.RFC3339Nano).
 		// Wrong log.level is not fatal, it will be reported and set to "debug".
 		SetLogLevel(structlog.ParseLevel(*logLevel)).
 		SetPrefixKeys(
@@ -45,8 +46,7 @@ func main() {
 			"фоновый_опрос":     " %[1]s=`%[2]s`",
 			"arg":               " %[1]s=`%[2]s`",
 			"duration":          " %[1]s=`%[2]s`",
-		}).SetTimeFormat(time.RFC3339Nano).
-		SetTimeValFormat(time.RFC3339Nano)
+		})
 
 	app.Run()
 

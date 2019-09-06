@@ -242,7 +242,6 @@ object FormEditText: TFormEditText
     EdgeOuter = esNone
     Images = ImageList4
     TabOrder = 0
-    ExplicitHeight = 657
     object ToolButton2: TToolButton
       Left = 0
       Top = 0

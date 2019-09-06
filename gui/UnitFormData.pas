@@ -34,6 +34,7 @@ type
         FFormDataTable1, FFormDataTable2: TFormDataTable;
 
         procedure FetchProductData(productID: int64);
+        procedure SetupColumnsWidth2;
 
     public
         { Public declarations }
@@ -231,9 +232,26 @@ begin
         BorderStyle := bsNone;
         Align := alClient;
         SetTable(pp.T2);
+        SetupColumnsWidth2;
         Visible := StringGrid2.RowCount > 1;
     end;
 
+end;
+
+procedure TFormData.SetupColumnsWidth2;
+var
+    ACol: Integer;
+begin
+    with FFormDataTable2.StringGrid2 do
+    begin
+        ColWidths[ColCount - 1] := Panel2.Width - 50;
+        for ACol := 0 to ColCount - 2 do
+        begin
+            StringGrid_SetupColumnWidth(FFormDataTable2.StringGrid2, ACol);
+            ColWidths[ColCount - 1] :=
+              ColWidths[ColCount - 1] - ColWidths[ACol];
+        end;
+    end;
 end;
 
 end.

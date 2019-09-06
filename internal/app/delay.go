@@ -41,7 +41,7 @@ func delay(x worker, duration time.Duration, name string) error {
 				return merry.New("для опроса необходимо установить галочку для как минимум одиного прибора")
 			}
 			for _, p := range party.CheckedProducts() {
-				_, _, err := x.readPlace(p)
+				_, _, err := x.readProduct(p)
 				if ctxRootWork.Err() != nil {
 					return ctxRootWork.Err()
 				}

@@ -25,17 +25,32 @@ type DafIndication struct {
 	Mode uint16
 }
 
-type DafInfo struct {
-	Version, VersionID, Gas float64
-}
-
 type EN6408Value struct {
 	Current float64
 	Threshold1,
 	Threshold2 bool
 }
 
-func (x worker) readPlace(p party.Product) (a DafIndication, b EN6408Value, err error) {
+func (x worker) writeProduct(p party.Product, cmd modbus.DevCmd, arg float64) error {
+	x.log = logProduct(x.log, p)
+	if err := modbus.Write32(x.log, x.ctx, x.portProducts, p.Addr, 0x10, cmd, arg); err != nil {
+		if isDeviceError(err) {
+			notify.PlaceConnection(nil, types.PlaceConnection{
+				Place: p.Place,
+				Text:  fmt.Sprintf("$%X: %v", cmd, err),
+			})
+		}
+		return err
+	}
+	notify.PlaceConnection(x.log.Info, types.PlaceConnection{
+		Place: p.Place,
+		Text:  fmt.Sprintf("$%X<-%v", cmd, arg),
+		Ok:    true,
+	})
+	return nil
+}
+
+func (x worker) readProduct(p party.Product) (a DafIndication, b EN6408Value, err error) {
 	a, err = x.dafReadIndication(p)
 	if err != nil {
 		return
@@ -59,70 +74,82 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 	if err != nil {
 		return result, merry.Appendf(err, "ЭН6408: место %d", p.Place)
 	}
-	go notify.ReadProductValue(x.log.Debug, types.ProductValue{
+	go notify.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Ток",
-		Value:  myfmt.FormatFloat(result.Current, -1),
+		Text:   myfmt.FormatFloat(result.Current, -1),
+		Ok:     true,
 	})
-	go notify.ReadProductValue(x.log.Debug, types.ProductValue{
+	go notify.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Реле 1",
-		Value:  formatOnOf(result.Threshold1),
+		Text:   formatOnOf(result.Threshold1),
+		Ok:     true,
 	})
-	go notify.ReadProductValue(x.log.Debug, types.ProductValue{
+	go notify.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Реле 2",
-		Value:  formatOnOf(result.Threshold2),
+		Text:   formatOnOf(result.Threshold2),
+		Ok:     true,
 	})
 	return result, nil
 }
 
-func (x worker) dafReadUInt16(p party.Product, Var devVar, formatFunc func(int) string) (uint16, error) {
+func (x worker) dafReadUInt16(p party.Product, Var modbus.Var, column string, formatFunc func(int) string) (uint16, error) {
 	log := logProduct(x.log, p)
-	log = gohelp.LogPrependSuffixKeys(log, "var", Var.Name)
-	value, err := modbus.Read3UInt16(log, x.ctx, x.portProducts, p.Addr, Var.Code)
+	if len(column) > 0 {
+		log = gohelp.LogPrependSuffixKeys(log, "column", column)
+	}
+	c := types.PlaceConnection{
+		Place:  p.Place,
+		Column: column,
+	}
+	defer func() {
+		go notify.PlaceConnection(nil, c)
+	}()
+
+	value, err := modbus.Read3UInt16(log, x.ctx, x.portProducts, p.Addr, Var)
 	if err == nil {
 		if formatFunc == nil {
 			formatFunc = strconv.Itoa
 		}
-		go notify.ReadProductValue(x.log.Debug, types.ProductValue{
-			Place:  p.Place,
-			Column: Var.Name,
-			Value:  formatFunc(int(value)),
-		})
+		c.Text = formatFunc(int(value))
+		c.Ok = true
 		return value, err
 	}
 	if isDeviceError(err) {
-		go notify.ProductError(x.log.PrintErr, types.ProductError{
-			Place:   p.Place,
-			Message: err.Error(),
-		})
+		c.Text = err.Error()
 	}
 	return 0, err
 }
 
-func (x worker) dafReadFloat(p party.Product, Var devVar, formatFunc func(float64) string) (float64, error) {
+func (x worker) dafReadFloat(p party.Product, Var modbus.Var, column string, formatFunc func(float64) string) (float64, error) {
 	log := logProduct(x.log, p)
-	log = gohelp.LogPrependSuffixKeys(log, "var", Var.Name)
-	value, err := modbus.Read3BCD(log, x.ctx, x.portProducts, p.Addr, Var.Code)
+	if len(column) > 0 {
+		log = gohelp.LogPrependSuffixKeys(log, "column", column)
+	}
+
+	c := types.PlaceConnection{
+		Place:  p.Place,
+		Column: column,
+	}
+	defer func() {
+		go notify.PlaceConnection(nil, c)
+	}()
+
+	value, err := modbus.Read3BCD(log, x.ctx, x.portProducts, p.Addr, Var)
 	if err == nil {
 		if formatFunc == nil {
 			formatFunc = func(f float64) string {
 				return myfmt.FormatFloat(value, -1)
 			}
 		}
-		go notify.ReadProductValue(x.log.Debug, types.ProductValue{
-			Place:  p.Place,
-			Column: Var.Name,
-			Value:  formatFunc(value),
-		})
+		c.Ok = true
+		c.Text = formatFunc(value)
 		return value, err
 	}
 	if isDeviceError(err) {
-		go notify.ProductError(x.log.PrintErr, types.ProductError{
-			Place:   p.Place,
-			Message: err.Error(),
-		})
+		c.Text = err.Error()
 	}
 	return 0, err
 }
@@ -137,31 +164,12 @@ func (x worker) dafReadIndication(p party.Product) (r DafIndication, err error) 
 		{varThr2, &r.Threshold2},
 		{varFailureCode, &r.Failure},
 	} {
-		if *a.p, err = x.dafReadFloat(p, a.Var, nil); err != nil {
+		if *a.p, err = x.dafReadFloat(p, a.Var.Code, a.Var.Name, nil); err != nil {
 			return
 		}
 	}
-	if r.Mode, err = x.dafReadUInt16(p, varMode, nil); err == nil {
+	if r.Mode, err = x.dafReadUInt16(p, varMode.Code, varMode.Name, nil); err == nil {
 		return
-	}
-	return
-}
-
-func (x worker) dafReadInfo(p party.Product) (r DafInfo, err error) {
-	for _, a := range []struct {
-		Var devVar
-		p   *float64
-		f   func(float64) string
-	}{
-		{varGas, &r.Gas, nil},
-		{varSoftVer, &r.Version, nil},
-		{varSoftVerID, &r.VersionID, func(f float64) string {
-			return fmt.Sprintf("%X", int(f))
-		}},
-	} {
-		if *a.p, err = x.dafReadFloat(p, a.Var, a.f); err != nil {
-			return
-		}
 	}
 	return
 }
@@ -202,12 +210,12 @@ type devVar struct {
 }
 
 var (
-	varC           = devVar{0x00, "Концентрация"}
-	varThr1        = devVar{0x1C, "Порог 1"}
-	varThr2        = devVar{0x1E, "Порог 2"}
-	varMode        = devVar{0x23, "Режим"}
-	varFailureCode = devVar{0x20, "Код отказа"}
-	varSoftVer     = devVar{0x36, "Версия ПО"}
-	varSoftVerID   = devVar{0x3A, "ID версии ПО"}
-	varGas         = devVar{0x32, "Газ"}
+	varC                      = devVar{0x00, "Концентрация"}
+	varThr1                   = devVar{0x1C, "Порог 1"}
+	varThr2                   = devVar{0x1E, "Порог 2"}
+	varMode                   = devVar{0x23, "Режим"}
+	varFailureCode            = devVar{0x20, "Отказ"}
+	varSoftVer     modbus.Var = 0x36
+	varSoftVerID   modbus.Var = 0x3A
+	varGas         modbus.Var = 0x32
 )

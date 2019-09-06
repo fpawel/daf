@@ -6,19 +6,17 @@ interface
 uses superobject, Winapi.Windows, Winapi.Messages, server_data_types;
 
 type
+    TStringHandler = reference to procedure (x:string);
+    TPlaceConnectionHandler = reference to procedure (x:TPlaceConnection);
     TWorkResultInfoHandler = reference to procedure (x:TWorkResultInfo);
     TDelayInfoHandler = reference to procedure (x:TDelayInfo);
-    TStringHandler = reference to procedure (x:string);
-    TProductValueHandler = reference to procedure (x:TProductValue);
-    TProductErrorHandler = reference to procedure (x:TProductError);
     
 
 procedure HandleCopydata(var Message: TMessage);
 procedure CloseServerWindow;
 
 procedure SetOnPanic( AHandler : TStringHandler);
-procedure SetOnReadProductValue( AHandler : TProductValueHandler);
-procedure SetOnProductError( AHandler : TProductErrorHandler);
+procedure SetOnPlaceConnection( AHandler : TPlaceConnectionHandler);
 procedure SetOnWorkStarted( AHandler : TStringHandler);
 procedure SetOnWorkComplete( AHandler : TWorkResultInfoHandler);
 procedure SetOnWarning( AHandler : TStringHandler);
@@ -33,7 +31,7 @@ implementation
 uses Grijjy.Bson.Serialization, stringutils, sysutils;
 
 type
-    TServerAppCmd = (CmdPanic, CmdReadProductValue, CmdProductError, CmdWorkStarted, CmdWorkComplete, CmdWarning, CmdDelay, CmdEndDelay, 
+    TServerAppCmd = (CmdPanic, CmdPlaceConnection, CmdWorkStarted, CmdWorkComplete, CmdWarning, CmdDelay, CmdEndDelay, 
     CmdStatus);
 
     type _deserializer = record
@@ -42,8 +40,7 @@ type
 
 var
     _OnPanic : TStringHandler;
-    _OnReadProductValue : TProductValueHandler;
-    _OnProductError : TProductErrorHandler;
+    _OnPlaceConnection : TPlaceConnectionHandler;
     _OnWorkStarted : TStringHandler;
     _OnWorkComplete : TWorkResultInfoHandler;
     _OnWarning : TStringHandler;
@@ -86,17 +83,11 @@ begin
                 raise Exception.Create('_OnPanic must be set');
             _OnPanic(str);
         end;
-        CmdReadProductValue:
+        CmdPlaceConnection:
         begin
-            if not Assigned(_OnReadProductValue) then
-                raise Exception.Create('_OnReadProductValue must be set');
-            _OnReadProductValue(_deserializer.deserialize<TProductValue>(str));
-        end;
-        CmdProductError:
-        begin
-            if not Assigned(_OnProductError) then
-                raise Exception.Create('_OnProductError must be set');
-            _OnProductError(_deserializer.deserialize<TProductError>(str));
+            if not Assigned(_OnPlaceConnection) then
+                raise Exception.Create('_OnPlaceConnection must be set');
+            _OnPlaceConnection(_deserializer.deserialize<TPlaceConnection>(str));
         end;
         CmdWorkStarted:
         begin
@@ -146,17 +137,11 @@ begin
         raise Exception.Create('_OnPanic already set');
     _OnPanic := AHandler;
 end;
-procedure SetOnReadProductValue( AHandler : TProductValueHandler);
+procedure SetOnPlaceConnection( AHandler : TPlaceConnectionHandler);
 begin
-    if Assigned(_OnReadProductValue) then
-        raise Exception.Create('_OnReadProductValue already set');
-    _OnReadProductValue := AHandler;
-end;
-procedure SetOnProductError( AHandler : TProductErrorHandler);
-begin
-    if Assigned(_OnProductError) then
-        raise Exception.Create('_OnProductError already set');
-    _OnProductError := AHandler;
+    if Assigned(_OnPlaceConnection) then
+        raise Exception.Create('_OnPlaceConnection already set');
+    _OnPlaceConnection := AHandler;
 end;
 procedure SetOnWorkStarted( AHandler : TStringHandler);
 begin

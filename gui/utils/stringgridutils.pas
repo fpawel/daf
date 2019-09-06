@@ -22,7 +22,7 @@ procedure StringGrid_DrawCellBounds(cnv: TCanvas; acol, arow: integer;
   Rect: TRect);
 
 procedure StringGrid_DrawCellBmp(grd: TStringGrid; Rect: TRect;
-  bmp: vcl.graphics.TBitmap);
+  bmp: vcl.graphics.TBitmap; AText:string);
 
 procedure StringGrid_RedrawCol(grd: TStringGrid; acol: integer);
 
@@ -37,10 +37,26 @@ procedure StringGrid_DrawMeregedCell(grd: TStringGrid; AText: string;
 procedure StringGrid_SetupColumnWidth(grd: TStringGrid; acol: integer);
 procedure StringGrid_SetupColumnsWidth(grd: TStringGrid);
 procedure StringGrid_Unselect(grd: TStringGrid);
+Procedure StringGrid_MoveColumn(G: TStringGrid; OldPosition: integer;
+  NewPosition: integer);
 
 implementation
 
 uses Clipbrd, winapi.windows, system.math, winapi.uxtheme, stringutils;
+
+Procedure StringGrid_MoveColumn(G: TStringGrid; OldPosition: integer;
+  NewPosition: integer);
+var
+    i: integer;
+    temp: string;
+begin
+    for i := 0 to G.rowcount - 1 do
+    begin
+        temp := G.cells[OldPosition, i];
+        G.cells[OldPosition, i] := '';
+        G.cells[NewPosition, i] := temp;
+    end;
+end;
 
 procedure StringGrid_CopytoClipboard(StringGrid1: TStringGrid);
 var
@@ -52,7 +68,7 @@ begin
         for r := Selection.Top to Selection.Bottom do
             for c := Selection.Left to Selection.Right do
             begin
-                s := s + Cells[c, r];
+                s := s + cells[c, r];
                 if c < Selection.Right then
                     s := s + #9
                 else
@@ -115,7 +131,7 @@ begin
     with grd do
         for acol := 0 to colcount - 1 do
             for arow := 0 to rowcount - 1 do
-                Cells[acol, arow] := Cells[acol, arow];
+                cells[acol, arow] := cells[acol, arow];
 end;
 
 procedure StringGrid_RedrawCell(grd: TStringGrid; acol, arow: integer);
@@ -123,29 +139,29 @@ begin
     with grd do
         if (acol >= 0) AND (acol < colcount) AND (arow >= 0) AND
           (arow < rowcount) then
-            Cells[acol, arow] := Cells[acol, arow];
+            cells[acol, arow] := cells[acol, arow];
 end;
 
 procedure StringGrid_RedrawRow(grd: TStringGrid; arow: integer);
 var
-    I: integer;
+    i: integer;
 begin
     with grd do
         if (arow >= 0) AND (arow < rowcount) then
-            for I := 0 to colcount - 1 do
-
-                Cells[I, arow] := Cells[I, arow];
+            for i := 0 to colcount - 1 do
+                if not ( EditorMode AND (Col = i) AND (Row = ARow) ) then
+                    cells[i, arow] := cells[i, arow];
 end;
 
 procedure StringGrid_RedrawCol(grd: TStringGrid; acol: integer);
 var
-    I: integer;
+    i: integer;
 begin
     with grd do
         if (acol >= 0) AND (acol < rowcount) then
-            for I := 0 to colcount - 1 do
+            for i := 0 to colcount - 1 do
 
-                Cells[acol, 1] := Cells[acol, I];
+                cells[acol, 1] := cells[acol, i];
 end;
 
 procedure StringGrid_Clear(grd: TStringGrid);
@@ -155,14 +171,14 @@ begin
     with grd do
         for acol := 0 to colcount - 1 do
             for arow := 0 to rowcount - 1 do
-                Cells[acol, arow] := '';
+                cells[acol, arow] := '';
 end;
 
 procedure StringGrid_DrawCheckBoxCell(grd: TStringGrid; acol, arow: integer;
   Rect: TRect; State: TGridDrawState; checked: boolean);
 begin
     grd.Canvas.FillRect(Rect);
-    DrawCheckbox(grd, grd.Canvas, Rect, checked, grd.Cells[acol, arow]);
+    DrawCheckbox(grd, grd.Canvas, Rect, checked, grd.cells[acol, arow]);
 end;
 
 procedure DrawCheckbox(par_ctrl: TWinControl; cnv: TCanvas; Rect: TRect;
@@ -268,14 +284,14 @@ begin
         x := x + bmp.Width + 2;
     end;
 
-    DrawText(grd.Canvas.Handle, grd.Cells[acol, arow],
-      length(grd.Cells[acol, arow]), text_rect, DT_SINGLELINE or DT_VCENTER or
+    DrawText(grd.Canvas.Handle, grd.cells[acol, arow],
+      length(grd.cells[acol, arow]), text_rect, DT_SINGLELINE or DT_VCENTER or
       DT_RIGHT or DT_END_ELLIPSIS);
 
 end;
 
 procedure StringGrid_DrawCellBmp(grd: TStringGrid; Rect: TRect;
-  bmp: vcl.graphics.TBitmap);
+  bmp: vcl.graphics.TBitmap; AText:string);
 const
     PADDING = 4;
 var
@@ -311,6 +327,8 @@ begin
     end;
     x := r.Right + 2;
     grd.Canvas.Draw(r.Left + 2, Rect.Top + 3, bmp);
+    if Length(AText) > 0 then
+        grd.Canvas.TextOut(r.Left + 2 + bmp.Width + 5, Rect.Top + 2, Atext);
 end;
 
 procedure StringGrid_DrawMeregedCell(grd: TStringGrid; AText: string;
@@ -345,14 +363,14 @@ end;
 procedure StringGrid_SetupColumnWidth(grd: TStringGrid; acol: integer);
 var
     w, arow: integer;
-    s:string;
+    s: string;
 begin
     with grd do
     begin
         ColWidths[acol] := DefaultColWidth;
         for arow := 0 to rowcount - 1 do
         begin
-            s := Cells[acol, arow];
+            s := cells[acol, arow];
             w := Canvas.TextWidth(s);
             if ColWidths[acol] < w + 5 then
                 ColWidths[acol] := w + 5;

@@ -46,7 +46,8 @@ implementation
 
 {$R *.dfm}
 
-uses types, StrUtils, stringgridutils, UnitFormPopup, app, services;
+uses types, StrUtils, stringgridutils, UnitFormPopup, app, services,
+  stringutils;
 
 function coord(x, y: integer): TCoord;
 begin
@@ -108,6 +109,7 @@ var
     cnv: TCanvas;
     ta: TAlignment;
     AMergeRect: TMeregedRow;
+    not_used:double;
 begin
     grd := StringGrid2;
     cnv := grd.Canvas;
@@ -138,7 +140,10 @@ begin
     ta := taCenter;
     if (ACol > 0) ANd (ARow > 0) then
     begin
-        ta := taRightJustify;
+        if try_str_to_float(grd.Cells[ACol, ARow], not_used) then
+            ta := taRightJustify
+        else
+            ta := taLeftJustify;
         if FCells.ContainsKey(coord(ACol, ARow)) then
             cnv.Font.Color := FCells[coord(ACol, ARow)].Color;
     end;
@@ -185,6 +190,8 @@ begin
 
         ColCount := length(ATable[0]);
         RowCount := length(ATable);
+        if rowcount > 1 then
+            FixedRows := 1;
 
         for I := 0 to length(ATable[0]) - 1 do
             Cells[I, 0] := ATable[0][I];

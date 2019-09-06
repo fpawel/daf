@@ -31,12 +31,8 @@ func main() {
 				r.TypeOf((*string)(nil)).Elem(),
 			},
 			{
-				"ReadProductValue",
-				r.TypeOf((*types.ProductValue)(nil)).Elem(),
-			},
-			{
-				"ProductError",
-				r.TypeOf((*types.ProductError)(nil)).Elem(),
+				"PlaceConnection",
+				r.TypeOf((*types.PlaceConnection)(nil)).Elem(),
 			},
 			{
 				"WorkStarted",

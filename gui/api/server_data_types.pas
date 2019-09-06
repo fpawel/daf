@@ -9,42 +9,44 @@ type
     
     TProduct = record
     public
-        ProductID : Int64;
-        Serial : Integer;
         Place : Integer;
         Addr : Byte;
         Checked : Boolean;
+        ProductID : Int64;
+        Serial : Integer;
         
     end;
     
     TParty = record
     public
-        Component : Integer;
+        C4 : Double;
         Scale : Double;
-        Thr1Prod : Double;
-        CreatedAt : TDateTime;
+        AbsErrRng : Double;
         ProductType : Integer;
+        C2 : Double;
+        C3 : Double;
+        Thr1Test : Double;
+        CreatedAt : TDateTime;
+        Component : Integer;
+        Thr2Prod : Double;
+        Thr2Test : Double;
+        Thr1Prod : Double;
+        PartyID : Int64;
         C1 : Double;
         AbsErrLim : Double;
         RelErrLim : Double;
-        Thr2Prod : Double;
-        Thr2Test : Double;
-        C2 : Double;
-        C4 : Double;
-        AbsErrRng : Double;
-        Thr1Test : Double;
-        C3 : Double;
-        PartyID : Int64;
         
     end;
     
     TGuiSettings = record
     public
-        DurationBlowAirMinutes : Integer;
-        PauseReadPlaceMillis : Integer;
+        SoftVersion : Byte;
+        SoftVersionID : Word;
         ComportProducts : string;
         ComportHart : string;
         DurationBlowGasMinutes : Integer;
+        DurationBlowAirMinutes : Integer;
+        PauseReadPlaceMillis : Integer;
         
     end;
     
@@ -57,12 +59,12 @@ type
     
     TProductInfo = record
     public
-        Day : Integer;
-        Hour : Integer;
-        Minute : Integer;
         ProductID : Int64;
         PartyID : Int64;
         Serial : Integer;
+        Day : Integer;
+        Hour : Integer;
+        Minute : Integer;
         
     end;
     
@@ -73,26 +75,20 @@ type
         
     end;
     
-    TProductValue = record
+    TPlaceConnection = record
     public
         Place : Integer;
+        Text : string;
         Column : string;
-        Value : string;
-        
-    end;
-    
-    TProductError = record
-    public
-        Place : Integer;
-        Message : string;
+        Ok : Boolean;
         
     end;
     
     TWorkResultInfo = record
     public
-        Work : string;
         Result : Integer;
         Message : string;
+        Work : string;
         
     end;
     

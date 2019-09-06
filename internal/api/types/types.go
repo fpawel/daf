@@ -13,15 +13,11 @@ type TempPlusMinus struct {
 	TempPlus, TempMinus float64
 }
 
-type ProductValue struct {
+type PlaceConnection struct {
 	Place  int
+	Text   string
 	Column string
-	Value  string
-}
-
-type ProductError struct {
-	Place   int
-	Message string
+	Ok     bool
 }
 
 type WorkResult int

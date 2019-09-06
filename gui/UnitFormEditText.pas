@@ -55,7 +55,13 @@ begin
 end;
 
 procedure TFormEditText.ToolButton1Click(Sender: TObject);
+var
+    r: Integer;
 begin
+    r := MessageBox(Handle, 'Подтвердите необходимость установки всех настроек приложения по умолчанию.',
+      'Запрос подтверждения', mb_IconQuestion or mb_YesNo);
+    if r <> mrYes then
+        exit;
     RichEdit1.Text := TConfigSvc.SetDefault;
     Colorize;
 

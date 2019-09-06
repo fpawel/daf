@@ -46,7 +46,7 @@ type
         FhWndTip: THandle;
         FPlaceInterrogate: Integer;
         FPlaceConnection: TDictionary<Integer, TConnectionInfo>;
-
+        FProducts: TArray<TProduct>;
         procedure WMWindowPosChanged(var AMessage: TMessage);
           message WM_WINDOWPOSCHANGED;
         procedure WMEnterSizeMove(var Msg: TMessage); message WM_ENTERSIZEMOVE;
@@ -59,25 +59,26 @@ type
 
     public
         { Public declarations }
-        FProducts: TArray<TProduct>;
+
         procedure reload_data;
         procedure setup_products;
 
-        procedure OnProductError(X: TProductError);
-        procedure OnProductValue(X: TProductValue);
+        procedure OnProductConnection(X: TPlaceConnection);
         procedure OnWorkComplete;
     end;
 
 var
     FormLastParty: TFormLastParty;
+const
+    ColumnConnection = 3;
 
 implementation
 
 uses stringgridutils, stringutils, dateutils,
-    vclutils, ComponentBaloonHintU, services, HttpRpcClient, app;
+    vclutils, ComponentBaloonHintU, services, HttpRpcClient, app,
+    UnitMainFormDaf;
 
 {$R *.dfm}
-
 
 procedure TFormLastParty.FormCreate(Sender: TObject);
 
@@ -91,7 +92,7 @@ procedure TFormLastParty.FormShow(Sender: TObject);
 // var
 // place, n: Integer;
 begin
-    //reload_data;
+    // reload_data;
 
     // for n := 0 to Length(AppVars) - 1 do
     // for place := 0 to Length(FProducts) - 1 do
@@ -251,21 +252,37 @@ var
     cnv: TCanvas;
     p: TProduct;
     connInfo: TConnectionInfo;
-    connBmpIndex1, connBmpIndex2: Integer;
-    ta : TAlignment;
+    ta: TAlignment;
 
     procedure DrawCellConnection;
     var
         bmp: TBitmap;
-        rr:TRect;
+        n: Integer;
     begin
+        n := 0;
+        if not connInfo.Ok then
+            n := 3;
+        if gdSelected in State then
+            n := n + 1
+        else if ARow = FPlaceInterrogate + 1 then
+            n := n + 2;
+
         bmp := TBitmap.create;
-        ImageList2.GetBitmap(connBmpIndex1 + connBmpIndex2, bmp);
-        //StringGrid1.Canvas.FillRect(Rect);
-        rr := Rect;
-        rr.Right := rr.Left + bmp.Width;
-        StringGrid_DrawCellBmp(StringGrid1, rr, bmp);
+        ImageList2.GetBitmap(n, bmp);
+        // StringGrid1.Canvas.FillRect(Rect);
+        StringGrid_DrawCellBmp(StringGrid1, Rect, bmp, grd.Cells[ACol, ARow]);
         bmp.Free
+    end;
+
+    procedure DrawHeaderCell;
+    begin
+        ta := taCenter;
+        if (ACol = grd.ColCount - 1) then
+            ta := taLeftJustify;
+        grd.Canvas.FillRect(Rect);
+        DrawCellText(StringGrid1, ACol, ARow, Rect, ta,
+          StringGrid1.Cells[ACol, ARow]);
+        StringGrid_DrawCellBounds(StringGrid1.Canvas, ACol, 0, Rect);
     end;
 
 begin
@@ -279,19 +296,15 @@ begin
 
     if ARow = 0 then
     begin
-        DrawCellText(StringGrid1, ACol, ARow, Rect, taCenter,
-          StringGrid1.Cells[ACol, ARow]);
-        StringGrid_DrawCellBounds(StringGrid1.Canvas, ACol, 0, Rect);
+        DrawHeaderCell;
         exit;
     end;
 
     p := FProducts[ARow - 1];
 
-    connBmpIndex2 := 0;
     if ARow = FPlaceInterrogate + 1 then
     begin
         cnv.Brush.Color := clSkyBlue;
-        connBmpIndex2 := 2;
     end;
 
     if ACol = 0 then
@@ -305,29 +318,32 @@ begin
     if gdSelected in State then
     begin
         cnv.Brush.Color := clGradientInactiveCaption;
-        connBmpIndex2 := 1;
     end;
 
-    connBmpIndex1 := 0;
+    if (ACol = ColumnConnection) AND FPlaceConnection.TryGetValue(ARow - 1,
+      connInfo) then
+    begin
+        if FPlaceConnection.TryGetValue(ARow - 1, connInfo) then
+            if connInfo.Ok then
+                cnv.Font.Color := clBlue
+            else
+                cnv.Font.Color := clRed;
+        DrawCellConnection;
+        StringGrid_DrawCellBounds(cnv, ACol, ARow, Rect);
+        exit;
+    end;
 
     ta := taLeftJustify;
-    if (ACol = 1) then
-        ta := taRightJustify;
-
     DrawCellText(StringGrid1, ACol, ARow, Rect, ta,
-          StringGrid1.Cells[ACol, ARow]);
-    if (ACol = 1) AND FPlaceConnection.TryGetValue(ARow - 1, connInfo) then
-    begin
-        if not connInfo.Ok then
-            connBmpIndex1 := 3;
-        DrawCellConnection;
-    end;
+      StringGrid1.Cells[ACol, ARow]);
     StringGrid_DrawCellBounds(cnv, ACol, ARow, Rect);
+
 end;
 
 procedure TFormLastParty.setup_products;
 var
     place, n, ARow, ACol: Integer;
+    connInfo: TConnectionInfo;
 
 begin
     Height := StringGrid1.DefaultRowHeight * (Length(FProducts) + 1) + 50;
@@ -336,7 +352,7 @@ begin
     begin
         self.Height := DefaultRowHeight * (Length(FProducts) + 1) + 50;
 
-        ColCount := 3;
+        ColCount := 4;
         RowCount := Length(FProducts) + 1;
         if Length(FProducts) = 0 then
             exit;
@@ -348,16 +364,19 @@ begin
         Cells[0, 0] := '№ ДАФ';
         Cells[1, 0] := 'Адрес';
         Cells[2, 0] := 'Сер.№';
+        Cells[ColumnConnection, 0] := 'Связь';
+        ColWidths[ColumnConnection] := 200;
 
         for ARow := 1 to RowCount - 1 do
         begin
             Cells[0, ARow] := Inttostr(FProducts[ARow - 1].ProductID);
-            Cells[1, ARow] := IntToStr(FProducts[ARow - 1].addr);
+            Cells[1, ARow] := Inttostr(FProducts[ARow - 1].addr);
             Cells[2, ARow] := Inttostr(FProducts[ARow - 1].Serial);
-        end;
+            if FPlaceConnection.TryGetValue(ARow - 1, connInfo) then
+                Cells[ColumnConnection, ARow] := connInfo.Text;
 
+        end;
     end;
-    StringGrid_SetupColumnsWidth(StringGrid1);
 end;
 
 procedure TFormLastParty.reload_data;
@@ -368,6 +387,7 @@ begin
               [PartyID, FormatDateTime('dd MMMM yyyy hh:nn',
               IncHour(CreatedAt, 3))]);
     FProducts := TPartySvc.Products;
+    FPlaceInterrogate := -1;
     setup_products;
 
 end;
@@ -379,12 +399,12 @@ begin
     CloseWindow(FhWndTip);
     p := FProducts[ARow - 1];
     try
-        TPartySvc.SetProductAddr(ARow-1, StrToInt(value));
+        TPartySvc.SetProductAddr(ARow - 1, StrToInt(Value));
         FProducts[ARow - 1].addr := StrToInt(Value);
     except
         on E: Exception do
         begin
-            StringGrid1.Cells[ACol, ARow] := IntToStr(p.addr);
+            StringGrid1.Cells[ACol, ARow] := Inttostr(p.addr);
             E.Message := 'адрес: ' + E.Message;
             raise;
         end;
@@ -403,14 +423,14 @@ begin
     except
         on E: Exception do
         begin
-            StringGrid1.Cells[ACol, ARow] := IntToStr(p.Serial);
+            StringGrid1.Cells[ACol, ARow] := Inttostr(p.Serial);
             E.Message := 'серийный номер: ' + E.Message;
             raise;
         end;
     end;
 end;
 
-procedure TFormLastParty.OnProductValue(X: TProductValue);
+procedure TFormLastParty.OnProductConnection(X: TPlaceConnection);
 var
     ACol, prevPlaceInterrogate: Integer;
     connInfo: TConnectionInfo;
@@ -422,46 +442,50 @@ begin
 
     FPlaceInterrogate := X.place;
 
-    connInfo.Ok := true;
-    connInfo.Text := Format('%d: %s=%s', [x.Place, X.Column, X.Value]);
-    FPlaceConnection.AddOrSetValue(X.place, connInfo);
+    connInfo.Ok := X.Ok;
+    connInfo.Text := Format('%d: %s', [X.place, X.Text]);
 
     with StringGrid1 do
-    begin
-        ACol := Rows[0].IndexOf(X.Column);
-        if ACol = -1 then
+        if (X.Column <> '') AND X.Ok then
         begin
-            ColCount := ColCount + 1;
-            ACol := ColCount - 1;
-            Cells[ACol, 0] := X.Column;
-        end;
-        StringGrid1.Cells[ACol, X.place + 1] := X.Value;
-        StringGrid_SetupColumnWidth(StringGrid1, ACol);
+            connInfo.Text := Format('%d: %s=%s', [X.place, X.Column, X.Text]);
+            ACol := Rows[0].IndexOf(X.Column);
+            if ACol = -1 then
+            begin
+                ColCount := ColCount + 1;
+                ACol := ColCount - 1;
+                Cells[ACol, 0] := X.Column;
+            end;
+            Cells[ACol, X.place + 1] := X.Text;
+            StringGrid_SetupColumnWidth(StringGrid1, ACol);
+
+            Cells[3, X.place + 1] :=
+              Format('%s=%s', [X.Column, X.Text]);
+
+        end
+        else
+            Cells[3, X.place + 1] := X.Text;
+
+    FPlaceConnection.AddOrSetValue(X.place, connInfo);
+
+    if X.Ok = true then
+    begin
+        MainFormDaf.LabelStatusBottom1.Font.Color := clBlue;
+    end
+    else
+    begin
+        MainFormDaf.LabelStatusBottom1.Font.Color := clRed;
     end;
+    MainFormDaf.LabelStatusBottom1.Caption := connInfo.Text;
+
+    if prevPlaceInterrogate = X.place then
+        exit;
 
     if (prevPlaceInterrogate > -1) AND (prevPlaceInterrogate <> X.place) then
         StringGrid_RedrawRow(StringGrid1, prevPlaceInterrogate + 1);
 
     StringGrid_RedrawRow(StringGrid1, X.place + 1);
 
-end;
-
-procedure TFormLastParty.OnProductError(X: TProductError);
-var
-    prevPlaceInterrogate: Integer;
-    connInfo: TConnectionInfo;
-begin
-    prevPlaceInterrogate := FPlaceInterrogate;
-
-    FPlaceInterrogate := x.Place;
-
-    connInfo.Ok := false;
-    connInfo.Text := X.Message;
-    FPlaceConnection.AddOrSetValue(x.Place, connInfo);
-
-    if (prevPlaceInterrogate > -1) AND (prevPlaceInterrogate <> x.Place) then
-        StringGrid_RedrawRow(StringGrid1, prevPlaceInterrogate + 1);
-    StringGrid_RedrawRow(StringGrid1, x.Place + 1);
 end;
 
 procedure TFormLastParty.OnWorkComplete;
@@ -474,5 +498,6 @@ begin
         StringGrid_RedrawRow(StringGrid1, prevPlaceInterrogate + 1);
 
 end;
+
 
 end.

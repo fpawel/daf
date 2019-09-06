@@ -22,6 +22,8 @@ type GuiSettings struct {
 	DurationBlowGasMinutes int    `toml:"duration_blow_gas" comment:"длительность продувки газа в минутах"`
 	DurationBlowAirMinutes int    `toml:"duration_blow_air" comment:"длительность продувки воздуха в минутах"`
 	PauseReadPlaceMillis   int    `toml:"pause_read_place" comment:"длительность паузы между опросом мест стенда"`
+	SoftVersion            byte   `toml:"soft_version" comment:"Контролирумое значение ВПО ДАФ-М"`
+	SoftVersionID          uint16 `toml:"soft_version_id" comment:"Контролирумое значение цифрового идентификатора ВПО ДАФ-М"`
 }
 
 type Place struct {
