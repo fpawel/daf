@@ -26,14 +26,21 @@ type DafIndication struct {
 }
 
 type EN6408Value struct {
-	Current float64
+	OutputCurrent float64
 	Threshold1,
 	Threshold2 bool
 }
 
+//func init(){
+//	rand.Seed(time.Now().UnixNano())
+//}
+
 func (x worker) writeProduct(p party.Product, cmd modbus.DevCmd, arg float64) error {
+	//pause(x.ctx.Done(), time.Millisecond * 300)
+	//return nil
 	x.log = logProduct(x.log, p)
-	if err := modbus.Write32(x.log, x.ctx, x.portProducts, p.Addr, 0x10, cmd, arg); err != nil {
+	err := modbus.Write32(x.log, x.ctx, x.portProducts, p.Addr, 0x10, cmd, arg)
+	if err != nil {
 		if isDeviceError(err) {
 			notify.PlaceConnection(nil, types.PlaceConnection{
 				Place: p.Place,
@@ -51,7 +58,7 @@ func (x worker) writeProduct(p party.Product, cmd modbus.DevCmd, arg float64) er
 }
 
 func (x worker) readProduct(p party.Product) (a DafIndication, b EN6408Value, err error) {
-	a, err = x.dafReadIndication(p)
+	a, err = x.readDafIndication(p)
 	if err != nil {
 		return
 	}
@@ -60,24 +67,30 @@ func (x worker) readProduct(p party.Product) (a DafIndication, b EN6408Value, er
 }
 
 func (x worker) read6408(p party.Product) (EN6408Value, error) {
+	//pause(x.ctx.Done(), time.Millisecond * 300)
+	//return EN6408Value{
+	//	OutputCurrent: 4 + rand.Float64() * 16,
+	//	Threshold1:    rand.Float64() < 0.5,
+	//	Threshold2:    rand.Float64() < 0.5,
+	//}, nil
 	x.log = logProduct(x.log, p)
 	x.log = gohelp.LogPrependSuffixKeys(x.log, "ЭН6408", "")
 	var result EN6408Value
 	_, err := modbus.Read3(x.log, x.ctx,
 		x.portProducts, 32, modbus.Var(p.Addr-1)*2, 2, func(_, response []byte) (string, error) {
 			b := response[3:]
-			result.Current = (float64(b[0])*256 + float64(b[1])) / 100
+			result.OutputCurrent = (float64(b[0])*256 + float64(b[1])) / 100
 			result.Threshold1 = b[3]&1 == 0
 			result.Threshold2 = b[3]&2 == 0
 			return fmt.Sprintf("%+v", result), nil
 		})
-	if err != nil {
-		return result, merry.Appendf(err, "ЭН6408: место %d", p.Place)
+	if err = wrapErrorProduct(err, p); err != nil {
+		return result, merry.Append(err, "ЭН6408")
 	}
 	go notify.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Ток",
-		Text:   myfmt.FormatFloat(result.Current, -1),
+		Text:   myfmt.FormatFloat(result.OutputCurrent, -1),
 		Ok:     true,
 	})
 	go notify.PlaceConnection(nil, types.PlaceConnection{
@@ -95,7 +108,10 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 	return result, nil
 }
 
-func (x worker) dafReadUInt16(p party.Product, Var modbus.Var, column string, formatFunc func(int) string) (uint16, error) {
+func (x worker) readUInt16(p party.Product, Var modbus.Var, column string, formatFunc func(int) string) (uint16, error) {
+	//pause(x.ctx.Done(), time.Millisecond * 300)
+	//return uint16(rand.Uint32()), nil
+
 	log := logProduct(x.log, p)
 	if len(column) > 0 {
 		log = gohelp.LogPrependSuffixKeys(log, "column", column)
@@ -109,7 +125,7 @@ func (x worker) dafReadUInt16(p party.Product, Var modbus.Var, column string, fo
 	}()
 
 	value, err := modbus.Read3UInt16(log, x.ctx, x.portProducts, p.Addr, Var)
-	if err == nil {
+	if err = wrapErrorProduct(err, p); err == nil {
 		if formatFunc == nil {
 			formatFunc = strconv.Itoa
 		}
@@ -123,7 +139,10 @@ func (x worker) dafReadUInt16(p party.Product, Var modbus.Var, column string, fo
 	return 0, err
 }
 
-func (x worker) dafReadFloat(p party.Product, Var modbus.Var, column string, formatFunc func(float64) string) (float64, error) {
+func (x worker) readFloat(p party.Product, Var modbus.Var, column string, formatFunc func(float64) string) (float64, error) {
+	//pause(x.ctx.Done(), time.Millisecond * 300)
+	//return rand.Float64(), nil
+
 	log := logProduct(x.log, p)
 	if len(column) > 0 {
 		log = gohelp.LogPrependSuffixKeys(log, "column", column)
@@ -136,9 +155,8 @@ func (x worker) dafReadFloat(p party.Product, Var modbus.Var, column string, for
 	defer func() {
 		go notify.PlaceConnection(nil, c)
 	}()
-
 	value, err := modbus.Read3BCD(log, x.ctx, x.portProducts, p.Addr, Var)
-	if err == nil {
+	if err = wrapErrorProduct(err, p); err == nil {
 		if formatFunc == nil {
 			formatFunc = func(f float64) string {
 				return myfmt.FormatFloat(value, -1)
@@ -154,7 +172,7 @@ func (x worker) dafReadFloat(p party.Product, Var modbus.Var, column string, for
 	return 0, err
 }
 
-func (x worker) dafReadIndication(p party.Product) (r DafIndication, err error) {
+func (x worker) readDafIndication(p party.Product) (r DafIndication, err error) {
 	for _, a := range []struct {
 		Var devVar
 		p   *float64
@@ -164,11 +182,11 @@ func (x worker) dafReadIndication(p party.Product) (r DafIndication, err error) 
 		{varThr2, &r.Threshold2},
 		{varFailureCode, &r.Failure},
 	} {
-		if *a.p, err = x.dafReadFloat(p, a.Var.Code, a.Var.Name, nil); err != nil {
+		if *a.p, err = x.readFloat(p, a.Var.Code, a.Var.Name, nil); err != nil {
 			return
 		}
 	}
-	if r.Mode, err = x.dafReadUInt16(p, varMode.Code, varMode.Name, nil); err == nil {
+	if r.Mode, err = x.readUInt16(p, varMode.Code, varMode.Name, nil); err == nil {
 		return
 	}
 	return
@@ -186,6 +204,8 @@ func (x worker) blowGas(n int) error {
 }
 
 func (x worker) switchGas(n int) error {
+	//pause(x.ctx.Done(), time.Millisecond * 300)
+	//return nil
 	s := "отключить"
 	if n != 0 {
 		s = fmt.Sprintf("ПГС%d", n)

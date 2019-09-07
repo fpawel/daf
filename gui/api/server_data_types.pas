@@ -9,44 +9,44 @@ type
     
     TProduct = record
     public
+        Serial : Integer;
         Place : Integer;
         Addr : Byte;
         Checked : Boolean;
         ProductID : Int64;
-        Serial : Integer;
         
     end;
     
     TParty = record
     public
-        C4 : Double;
         Scale : Double;
-        AbsErrRng : Double;
-        ProductType : Integer;
-        C2 : Double;
-        C3 : Double;
-        Thr1Test : Double;
-        CreatedAt : TDateTime;
-        Component : Integer;
-        Thr2Prod : Double;
-        Thr2Test : Double;
         Thr1Prod : Double;
         PartyID : Int64;
+        ProductType : Integer;
         C1 : Double;
+        C3 : Double;
+        AbsErrRng : Double;
+        C2 : Double;
+        C4 : Double;
         AbsErrLim : Double;
         RelErrLim : Double;
+        Component : Integer;
+        Thr2Prod : Double;
+        Thr1Test : Double;
+        Thr2Test : Double;
+        CreatedAt : TDateTime;
         
     end;
     
     TGuiSettings = record
     public
+        PauseReadPlaceMillis : Integer;
         SoftVersion : Byte;
         SoftVersionID : Word;
         ComportProducts : string;
         ComportHart : string;
         DurationBlowGasMinutes : Integer;
         DurationBlowAirMinutes : Integer;
-        PauseReadPlaceMillis : Integer;
         
     end;
     
@@ -54,6 +54,9 @@ type
     public
         T1 : TArray<TArray<string>>;
         T2 : TArray<TArray<string>>;
+        PartyID : Int64;
+        Serial : Integer;
+        CreatedAt : TDateTime;
         
     end;
     
@@ -77,18 +80,18 @@ type
     
     TPlaceConnection = record
     public
-        Place : Integer;
-        Text : string;
         Column : string;
         Ok : Boolean;
+        Place : Integer;
+        Text : string;
         
     end;
     
     TWorkResultInfo = record
     public
+        Work : string;
         Result : Integer;
         Message : string;
-        Work : string;
         
     end;
     

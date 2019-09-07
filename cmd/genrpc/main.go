@@ -58,6 +58,10 @@ func main() {
 				"Status",
 				r.TypeOf((*string)(nil)).Elem(),
 			},
+			{
+				"ProductDataChanged",
+				r.TypeOf((*int64)(nil)).Elem(),
+			},
 		},
 	})
 

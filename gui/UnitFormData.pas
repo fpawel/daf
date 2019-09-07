@@ -17,7 +17,6 @@ type
         ComboBox1: TComboBox;
         Splitter1: TSplitter;
         StringGrid1: TStringGrid;
-        Panel2: TPanel;
         procedure FormCreate(Sender: TObject);
         procedure ComboBox1Change(Sender: TObject);
         procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: integer;
@@ -26,15 +25,13 @@ type
           Rect: TRect; State: TGridDrawState);
         procedure Panel1Resize(Sender: TObject);
         procedure FormShow(Sender: TObject);
-        procedure ListBox1Click(Sender: TObject);
     private
         { Private declarations }
         FYearMonth: TArray<TYearMonth>;
         FProducts: TArray<TProductInfo>;
-        FFormDataTable1, FFormDataTable2: TFormDataTable;
 
-        procedure FetchProductData(productID: int64);
-        procedure SetupColumnsWidth2;
+
+        
 
     public
         { Public declarations }
@@ -48,7 +45,7 @@ implementation
 
 {$R *.dfm}
 
-uses app, HttpClient, services, dateutils, stringgridutils, stringutils,
+uses app, UnitFormProductData, HttpClient, services, dateutils, stringgridutils, stringutils,
     UnitFormPopup;
 
 function NewMeregedRow(ARow: integer; Atext: string): TMeregedRow;
@@ -59,21 +56,13 @@ end;
 
 procedure TFormData.FormCreate(Sender: TObject);
 begin
-    FFormDataTable1 := TFormDataTable.Create(self);
-    FFormDataTable2 := TFormDataTable.Create(self);
+    //
 end;
 
 procedure TFormData.FormShow(Sender: TObject);
 begin
     //
 
-end;
-
-procedure TFormData.ListBox1Click(Sender: TObject);
-begin
-    if StringGrid1.Row - 1 >= length(FProducts) then
-        exit;
-    FetchProductData(FProducts[StringGrid1.Row - 1].productID);
 end;
 
 procedure TFormData.Panel1Resize(Sender: TObject);
@@ -135,7 +124,11 @@ var
 begin
     if ARow - 1 >= length(FProducts) then
         exit;
-    FetchProductData(FProducts[ARow - 1].productID);
+    FormProductData.Parent := self;
+
+
+    FormProductData.FetchProductData(FProducts[ARow - 1].productID);
+    FormProductData.Show;
     Caption := 'ДАФ-М ' + IntToStr(FProducts[ARow - 1].productID);
 end;
 
@@ -159,9 +152,9 @@ begin
         FixedRows := 1;
         Cells[0, 0] := 'День';
         Cells[1, 0] := 'Вермя';
-        Cells[2, 0] := '№ ДАФ';
+        Cells[2, 0] := 'ДАФ-М';
         Cells[3, 0] := 'Сер.№';
-        Cells[4, 0] := '№ партии';
+        Cells[4, 0] := 'Партия';
 
         for I := 0 to length(FProducts) - 1 do
             with FProducts[I] do
@@ -209,49 +202,8 @@ begin
     ComboBox1Change(nil);
 end;
 
-procedure TFormData.FetchProductData(productID: int64);
-var pp :TProductPassport;
-begin
-    pp := TProductsSvc.IndividualPassport(productID);
-    with FFormDataTable1 do
-    begin
-        Font.Assign(self.Font);
-        Parent := Panel2;
-        BorderStyle := bsNone;
-        Align := alTop;
-        SetTable(pp.T1);
-        with StringGrid2 do
-            FFormDataTable1.Height := DefaultRowHeight * RowCount + 20;
-        Show;
-    end;
 
-    with FFormDataTable2 do
-    begin
-        Font.Assign(self.Font);
-        Parent := Panel2;
-        BorderStyle := bsNone;
-        Align := alClient;
-        SetTable(pp.T2);
-        SetupColumnsWidth2;
-        Visible := StringGrid2.RowCount > 1;
-    end;
 
-end;
 
-procedure TFormData.SetupColumnsWidth2;
-var
-    ACol: Integer;
-begin
-    with FFormDataTable2.StringGrid2 do
-    begin
-        ColWidths[ColCount - 1] := Panel2.Width - 50;
-        for ACol := 0 to ColCount - 2 do
-        begin
-            StringGrid_SetupColumnWidth(FFormDataTable2.StringGrid2, ACol);
-            ColWidths[ColCount - 1] :=
-              ColWidths[ColCount - 1] - ColWidths[ACol];
-        end;
-    end;
-end;
 
 end.

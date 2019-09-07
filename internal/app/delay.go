@@ -20,6 +20,7 @@ func delayf(x worker, duration time.Duration, format string, a ...interface{}) e
 func delay(x worker, duration time.Duration, name string) error {
 	startTime := time.Now()
 	x.log = gohelp.LogPrependSuffixKeys(x.log, "start", startTime.Format("15:04:05"))
+	ctxRootWork := x.ctx
 
 	{
 		var skipDelay context.CancelFunc
@@ -29,12 +30,11 @@ func delay(x worker, duration time.Duration, name string) error {
 			x.log.Info("задержка прервана", "elapsed", myfmt.FormatDuration(time.Since(startTime)))
 		}
 	}
-	ctxRootWork := x.ctx
 
 	return x.performf("%s: %s", name, myfmt.FormatDuration(duration))(func(x worker) error {
 		x.log.Info("задержка начата")
 		defer func() {
-			go notify.EndDelay(x.log.Info, "elapsed", myfmt.FormatDuration(time.Since(startTime)))
+			go notify.EndDelay(x.log.Info, "", "elapsed", myfmt.FormatDuration(time.Since(startTime)))
 		}()
 		for {
 			if len(party.CheckedProducts()) == 0 {

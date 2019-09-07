@@ -31,39 +31,39 @@ func IndividualPassport1(productID int64) Table {
 	}
 
 	var values []struct {
-		Test int     `db:"test"`
+		Test int     `db:"test_number"`
 		C    float64 `db:"concentration"`
-		I    float64 `db:"current"`
+		I    float64 `db:"output_current"`
 		T1   bool    `db:"thr1"`
 		T2   bool    `db:"thr2"`
 	}
 
 	if err := data.DB.Select(&values, `
-SELECT  test, concentration, current, thr1 ,thr2
+SELECT  test_number, concentration, output_current, thr1 ,thr2
 FROM product_test 
 WHERE product_id = ? 
-ORDER BY test`, productID); err != nil {
+ORDER BY test_number`, productID); err != nil {
 		panic(err)
 	}
 	for _, x := range values {
-		r[1][x.Test] = formatFloat(x.C, 3)
-		r[2][x.Test] = formatFloat(x.I, 3)
-		r[3][x.Test] = formatOnOff(x.T1)
-		r[4][x.Test] = formatOnOff(x.T2)
+		r[1][x.Test+1] = formatFloat(x.C, 3)
+		r[2][x.Test+1] = formatFloat(x.I, 3)
+		r[3][x.Test+1] = formatOnOff(x.T1)
+		r[4][x.Test+1] = formatOnOff(x.T2)
 	}
 	return r
 }
 
 func IndividualPassport2(productID int64) Table {
 	var xs []struct {
-		Work     string    `db:"work"`
+		Test     string    `db:"test"`
 		StoredAt time.Time `db:"stored_at"`
 		Message  string    `db:"message"`
 		Ok       bool      `db:"ok"`
 	}
 	if err := data.DB.Select(&xs, `
-SELECT work, stored_at, ok, message 
-FROM product_work 
+SELECT test, stored_at, ok, message 
+FROM product_entry 
 WHERE product_id = ?
 ORDER BY stored_at`, productID); err != nil {
 		panic(err)
@@ -81,7 +81,7 @@ ORDER BY stored_at`, productID); err != nil {
 		}
 		r = append(r, []string{
 			x.StoredAt.In(time.Local).Format("15:04"),
-			x.Work,
+			x.Test,
 			x.Message,
 		})
 	}

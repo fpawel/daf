@@ -50,7 +50,8 @@ uses
   UnitFormPopup in 'UnitFormPopup.pas' {FormPopup},
   UnitFormDataTable in 'UnitFormDataTable.pas' {FormDataTable},
   UnitFormEditText in 'UnitFormEditText.pas' {FormEditText},
-  richeditutils in 'utils\richeditutils.pas';
+  richeditutils in 'utils\richeditutils.pas',
+  UnitFormProductData in 'UnitFormProductData.pas' {FormProductData};
 
 {$R *.res}
 
@@ -64,5 +65,6 @@ begin
   Application.CreateForm(TFormModalMessage, FormModalMessage);
   Application.CreateForm(TFormPopup, FormPopup);
   Application.CreateForm(TFormEditText, FormEditText);
+  Application.CreateForm(TFormProductData, FormProductData);
   Application.Run;
 end.

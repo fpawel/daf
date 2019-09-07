@@ -25,6 +25,8 @@ func (_ runner) RunMainWork() {
 		for _, fun := range []func() error{
 			x.testSoftVersion,
 			x.setupCurrent,
+			x.setupThresholdTest,
+			x.testMeasure,
 		} {
 			if err := fun(); err != nil {
 				return err

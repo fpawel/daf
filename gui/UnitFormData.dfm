@@ -101,15 +101,4 @@ object FormData: TFormData
         22)
     end
   end
-  object Panel2: TPanel
-    Left = 342
-    Top = 0
-    Width = 658
-    Height = 592
-    Align = alClient
-    BevelOuter = bvNone
-    Caption = 'Panel2'
-    ShowCaption = False
-    TabOrder = 1
-  end
 end

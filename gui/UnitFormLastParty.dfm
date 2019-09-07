@@ -15,35 +15,6 @@ object FormLastParty: TFormLastParty
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object StringGrid1: TStringGrid
-    AlignWithMargins = True
-    Left = 36
-    Top = 3
-    Width = 839
-    Height = 434
-    Align = alClient
-    BorderStyle = bsNone
-    ColCount = 4
-    DefaultDrawing = False
-    FixedColor = clBackground
-    FixedCols = 0
-    RowCount = 1
-    FixedRows = 0
-    GradientEndColor = clBlack
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing]
-    TabOrder = 0
-    OnDrawCell = StringGrid1DrawCell
-    OnMouseDown = StringGrid1MouseDown
-    OnSelectCell = StringGrid1SelectCell
-    OnSetEditText = StringGrid1SetEditText
-    ColWidths = (
-      64
-      64
-      64
-      64)
-    RowHeights = (
-      24)
-  end
   object ToolBarParty: TToolBar
     Left = 0
     Top = 0
@@ -56,7 +27,7 @@ object FormLastParty: TFormLastParty
     EdgeInner = esNone
     EdgeOuter = esNone
     Images = ImageList1
-    TabOrder = 1
+    TabOrder = 0
     object ToolButtonParty: TToolButton
       Left = 0
       Top = 0
@@ -96,6 +67,52 @@ object FormLastParty: TFormLastParty
       ParentShowHint = False
       ShowHint = True
       OnClick = ToolButton1Click
+    end
+  end
+  object Panel1: TPanel
+    Left = 33
+    Top = 0
+    Width = 845
+    Height = 440
+    Align = alClient
+    BevelOuter = bvNone
+    Caption = 'Panel1'
+    ShowCaption = False
+    TabOrder = 1
+    ExplicitLeft = 368
+    ExplicitTop = 312
+    ExplicitWidth = 185
+    ExplicitHeight = 41
+    object StringGrid1: TStringGrid
+      AlignWithMargins = True
+      Left = 3
+      Top = 3
+      Width = 839
+      Height = 214
+      Align = alTop
+      BorderStyle = bsNone
+      ColCount = 4
+      DefaultDrawing = False
+      FixedColor = clBackground
+      FixedCols = 0
+      RowCount = 1
+      FixedRows = 0
+      GradientEndColor = clBlack
+      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing]
+      TabOrder = 0
+      OnDrawCell = StringGrid1DrawCell
+      OnMouseDown = StringGrid1MouseDown
+      OnSelectCell = StringGrid1SelectCell
+      OnSetEditText = StringGrid1SetEditText
+      ExplicitLeft = 31
+      ExplicitTop = 0
+      ColWidths = (
+        64
+        64
+        64
+        64)
+      RowHeights = (
+        24)
     end
   end
   object ImageList1: TImageList

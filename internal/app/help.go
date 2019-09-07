@@ -10,6 +10,14 @@ import (
 	"time"
 )
 
+func logPrependSuffixKeys(log comm.Logger, a ...interface{}) *structlog.Logger {
+	return gohelp.LogPrependSuffixKeys(log, a...)
+}
+
+func logAppendPrefixKeys(log comm.Logger, a ...interface{}) *structlog.Logger {
+	return gohelp.LogAppendPrefixKeys(log, a...)
+}
+
 func formatOnOf(b bool) string {
 	if b {
 		return "ВКЛ"
@@ -44,6 +52,16 @@ func isFailWork(err error) bool {
 
 func isDeviceError(err error) bool {
 	return merry.Is(err, comm.Err) || merry.Is(err, context.DeadlineExceeded)
+}
+
+func wrapErrorProduct(err error, p party.Product) error {
+	if err == nil {
+		return err
+	}
+	return merry.Appendf(err, "место стенда %d", p.Place).
+		Appendf("серийный номер %d", p.Serial).
+		Appendf("номер продукта %d", p.ProductID)
+
 }
 
 func logProduct(log *structlog.Logger, p party.Product) *structlog.Logger {

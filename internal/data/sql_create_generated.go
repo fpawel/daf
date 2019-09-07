@@ -43,30 +43,41 @@ CREATE TABLE IF NOT EXISTS product
 
 CREATE TABLE IF NOT EXISTS product_test
 (
-    product_id    INTEGER NOT NULL,
-    test          INTEGER NOT NULL CHECK (test BETWEEN 1 AND 7),
-    concentration REAL    NOT NULL,
-    current       REAL    NOT NULL,
-    thr1          BOOLEAN NOT NULL,
-    thr2          BOOLEAN NOT NULL,
-    PRIMARY KEY (product_id, test),
+    product_id     INTEGER NOT NULL,
+    test_number    INTEGER NOT NULL,
+    concentration  REAL    NOT NULL,
+    output_current REAL    NOT NULL,
+    thr1           BOOLEAN NOT NULL,
+    thr2           BOOLEAN NOT NULL,
+    PRIMARY KEY (product_id, test_number),
     FOREIGN KEY (product_id) REFERENCES product (product_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS product_work
+CREATE TABLE IF NOT EXISTS product_entry
 (
     product_id INTEGER   NOT NULL,
-    stored_at  TIMESTAMP NOT NULL,
-    work       TEXT      NOT NULL,
+    stored_at  TIMESTAMP NOT NULL DEFAULT (DATETIME('now')),
+    test       TEXT      NOT NULL,
     ok         BOOlEAN   NOT NULL,
     message    TEXT      NOT NULL,
-    PRIMARY KEY (product_id, work),
     FOREIGN KEY (product_id) REFERENCES product (product_id) ON DELETE CASCADE
 );
 
+
+CREATE INDEX IF NOT EXISTS index_product_product_entry_test ON product_entry (test);
 
 
 CREATE VIEW IF NOT EXISTS last_party_products AS
 SELECT *
 FROM product
-WHERE party_id = (SELECT party_id FROM last_party);`
+WHERE party_id = (SELECT party_id FROM last_party);
+
+CREATE VIEW IF NOT EXISTS last_party_products AS
+SELECT *
+FROM product
+WHERE party_id = (
+    SELECT party_id
+    FROM party
+    ORDER BY created_at DESC
+    LIMIT 1);
+`

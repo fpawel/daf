@@ -6,6 +6,7 @@ interface
 uses superobject, Winapi.Windows, Winapi.Messages, server_data_types;
 
 type
+    TInt64Handler = reference to procedure (x:Int64);
     TStringHandler = reference to procedure (x:string);
     TPlaceConnectionHandler = reference to procedure (x:TPlaceConnection);
     TWorkResultInfoHandler = reference to procedure (x:TWorkResultInfo);
@@ -23,6 +24,7 @@ procedure SetOnWarning( AHandler : TStringHandler);
 procedure SetOnDelay( AHandler : TDelayInfoHandler);
 procedure SetOnEndDelay( AHandler : TStringHandler);
 procedure SetOnStatus( AHandler : TStringHandler);
+procedure SetOnProductDataChanged( AHandler : TInt64Handler);
 
 procedure NotifyServices_SetEnabled(enabled:boolean);
 
@@ -31,8 +33,8 @@ implementation
 uses Grijjy.Bson.Serialization, stringutils, sysutils;
 
 type
-    TServerAppCmd = (CmdPanic, CmdPlaceConnection, CmdWorkStarted, CmdWorkComplete, CmdWarning, CmdDelay, CmdEndDelay, 
-    CmdStatus);
+    TServerAppCmd = (CmdPanic, CmdPlaceConnection, CmdWorkStarted, CmdWorkComplete, CmdWarning, CmdDelay, CmdEndDelay, CmdStatus, 
+    CmdProductDataChanged);
 
     type _deserializer = record
         class function deserialize<T>(str:string):T;static;
@@ -47,6 +49,7 @@ var
     _OnDelay : TDelayInfoHandler;
     _OnEndDelay : TStringHandler;
     _OnStatus : TStringHandler;
+    _OnProductDataChanged : TInt64Handler;
     _enabled:boolean;
 
 procedure CloseServerWindow;
@@ -125,6 +128,12 @@ begin
                 raise Exception.Create('_OnStatus must be set');
             _OnStatus(str);
         end;
+        CmdProductDataChanged:
+        begin
+            if not Assigned(_OnProductDataChanged) then
+                raise Exception.Create('_OnProductDataChanged must be set');
+            _OnProductDataChanged(StrToInt(str));
+        end;
         
     else
         raise Exception.Create('wrong message: ' + IntToStr(Message.WParam));
@@ -178,6 +187,12 @@ begin
     if Assigned(_OnStatus) then
         raise Exception.Create('_OnStatus already set');
     _OnStatus := AHandler;
+end;
+procedure SetOnProductDataChanged( AHandler : TInt64Handler);
+begin
+    if Assigned(_OnProductDataChanged) then
+        raise Exception.Create('_OnProductDataChanged already set');
+    _OnProductDataChanged := AHandler;
 end;
 
 

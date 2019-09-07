@@ -24,7 +24,7 @@ object MainFormDaf: TMainFormDaf
     Height = 21
     Align = alBottom
     Caption = 'LabelStatus'
-    ExplicitWidth = 80
+    ExplicitWidth = 79
   end
   object PageControlMain: TPageControl
     Left = 0
@@ -48,26 +48,14 @@ object MainFormDaf: TMainFormDaf
     object TabSheetData: TTabSheet
       Caption = #1044#1072#1085#1085#1099#1077
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object TabSheetJournal: TTabSheet
       Caption = #1046#1091#1088#1085#1072#1083
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object TabSheetCharts: TTabSheet
       Caption = #1043#1088#1072#1092#1080#1082#1080
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
   end
   object PanelMessageBox: TPanel

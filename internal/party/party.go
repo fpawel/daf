@@ -60,3 +60,19 @@ ORDER BY product_id`); err != nil {
 	}
 	return
 }
+
+func Concentration(n int) float64 {
+	c := data.LastParty()
+	switch n {
+	case 1:
+		return c.C1
+	case 2:
+		return c.C2
+	case 3:
+		return c.C3
+	case 4:
+		return c.C4
+	default:
+		panic(n)
+	}
+}

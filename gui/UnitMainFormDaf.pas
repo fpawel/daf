@@ -7,7 +7,7 @@ uses
     System.Classes, Vcl.Graphics,
     Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls,
     Vcl.StdCtrls, Vcl.ToolWin, Vcl.Imaging.pngimage, System.ImageList,
-    server_data_types, Vcl.ImgList;
+    server_data_types, Vcl.ImgList, UnitFormProductData;
 
 type
     EHostApplicationPanic = class(Exception);
@@ -140,6 +140,13 @@ begin
         SetWindowPlacement(Handle, wp);
     end;
 
+    with FormProductData do
+    begin
+        Font.Assign(self.Font);
+        BorderStyle := bsNone;
+        Align := alClient;
+    end;
+
     with FormLastParty do
     begin
         Font.Assign(self.Font);
@@ -150,7 +157,7 @@ begin
         Show;
     end;
 
-    
+
 
     with FormData do
     begin
@@ -159,8 +166,11 @@ begin
         BorderStyle := bsNone;
         Align := alClient;
         Show;
-        FetchYearsMonths;
+        //FetchYearsMonths;
     end;
+
+
+
     PageControlMain.ActivePageIndex := 0;
 
     SetOnWorkStarted(
@@ -193,6 +203,8 @@ begin
             LabelStatusTop.Caption := TimeToStr(now) + ' ' + s;
         end);
 
+    SetOnProductDataChanged(FormProductData.OnProductDataChanged);
+
     NotifyServices_SetEnabled(true);
 end;
 
@@ -215,7 +227,10 @@ begin
     PanelMessageBox.Hide;
 
     if PageControl.ActivePage = TabSheetData then
-        FormData.FetchYearsMonths
+    begin
+        //FormProductData.Parent :=FormData;
+        FormData.FetchYearsMonths;
+    end
     else if PageControl.ActivePage = TabSheetParty then
     begin
         FormLastParty.setup_products;

@@ -4,6 +4,7 @@ import (
 	"github.com/fpawel/daf/internal/api/types"
 	"github.com/fpawel/daf/internal/data"
 	"github.com/fpawel/daf/internal/report"
+	"time"
 )
 
 type ProductsSvc struct{}
@@ -49,13 +50,19 @@ ORDER BY created_at`, x.Year, x.Month); err != nil {
 }
 
 type ProductPassport struct {
-	T1, T2 report.Table
+	T1, T2    report.Table
+	PartyID   int64     `db:"party_id"`
+	Serial    int       `db:"serial"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
-func (_ *ProductsSvc) IndividualPassport(x [1]int64, r *ProductPassport) error {
+func (_ *ProductsSvc) ProductPassport(x [1]int64, r *ProductPassport) error {
 	r.T1 = report.IndividualPassport1(x[0])
 	r.T2 = report.IndividualPassport2(x[0])
-	return nil
+	return data.DB.Get(r, `
+SELECT party.party_id, serial, created_at  FROM product
+INNER JOIN party ON product.party_id = party.party_id
+WHERE product_id = ?`, x[0])
 }
 
 func (_ *ProductsSvc) PartyProducts(x [1]int64, r *[]data.Product) error {

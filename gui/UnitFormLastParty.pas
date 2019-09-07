@@ -19,7 +19,6 @@ type
     end;
 
     TFormLastParty = class(TForm)
-        StringGrid1: TStringGrid;
         ImageList1: TImageList;
         ToolBarParty: TToolBar;
         ToolButtonParty: TToolButton;
@@ -27,6 +26,8 @@ type
         ToolButton1: TToolButton;
         ToolButton2: TToolButton;
         ImageList2: TImageList;
+        Panel1: TPanel;
+        StringGrid1: TStringGrid;
         procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
           Rect: TRect; State: TGridDrawState);
         procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
@@ -56,6 +57,7 @@ type
         procedure UpdateSerial(ACol, ARow: Integer; Value: string);
         procedure UpdateAddr(ACol, ARow: Integer; Value: string);
 
+        procedure ShowSelectedProductData;
 
     public
         { Public declarations }
@@ -69,6 +71,7 @@ type
 
 var
     FormLastParty: TFormLastParty;
+
 const
     ColumnConnection = 3;
 
@@ -76,7 +79,7 @@ implementation
 
 uses stringgridutils, stringutils, dateutils,
     vclutils, ComponentBaloonHintU, services, HttpRpcClient, app,
-    UnitMainFormDaf;
+    UnitMainFormDaf, UnitFormProductData;
 
 {$R *.dfm}
 
@@ -89,16 +92,8 @@ begin
 end;
 
 procedure TFormLastParty.FormShow(Sender: TObject);
-// var
-// place, n: Integer;
 begin
-    // reload_data;
-
-    // for n := 0 to Length(AppVars) - 1 do
-    // for place := 0 to Length(FProducts) - 1 do
-    // FormChartSeries.SetAddrVarSeries(FProducts[place].addr,
-    // AppVars[n].Code, AppSets.ReadBool('series', KeyPlaceNVar(place,
-    // n), false));
+    //
 end;
 
 procedure TFormLastParty.WMEnterSizeMove(var Msg: TMessage);
@@ -144,6 +139,16 @@ begin
         grd.Options := grd.Options + [goEditing]
     else
         grd.Options := grd.Options - [goEditing];
+
+    if (ARow - 1 < 0) or (ARow - 1 >= Length(FProducts)) then
+    begin
+        FormProductData.Hide;
+        exit;
+    end;
+    FormProductData.Parent := Panel1;
+    FormProductData.FetchProductData(FProducts[ARow - 1].ProductID);
+    FormProductData.Show;
+
 end;
 
 procedure TFormLastParty.StringGrid1SetEditText(Sender: TObject;
@@ -350,7 +355,7 @@ begin
     StringGrid_Clear(StringGrid1);
     with StringGrid1 do
     begin
-        self.Height := DefaultRowHeight * (Length(FProducts) + 1) + 50;
+        Height := DefaultRowHeight * (Length(FProducts) + 1) + 50;
 
         ColCount := 4;
         RowCount := Length(FProducts) + 1;
@@ -374,9 +379,10 @@ begin
             Cells[2, ARow] := Inttostr(FProducts[ARow - 1].Serial);
             if FPlaceConnection.TryGetValue(ARow - 1, connInfo) then
                 Cells[ColumnConnection, ARow] := connInfo.Text;
-
         end;
+        ShowSelectedProductData;
     end;
+
 end;
 
 procedure TFormLastParty.reload_data;
@@ -459,8 +465,7 @@ begin
             Cells[ACol, X.place + 1] := X.Text;
             StringGrid_SetupColumnWidth(StringGrid1, ACol);
 
-            Cells[3, X.place + 1] :=
-              Format('%s=%s', [X.Column, X.Text]);
+            Cells[3, X.place + 1] := Format('%s=%s', [X.Column, X.Text]);
 
         end
         else
@@ -496,8 +501,22 @@ begin
     FPlaceInterrogate := -1;
     if prevPlaceInterrogate > -1 then
         StringGrid_RedrawRow(StringGrid1, prevPlaceInterrogate + 1);
-
 end;
 
+procedure TFormLastParty.ShowSelectedProductData;
+begin
+    With StringGrid1 do
+        if (Row - 1 < 0) or (Row - 1 >= Length(FProducts)) then
+        begin
+            FormProductData.Hide;
+        end
+        else
+        begin
+            FormProductData.Parent := Panel1;
+            FormProductData.FetchProductData(FProducts[Row - 1].ProductID);
+            FormProductData.Show;
+        end;
+
+end;
 
 end.

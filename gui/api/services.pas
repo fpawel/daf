@@ -40,8 +40,8 @@ type
 
     TProductsSvc = class
     public
-        class function IndividualPassport(param1:Int64):TProductPassport;static;
         class function PartyProducts(param1:Int64):TArray<TProduct>;static;
+        class function ProductPassport(param1:Int64):TProductPassport;static;
         class function ProductsOfYearMonth(Year:Integer; Month:Integer):TArray<TProductInfo>;static;
         class function YearsMonths:TArray<TYearMonth>;static;
          
@@ -241,16 +241,6 @@ begin
 end;
 
  
-class function TProductsSvc.IndividualPassport(param1:Int64):TProductPassport;
-var
-    req : ISuperobject;
-begin
-    req := SA([]);
-    req.AsArray.Add(param1); 
-    ThttpRpcClient.Call(GetHttpServerAddr + '/rpc', 'ProductsSvc.IndividualPassport', req, Result); 
-end;
-
-
 class function TProductsSvc.PartyProducts(param1:Int64):TArray<TProduct>;
 var
     req : ISuperobject;
@@ -258,6 +248,16 @@ begin
     req := SA([]);
     req.AsArray.Add(param1); 
     ThttpRpcClient.Call(GetHttpServerAddr + '/rpc', 'ProductsSvc.PartyProducts', req, Result); 
+end;
+
+
+class function TProductsSvc.ProductPassport(param1:Int64):TProductPassport;
+var
+    req : ISuperobject;
+begin
+    req := SA([]);
+    req.AsArray.Add(param1); 
+    ThttpRpcClient.Call(GetHttpServerAddr + '/rpc', 'ProductsSvc.ProductPassport', req, Result); 
 end;
 
 
