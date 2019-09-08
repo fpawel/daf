@@ -7,6 +7,7 @@ import (
 	"github.com/fpawel/comm"
 	"github.com/fpawel/comm/comport"
 	"github.com/fpawel/comm/modbus"
+	"github.com/fpawel/daf/internal"
 	"github.com/fpawel/daf/internal/api/notify"
 	"github.com/fpawel/daf/internal/api/types"
 	"github.com/fpawel/daf/internal/cfg"
@@ -66,7 +67,7 @@ func runWork(workName string, work func(x worker) error) {
 
 func newWorker(ctx context.Context, name string) worker {
 	return worker{
-		log:   gohelp.NewLogWithSuffixKeys("work", fmt.Sprintf("`%s`", name)),
+		log:   gohelp.NewLogWithSuffixKeys("work", fmt.Sprintf("%s", name)),
 		ctx:   ctx,
 		works: []string{name},
 
@@ -102,11 +103,6 @@ func newWorker(ctx context.Context, name string) worker {
 	}
 }
 
-func (x worker) withLogKeys(keyvals ...interface{}) worker {
-	x.log = logPrependSuffixKeys(x.log, keyvals...)
-	return x
-}
-
 func (x worker) performf(format string, args ...interface{}) func(func(x worker) error) error {
 	return func(work func(x worker) error) error {
 		return x.perform(fmt.Sprintf(format, args...), work)
@@ -114,12 +110,11 @@ func (x worker) performf(format string, args ...interface{}) func(func(x worker)
 }
 
 func (x worker) perform(name string, work func(x worker) error) error {
-	x.log.Info("выполнить: " + name)
-	x.works = append(x.works, name)
-	x.log = logPrependSuffixKeys(x.log,
-		fmt.Sprintf("work%d", len(x.works)),
-		fmt.Sprintf("`%s`", name),
+	x.log = logPrependSuffixKeys(structlog.New(),
+		internal.LogKeyWork, name,
+		internal.LogKeyParentWork, fmt.Sprintf("%q", x.works),
 	)
+	x.works = append(x.works, name)
 	notify.Status(nil, strings.Join(x.works, ": "))
 	if err := work(x); err != nil {
 		return merry.Append(err, name)
@@ -131,7 +126,7 @@ func (x worker) perform(name string, work func(x worker) error) error {
 
 func (x worker) performTest(name string, work func(x worker) error) error {
 	return x.perform(name, func(x worker) error {
-		x.log = logAppendPrefixKeys(x.log, "test", name)
+		x.log = logPrependSuffixKeys(x.log, internal.LogKeyTest, name)
 		clearTestEntries(name)
 		return work(x)
 	})
@@ -152,12 +147,12 @@ func (x worker) performWithWarn(work func() error) error {
 func (x worker) raiseWarning(err error) error {
 	strErr := strings.Join(strings.Split(err.Error(), ": "), "\n\t -")
 
-	notify.Warning(x.log.PrintErr,
+	notify.Warning(nil,
 		fmt.Sprintf("Не удалось выполнить: %s\n\nПричина: %s", x.works[len(x.works)-1], strErr))
 	if merry.Is(x.ctx.Err(), context.Canceled) {
 		return err
 	}
-	x.log.Warn("проигнорирована ошибка: " + err.Error())
+	x.log.PrintErr(merry.Append(err, "ошибка проигнорирована пользователем"))
 	return nil
 }
 

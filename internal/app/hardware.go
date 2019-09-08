@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ansel1/merry"
 	"github.com/fpawel/comm/modbus"
+	"github.com/fpawel/daf/internal"
 	"github.com/fpawel/daf/internal/api/notify"
 	"github.com/fpawel/daf/internal/api/types"
 	"github.com/fpawel/daf/internal/cfg"
@@ -14,7 +15,7 @@ import (
 )
 
 var (
-	ErrEN6408   = merry.New("стенд 6408")
+	//ErrEN6408   = merry.New("стенд 6408")
 	ErrGasBlock = merry.New("газовый блок")
 )
 
@@ -38,8 +39,8 @@ type EN6408Value struct {
 func (x worker) writeProduct(p party.Product, cmd modbus.DevCmd, arg float64) error {
 	//pause(x.ctx.Done(), time.Millisecond * 300)
 	//return nil
-	x.log = logProduct(x.log, p)
-	err := modbus.Write32(x.log, x.ctx, x.portProducts, p.Addr, 0x10, cmd, arg)
+	log := logPrependSuffixKeys(p.WrapLog(x.log), internal.LogKeyHardwareDevice, "daf")
+	err := modbus.Write32(log, x.ctx, x.portProducts, p.Addr, 0x10, cmd, arg)
 	if err != nil {
 		if isDeviceError(err) {
 			notify.PlaceConnection(nil, types.PlaceConnection{
@@ -73,10 +74,9 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 	//	Threshold1:    rand.Float64() < 0.5,
 	//	Threshold2:    rand.Float64() < 0.5,
 	//}, nil
-	x.log = logProduct(x.log, p)
-	x.log = gohelp.LogPrependSuffixKeys(x.log, "ЭН6408", "")
+	log := gohelp.LogPrependSuffixKeys(p.WrapLog(x.log), internal.LogKeyHardwareDevice, "ЭН6408")
 	var result EN6408Value
-	_, err := modbus.Read3(x.log, x.ctx,
+	_, err := modbus.Read3(log, x.ctx,
 		x.portProducts, 32, modbus.Var(p.Addr-1)*2, 2, func(_, response []byte) (string, error) {
 			b := response[3:]
 			result.OutputCurrent = (float64(b[0])*256 + float64(b[1])) / 100
@@ -84,7 +84,7 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 			result.Threshold2 = b[3]&2 == 0
 			return fmt.Sprintf("%+v", result), nil
 		})
-	if err = wrapErrorProduct(err, p); err != nil {
+	if err = p.WrapError(err); err != nil {
 		return result, merry.Append(err, "ЭН6408")
 	}
 	go notify.PlaceConnection(nil, types.PlaceConnection{
@@ -111,10 +111,9 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 func (x worker) readUInt16(p party.Product, Var modbus.Var, column string, formatFunc func(int) string) (uint16, error) {
 	//pause(x.ctx.Done(), time.Millisecond * 300)
 	//return uint16(rand.Uint32()), nil
-
-	log := logProduct(x.log, p)
+	log := logPrependSuffixKeys(p.WrapLog(x.log), internal.LogKeyHardwareDevice, "daf")
 	if len(column) > 0 {
-		log = gohelp.LogPrependSuffixKeys(log, "column", column)
+		log = gohelp.LogPrependSuffixKeys(log, internal.LogKeyDeviceVar, column)
 	}
 	c := types.PlaceConnection{
 		Place:  p.Place,
@@ -125,7 +124,7 @@ func (x worker) readUInt16(p party.Product, Var modbus.Var, column string, forma
 	}()
 
 	value, err := modbus.Read3UInt16(log, x.ctx, x.portProducts, p.Addr, Var)
-	if err = wrapErrorProduct(err, p); err == nil {
+	if err = p.WrapError(err); err == nil {
 		if formatFunc == nil {
 			formatFunc = strconv.Itoa
 		}
@@ -143,7 +142,7 @@ func (x worker) readFloat(p party.Product, Var modbus.Var, column string, format
 	//pause(x.ctx.Done(), time.Millisecond * 300)
 	//return rand.Float64(), nil
 
-	log := logProduct(x.log, p)
+	log := logPrependSuffixKeys(p.WrapLog(x.log), internal.LogKeyHardwareDevice, "daf")
 	if len(column) > 0 {
 		log = gohelp.LogPrependSuffixKeys(log, "column", column)
 	}
@@ -156,7 +155,7 @@ func (x worker) readFloat(p party.Product, Var modbus.Var, column string, format
 		go notify.PlaceConnection(nil, c)
 	}()
 	value, err := modbus.Read3BCD(log, x.ctx, x.portProducts, p.Addr, Var)
-	if err = wrapErrorProduct(err, p); err == nil {
+	if err = p.WrapError(err); err == nil {
 		if formatFunc == nil {
 			formatFunc = func(f float64) string {
 				return myfmt.FormatFloat(value, -1)
@@ -206,11 +205,13 @@ func (x worker) blowGas(n int) error {
 func (x worker) switchGas(n int) error {
 	//pause(x.ctx.Done(), time.Millisecond * 300)
 	//return nil
-	s := "отключить"
+	s := "отключить газ"
 	if n != 0 {
-		s = fmt.Sprintf("ПГС%d", n)
+		s = fmt.Sprintf("включить ПГС%d", n)
 	}
-	x.log = gohelp.LogPrependSuffixKeys(x.log, "газовый_блок", s)
+	x.log = gohelp.LogPrependSuffixKeys(x.log,
+		internal.LogKeyHardwareDevice, internal.LogValueGasSwitcher,
+		internal.LogKeyGasValve, n)
 	return x.perform(s, func(x worker) error {
 		req := modbus.Request{
 			Addr:     33,
@@ -218,7 +219,7 @@ func (x worker) switchGas(n int) error {
 			Data:     []byte{0, 32, 0, 1, 2, 0, byte(n)},
 		}
 		if _, err := req.GetResponse(x.log, ctxApp, x.portProducts, nil); err != nil {
-			return merry.Append(err, s).WithCause(ErrGasBlock)
+			return merry.WithCause(err, ErrGasBlock)
 		}
 		return nil
 	})
@@ -237,5 +238,5 @@ var (
 	varFailureCode            = devVar{0x20, "Отказ"}
 	varSoftVer     modbus.Var = 0x36
 	varSoftVerID   modbus.Var = 0x3A
-	varGas         modbus.Var = 0x32
+	//varGas         modbus.Var = 0x32
 )

@@ -44,18 +44,34 @@ object MainFormDaf: TMainFormDaf
     object TabSheetParty: TTabSheet
       Caption = #1058#1077#1082#1091#1097#1072#1103' '#1079#1072#1075#1088#1091#1079#1082#1072
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
     object TabSheetData: TTabSheet
       Caption = #1044#1072#1085#1085#1099#1077
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
     object TabSheetJournal: TTabSheet
       Caption = #1046#1091#1088#1085#1072#1083
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
     object TabSheetCharts: TTabSheet
       Caption = #1043#1088#1072#1092#1080#1082#1080
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
   end
   object PanelMessageBox: TPanel
@@ -310,6 +326,7 @@ object MainFormDaf: TMainFormDaf
         Left = 544
         Top = 0
         Width = 33
+        Height = 29
         Align = alRight
         ButtonHeight = 31
         ButtonWidth = 32
@@ -371,12 +388,11 @@ object MainFormDaf: TMainFormDaf
       Left = 71
       Top = 5
       Width = 100
-      Height = 23
+      Height = 18
       Margins.Left = 5
       Margins.Top = 5
       Align = alLeft
       Caption = 'LabelStatusTop'
-      ExplicitHeight = 18
     end
     object ToolBar1: TToolBar
       Left = 0
@@ -456,7 +472,7 @@ object MainFormDaf: TMainFormDaf
         Left = 5
         Top = 3
         Width = 58
-        Height = 25
+        Height = 18
         Margins.Left = 5
         Margins.Right = 5
         Align = alLeft
@@ -468,14 +484,13 @@ object MainFormDaf: TMainFormDaf
         Font.Style = []
         ParentFont = False
         Layout = tlCenter
-        ExplicitHeight = 18
       end
       object LabelProgress: TLabel
         AlignWithMargins = True
         Left = 679
         Top = 3
         Width = 31
-        Height = 25
+        Height = 18
         Margins.Left = 5
         Margins.Right = 5
         Align = alRight
@@ -487,7 +502,6 @@ object MainFormDaf: TMainFormDaf
         Font.Style = []
         ParentFont = False
         Layout = tlCenter
-        ExplicitHeight = 18
       end
       object ToolBar6: TToolBar
         Left = 715

@@ -133,7 +133,6 @@ DELETE FROM product_test
 WHERE test_number = ? AND product_id IN ( SELECT product_id FROM last_party_products) `, n)
 		return performProducts(what, func(p party.Product) error {
 			x := x
-			x.log = logProduct(x.log, p)
 			dv, err := x.readDafIndication(p)
 			if isFailWork(err) {
 				return nil
@@ -142,7 +141,7 @@ WHERE test_number = ? AND product_id IN ( SELECT product_id FROM last_party_prod
 			if err != nil {
 				return nil
 			}
-			x.log.Info("сохранение для паспорта", "values", fmt.Sprintf("%+v, %+v", dv, v))
+			p.WrapLog(x.log).Info(fmt.Sprintf("сохранение для паспорта: %+v, %+v", dv, v))
 			data.DB.MustExec(`
 REPLACE INTO product_test(product_id, test_number, concentration, output_current, thr1, thr2) 
 VALUES (?,?,?,?,?,?)`, p.ProductID, n, dv.Concentration, v.OutputCurrent, v.Threshold1, v.Threshold2)

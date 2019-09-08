@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"github.com/fpawel/comm/modbus"
+	"github.com/fpawel/daf/internal"
 	"github.com/fpawel/daf/internal/app"
 	"github.com/powerman/structlog"
 	"os"
@@ -41,14 +43,10 @@ func main() {
 			structlog.KeyTime:   " %[2]s",
 			structlog.KeySource: " %6[2]s",
 			structlog.KeyUnit:   " %6[2]s",
-			"config":            " %+[2]v",
-			"work":              " %[1]s=`%[2]s`",
-			"фоновый_опрос":     " %[1]s=`%[2]s`",
-			"arg":               " %[1]s=`%[2]s`",
-			"duration":          " %[1]s=`%[2]s`",
-			"test":              " %[1]s=`%[2]s`",
+			internal.LogKeyWork: " %[1]s=`%[2]s`",
+			internal.LogKeyTest: " %[1]s=`%[2]s`",
 		})
-
+	modbus.SetLogKeysFormat()
 	app.Run()
 
 }
