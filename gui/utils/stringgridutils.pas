@@ -40,6 +40,9 @@ procedure StringGrid_Unselect(grd: TStringGrid);
 Procedure StringGrid_MoveColumn(G: TStringGrid; OldPosition: integer;
   NewPosition: integer);
 
+procedure StringGrid_DrawCellText(StringGrid1: TStringGrid; acol, arow: integer;
+  Rect: TRect; ta: TAlignment; text: string);
+
 implementation
 
 uses Clipbrd, winapi.windows, system.math, winapi.uxtheme, stringutils;
@@ -398,6 +401,28 @@ begin
     with grd do
         for acol := 0 to colcount - 1 do
             StringGrid_SetupColumnWidth(grd, acol);
+end;
+
+procedure StringGrid_DrawCellText(StringGrid1: TStringGrid; acol, arow: integer;
+  Rect: TRect; ta: TAlignment; text: string);
+var
+    x, Y, txt_width, txt_height: integer;
+begin
+    with StringGrid1.Canvas do
+    begin
+
+        if TextWidth(text) + 3 > Rect.Width then
+            text := cut_str(text, StringGrid1.Canvas, Rect.Width);
+        txt_width := TextWidth(text);
+        txt_height := TextHeight(text);
+        x := Rect.Left + 3;
+        if ta = taRightJustify then
+            x := Rect.Right - 3 - round(txt_width)
+        else if ta = taCenter then
+            x := Rect.Left + round((Rect.Width - txt_width) / 2.0);
+        Y := Rect.Top + round((Rect.Height - txt_height) / 2.0);
+        TextRect(Rect, x, Y, text);
+    end;
 end;
 
 end.

@@ -20,6 +20,8 @@ object FormData: TFormData
     Top = 0
     Width = 5
     Height = 592
+    Color = cl3DLight
+    ParentColor = False
     ExplicitLeft = 265
     ExplicitHeight = 300
   end

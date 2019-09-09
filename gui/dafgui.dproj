@@ -177,6 +177,14 @@
             <Form>FormProductData</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="UnitFormSelectWorksDlg.pas">
+            <Form>FormSelectWorksDlg</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="UnitFormConsole.pas">
+            <Form>FormConsole</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

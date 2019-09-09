@@ -9,54 +9,62 @@ type
     
     TProduct = record
     public
+        ProductID : Int64;
         Serial : Integer;
         Place : Integer;
         Addr : Byte;
         Checked : Boolean;
-        ProductID : Int64;
         
     end;
     
     TParty = record
     public
-        Scale : Double;
-        Thr1Prod : Double;
+        C2 : Double;
         PartyID : Int64;
-        ProductType : Integer;
         C1 : Double;
         C3 : Double;
-        AbsErrRng : Double;
-        C2 : Double;
-        C4 : Double;
-        AbsErrLim : Double;
-        RelErrLim : Double;
+        AbsErrorLimit3 : Double;
+        AbsErrorLimit4 : Double;
+        ScaleEnd : Double;
         Component : Integer;
-        Thr2Prod : Double;
-        Thr1Test : Double;
-        Thr2Test : Double;
+        C4 : Double;
+        AbsErrorLimit1 : Double;
+        AbsErrorLimit2 : Double;
         CreatedAt : TDateTime;
+        ProductType : Integer;
+        VariationLimit3 : Double;
+        ScaleBegin : Double;
         
     end;
     
     TGuiSettings = record
     public
-        PauseReadPlaceMillis : Integer;
-        SoftVersion : Byte;
         SoftVersionID : Word;
         ComportProducts : string;
         ComportHart : string;
         DurationBlowGasMinutes : Integer;
         DurationBlowAirMinutes : Integer;
+        PauseReadPlaceMillis : Integer;
+        SoftVersion : Byte;
+        
+    end;
+    
+    TCell = record
+    public
+        Detail : string;
+        Text : string;
+        Alignment : Integer;
+        Color : string;
         
     end;
     
     TProductPassport = record
     public
-        T1 : TArray<TArray<string>>;
-        T2 : TArray<TArray<string>>;
-        PartyID : Int64;
         Serial : Integer;
         CreatedAt : TDateTime;
+        T1 : TArray<TArray<TCell>>;
+        T2 : TArray<TArray<TCell>>;
+        PartyID : Int64;
         
     end;
     

@@ -6,11 +6,11 @@ interface
 uses superobject, Winapi.Windows, Winapi.Messages, server_data_types;
 
 type
-    TInt64Handler = reference to procedure (x:Int64);
-    TStringHandler = reference to procedure (x:string);
     TPlaceConnectionHandler = reference to procedure (x:TPlaceConnection);
     TWorkResultInfoHandler = reference to procedure (x:TWorkResultInfo);
     TDelayInfoHandler = reference to procedure (x:TDelayInfo);
+    TInt64Handler = reference to procedure (x:Int64);
+    TStringHandler = reference to procedure (x:string);
     
 
 procedure HandleCopydata(var Message: TMessage);
@@ -25,6 +25,7 @@ procedure SetOnDelay( AHandler : TDelayInfoHandler);
 procedure SetOnEndDelay( AHandler : TStringHandler);
 procedure SetOnStatus( AHandler : TStringHandler);
 procedure SetOnProductDataChanged( AHandler : TInt64Handler);
+procedure SetOnWriteConsole( AHandler : TStringHandler);
 
 procedure NotifyServices_SetEnabled(enabled:boolean);
 
@@ -33,8 +34,8 @@ implementation
 uses Grijjy.Bson.Serialization, stringutils, sysutils;
 
 type
-    TServerAppCmd = (CmdPanic, CmdPlaceConnection, CmdWorkStarted, CmdWorkComplete, CmdWarning, CmdDelay, CmdEndDelay, CmdStatus, 
-    CmdProductDataChanged);
+    TServerAppCmd = (CmdPanic, CmdPlaceConnection, CmdWorkStarted, CmdWorkComplete, CmdWarning, CmdDelay, CmdEndDelay, CmdStatus, CmdProductDataChanged, 
+    CmdWriteConsole);
 
     type _deserializer = record
         class function deserialize<T>(str:string):T;static;
@@ -50,6 +51,7 @@ var
     _OnEndDelay : TStringHandler;
     _OnStatus : TStringHandler;
     _OnProductDataChanged : TInt64Handler;
+    _OnWriteConsole : TStringHandler;
     _enabled:boolean;
 
 procedure CloseServerWindow;
@@ -134,6 +136,12 @@ begin
                 raise Exception.Create('_OnProductDataChanged must be set');
             _OnProductDataChanged(StrToInt(str));
         end;
+        CmdWriteConsole:
+        begin
+            if not Assigned(_OnWriteConsole) then
+                raise Exception.Create('_OnWriteConsole must be set');
+            _OnWriteConsole(str);
+        end;
         
     else
         raise Exception.Create('wrong message: ' + IntToStr(Message.WParam));
@@ -193,6 +201,12 @@ begin
     if Assigned(_OnProductDataChanged) then
         raise Exception.Create('_OnProductDataChanged already set');
     _OnProductDataChanged := AHandler;
+end;
+procedure SetOnWriteConsole( AHandler : TStringHandler);
+begin
+    if Assigned(_OnWriteConsole) then
+        raise Exception.Create('_OnWriteConsole already set');
+    _OnWriteConsole := AHandler;
 end;
 
 

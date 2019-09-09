@@ -14,11 +14,6 @@ type
         Row: integer;
     end;
 
-    TCellDetail = record
-        Color: TColor;
-        Detail: string;
-    end;
-
     TFormDataTable = class(TForm)
         StringGrid2: TStringGrid;
         procedure StringGrid2DrawCell(Sender: TObject; ACol, ARow: integer;
@@ -30,24 +25,22 @@ type
     private
         { Private declarations }
         FMeregedRows: TArray<TMeregedRow>;
-        FRows: TArray<TArray<string>>;
-
-        FCells: TDictionary<TCoord, TCellDetail>;
+        FCells: TArray<TArray<TCell>>;
 
     public
         { Public declarations }
-        procedure SetTable(ATable: TArray<TArray<string>>);
+        procedure SetTable(ATable: TArray < TArray < TCell >> );
     end;
 
-//var
-//    FormDataTable: TFormDataTable;
+    // var
+    // FormDataTable: TFormDataTable;
 
 implementation
 
 {$R *.dfm}
 
 uses types, StrUtils, stringgridutils, UnitFormPopup, app, services,
-  stringutils;
+    stringutils;
 
 function coord(x, y: integer): TCoord;
 begin
@@ -57,7 +50,6 @@ end;
 
 procedure TFormDataTable.FormCreate(Sender: TObject);
 begin
-    FCells := TDictionary<TCoord, TCellDetail>.create;
     with StringGrid2 do
     begin
         ColCount := 10;
@@ -80,20 +72,17 @@ procedure TFormDataTable.StringGrid2DblClick(Sender: TObject);
 var
     r: TRect;
     pt: TPoint;
-    c: TCellDetail;
 begin
 
     with StringGrid2 do
     begin
-        if not FCells.ContainsKey(coord(Row, Col)) then
-            exit;
-        c := FCells[coord(Row, Col)];
-
-        if length(c.Detail) = 0 then
+        if length(FCells[Row][Col].Detail) = 0 then
             exit;
 
-        FormPopup.RichEdit1.Text := c.Detail;
-        FormPopup.RichEdit1.Font.Color := c.Color;
+        FormPopup.RichEdit1.Text := FCells[Row][Col].Detail;
+        if length(FCells[Row][Col].Color) > 0 then
+            FormPopup.RichEdit1.Font.Color :=
+              StringToColor(FCells[Row][Col].Color);
         r := CellRect(Col, Row);
         pt := StringGrid2.ClientToScreen(r.TopLeft);
         FormPopup.Left := pt.x + ColWidths[Col] + 3;
@@ -107,9 +96,8 @@ procedure TFormDataTable.StringGrid2DrawCell(Sender: TObject;
 var
     grd: TStringGrid;
     cnv: TCanvas;
-    ta: TAlignment;
     AMergeRect: TMeregedRow;
-    not_used:double;
+    not_used: double;
 begin
     grd := StringGrid2;
     cnv := grd.Canvas;
@@ -137,19 +125,14 @@ begin
                 exit;
             end;
 
-    ta := taCenter;
     if (ACol > 0) ANd (ARow > 0) then
     begin
-        if try_str_to_float(grd.Cells[ACol, ARow], not_used) then
-            ta := taRightJustify
-        else
-            ta := taLeftJustify;
-        if FCells.ContainsKey(coord(ACol, ARow)) then
-            cnv.Font.Color := FCells[coord(ACol, ARow)].Color;
+        if length(FCells[ARow][ACol].Color) > 0 then
+            cnv.Font.Color := StringToColor(FCells[ARow][ACol].Color);
     end;
 
-    DrawCellText(StringGrid2, ACol, ARow, Rect, ta,
-      StringGrid2.Cells[ACol, ARow]);
+    DrawCellText(StringGrid2, ACol, ARow, Rect,
+      TAlignment(FCells[ARow][ACol].Alignment), StringGrid2.Cells[ACol, ARow]);
 
     StringGrid_DrawCellBounds(cnv, ACol, ARow, Rect);
 
@@ -173,15 +156,13 @@ begin
     end;
 end;
 
-procedure TFormDataTable.SetTable(ATable: TArray<TArray<string>>);
+procedure TFormDataTable.SetTable(ATable: TArray < TArray < TCell >> );
 var
-    _row: TArray<string>;
+    _row: TArray<TCell>;
     ACol, ARow, I: integer;
-    s:string;
-    strs:TStringDynArray;
-    cc : TCellDetail;
+    s: string;
 begin
-    FCells.Clear;
+    FCells := ATable;
     FMeregedRows := [];
     StringGrid_Clear(StringGrid2);
 
@@ -190,11 +171,11 @@ begin
 
         ColCount := length(ATable[0]);
         RowCount := length(ATable);
-        if rowcount > 1 then
+        if RowCount > 1 then
             FixedRows := 1;
 
         for I := 0 to length(ATable[0]) - 1 do
-            Cells[I, 0] := ATable[0][I];
+            Cells[I, 0] := ATable[0][I].Text;
 
         ARow := 0;
 
@@ -205,32 +186,14 @@ begin
             begin
                 SetLength(FMeregedRows, length(FMeregedRows) + 1);
                 FMeregedRows[length(FMeregedRows) - 1].Row := ARow;
-                FMeregedRows[length(FMeregedRows) - 1].Text := _row[0];
+                FMeregedRows[length(FMeregedRows) - 1].Text := _row[0].Text;
 
             end
             else
-            begin
 
                 for ACol := 0 to ColCount - 1 do
-                begin
-                    s := _row[ACol];
-                    strs := SplitString(S, ';');
+                    Cells[ACol, ARow] := _row[ACol].Text;
 
-                    if Length(strs) > 0 then
-                        Cells[ACol, ARow] := strs[0];
-
-                    if Length(strs) > 2 then
-                        cc.Detail := strs[2];
-
-                    if Length(strs) > 1 then
-                    begin
-                        cc.Color := StringToColor(strs[1]);
-                        FCells.Add(Coord(ACol,ARow), cc);
-                    end;
-
-                end;
-
-            end;
             ARow := ARow + 1;
         end;
 

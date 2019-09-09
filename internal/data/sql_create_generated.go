@@ -6,22 +6,21 @@ PRAGMA encoding = 'UTF-8';
 
 CREATE TABLE IF NOT EXISTS party
 (
-    party_id     INTEGER PRIMARY KEY NOT NULL,
-    created_at   TIMESTAMP           NOT NULL                   DEFAULT (datetime('now')) UNIQUE,
-    product_type SMALLINT            NOT NULL                   DEFAULT 1 CHECK ( product_type > 0 ),
-    component    SMALLINT            NOT NULL                   DEFAULT 1 CHECK ( component > 0 ),
-    scale        REAL                NOT NULL                   DEFAULT 1000,
-    abs_err_rng  REAL                NOT NULL                   DEFAULT 200,
-    abs_err_lim  REAL                NOT NULL                   DEFAULT 50,
-    rel_err_lim  REAL                NOT NULL                   DEFAULT 20,
-    thr1_prod    REAL                NOT NULL                   DEFAULT 200,
-    thr2_prod    REAL                NOT NULL                   DEFAULT 1000,
-    thr1_test    REAL                NOT NULL                   DEFAULT 200,
-    thr2_test    REAL                NOT NULL                   DEFAULT 1000,
-    c1           REAL                NOT NULL CHECK ( c1 >= 0 ) DEFAULT 0,
-    c2           REAL                NOT NULL CHECK ( c2 >= 0 ) DEFAULT 200,
-    c3           REAL                NOT NULL CHECK ( c3 >= 0 ) DEFAULT 1000,
-    c4           REAL                NOT NULL CHECK ( c4 >= 0 ) DEFAULT 2000
+    party_id         INTEGER PRIMARY KEY NOT NULL,
+    created_at       TIMESTAMP           NOT NULL                                DEFAULT (datetime('now')) UNIQUE,
+    product_type     SMALLINT            NOT NULL                                DEFAULT 1 CHECK ( product_type > 0 ),
+    component        SMALLINT            NOT NULL                                DEFAULT 1 CHECK ( component > 0 ),
+    scale_begin      REAL                NOT NULL                                DEFAULT 0,
+    scale_end        REAL                NOT NULL                                DEFAULT 1000,
+    c1               REAL                NOT NULL CHECK ( c1 >= 0 )              DEFAULT 0,
+    c2               REAL                NOT NULL CHECK ( c2 >= 0 )              DEFAULT 200,
+    c3               REAL                NOT NULL CHECK ( c3 >= 0 )              DEFAULT 1000,
+    c4               REAL                NOT NULL CHECK ( c4 >= 0 )              DEFAULT 2000,
+    abs_error_limit1 REAL                NOT NULL CHECK ( abs_error_limit1 > 0 ) DEFAULT 100,
+    abs_error_limit2 REAL                NOT NULL CHECK ( abs_error_limit2 > 0 ) DEFAULT 100,
+    abs_error_limit3 REAL                NOT NULL CHECK ( abs_error_limit3 > 0 ) DEFAULT 100,
+    abs_error_limit4 REAL                NOT NULL CHECK ( abs_error_limit4 > 0 ) DEFAULT 100,
+    variation_limit3 REAL                NOT NULL CHECK ( variation_limit3 > 0 ) DEFAULT 100
 );
 
 

@@ -16,8 +16,7 @@ type
         ImageList4: TImageList;
         PageControlMain: TPageControl;
         TabSheetParty: TTabSheet;
-        TabSheetJournal: TTabSheet;
-        TabSheetCharts: TTabSheet;
+    TabSheetConsole: TTabSheet;
         PanelMessageBox: TPanel;
         ImageError: TImage;
         ImageInfo: TImage;
@@ -47,6 +46,11 @@ type
         LabelStatusBottom1: TLabel;
         N821: TMenuItem;
         TabSheetData: TTabSheet;
+    N2: TMenuItem;
+    N11: TMenuItem;
+    N21: TMenuItem;
+    N31: TMenuItem;
+    N41: TMenuItem;
         procedure FormShow(Sender: TObject);
         procedure FormCreate(Sender: TObject);
         procedure PageControlMainDrawTab(Control: TCustomTabControl;
@@ -63,6 +67,7 @@ type
         procedure N821Click(Sender: TObject);
         procedure ToolButtonStopClick(Sender: TObject);
     procedure ToolButton1Click(Sender: TObject);
+    procedure N41Click(Sender: TObject);
     private
         { Private declarations }
         procedure AppException(Sender: TObject; E: Exception);
@@ -85,7 +90,8 @@ implementation
 uses UnitFormLastParty, vclutils, JclDebug, ioutils,  app,
     services, UnitFormAppConfig, notify_services, HttpRpcClient, superobject,
      dateutils, math, HttpExceptions, UnitFormData,
-    stringgridutils, UnitFormModalMessage, UnitFormEditText, UnitFormDataTable;
+    stringgridutils, UnitFormModalMessage, UnitFormEditText, UnitFormDataTable,
+  UnitFormSelectWorksDlg, UnitFormConsole;
 
 function color_work_result(r: Integer): Tcolor;
 begin
@@ -169,6 +175,17 @@ begin
         //FetchYearsMonths;
     end;
 
+    with FormConsole do
+    begin
+        Font.Assign(self.Font);
+        Parent := TabSheetConsole;
+        BorderStyle := bsNone;
+        Align := alClient;
+        // FFileName := ExtractFileDir(paramstr(0)) + '\elco.log';
+        FFileName := '';
+        Show;
+    end;
+
 
 
     PageControlMain.ActivePageIndex := 0;
@@ -204,6 +221,15 @@ begin
         end);
 
     SetOnProductDataChanged(FormProductData.OnProductDataChanged);
+
+    SetOnWriteConsole(
+        procedure(s: String)
+        begin
+            FormConsole.NewLine(s);
+            if not TabSheetConsole.TabVisible then
+                TabSheetConsole.TabVisible := true;
+            Application.ProcessMessages;
+        end);
 
     NotifyServices_SetEnabled(true);
 end;
@@ -306,9 +332,22 @@ begin
     TRunnerSvc.RunReadVars;
 end;
 
+procedure TMainFormDaf.N41Click(Sender: TObject);
+begin
+    TRunnerSvc.SwitchGas((Sender as TComponent ).Tag);
+
+end;
+
 procedure TMainFormDaf.N821Click(Sender: TObject);
 begin
-    TRunnerSvc.RunMainWork;
+    with ToolButtonRun do
+        with ClientToScreen(Point(0, Height)) do
+        begin
+            ToolButtonRun.PopupMenu.CloseMenu;
+            FormSelectWorksDlg.Left := X + 5;
+            FormSelectWorksDlg.Top := Y + 5;
+            FormSelectWorksDlg.Show;
+        end;
 end;
 
 procedure TMainFormDaf.AppException(Sender: TObject; E: Exception);

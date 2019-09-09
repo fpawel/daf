@@ -62,6 +62,10 @@ func main() {
 				"ProductDataChanged",
 				r.TypeOf((*int64)(nil)).Elem(),
 			},
+			{
+				"WriteConsole",
+				r.TypeOf((*string)(nil)).Elem(),
+			},
 		},
 	})
 

@@ -58,15 +58,6 @@ func (x worker) writeProduct(p party.Product, cmd modbus.DevCmd, arg float64) er
 	return nil
 }
 
-func (x worker) readProduct(p party.Product) (a DafIndication, b EN6408Value, err error) {
-	a, err = x.readDafIndication(p)
-	if err != nil {
-		return
-	}
-	b, err = x.read6408(p)
-	return
-}
-
 func (x worker) read6408(p party.Product) (EN6408Value, error) {
 	//pause(x.ctx.Done(), time.Millisecond * 300)
 	//return EN6408Value{
@@ -199,7 +190,7 @@ func (x worker) blowGas(n int) error {
 	}); err != nil {
 		return err
 	}
-	return delayf(x, minutes(cfg.GetConfig().DurationBlowAirMinutes), "продувка ПГС%d", n)
+	return delayf(x, minutes(cfg.GetConfig().DurationBlowGasMinutes), "продувка ПГС%d", n)
 }
 
 func (x worker) switchGas(n int) error {
@@ -221,6 +212,7 @@ func (x worker) switchGas(n int) error {
 		if _, err := req.GetResponse(x.log, ctxApp, x.portProducts, nil); err != nil {
 			return merry.WithCause(err, ErrGasBlock)
 		}
+		*x.gas = n
 		return nil
 	})
 }

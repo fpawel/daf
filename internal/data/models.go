@@ -11,23 +11,37 @@ type Party struct {
 }
 
 type PartySettings struct {
-	ProductType int     `db:"product_type" toml:"product_type" comment:"код исполнения ДАФ-М согласно ТУ"`
-	Component   int     `db:"component" toml:"component" comment:"код измеряемого компонента согласно ТУ"`
-	C1          float64 `db:"c1" toml:"с1" comment:"концентрация ГСО-ПГС1"`
-	C2          float64 `db:"c2" toml:"с2" comment:"концентрация ГСО-ПГС2"`
-	C3          float64 `db:"c3" toml:"с3" comment:"концентрация ГСО-ПГС3"`
-	C4          float64 `db:"c4" toml:"с4" comment:"концентрация ГСО-ПГС4"`
-	Scale       float64 `db:"scale" toml:"scale" comment:"шкала"`
-	AbsErrRng   float64 `db:"abs_err_rng" toml:"abs_err_rng" comment:"диапазон абсолютной погрешности"`
-	AbsErrLim   float64 `db:"abs_err_lim" toml:"abs_err_lim" comment:"предел абсолютной погрешности"`
-	RelErrLim   float64 `db:"rel_err_lim" toml:"abs_err_lim" comment:"предел относительной погрешности"`
-	Thr1Prod    float64 `db:"thr1_prod" toml:"thr1_prod" comment:"значение ПОРОГ1 для выпуска в эксплуатацию"`
-	Thr2Prod    float64 `db:"thr2_prod" toml:"thr2_prod" comment:"значение ПОРОГ2 для выпуска в эксплуатацию"`
-	Thr1Test    float64 `db:"thr1_test" toml:"thr1_test" comment:"значение ПОРОГ1 для настройки"`
-	Thr2Test    float64 `db:"thr2_test" toml:"thr2_test" comment:"значение ПОРОГ2 настройки"`
+	ProductType     int     `db:"product_type" toml:"product_type" comment:"код исполнения ДАФ-М согласно ТУ"`
+	Component       int     `db:"component" toml:"component" comment:"код измеряемого компонента согласно ТУ"`
+	ScaleBegin      float64 `db:"scale_begin" toml:"scale_begin" comment:"нижняя граница диапазона измерений"`
+	ScaleEnd        float64 `db:"scale_end" toml:"scale_end" comment:"верхняя граница диапазона измерений"`
+	C1              float64 `db:"c1" toml:"с1" comment:"концентрация ГСО-ПГС1"`
+	C2              float64 `db:"c2" toml:"с2" comment:"концентрация ГСО-ПГС2"`
+	C3              float64 `db:"c3" toml:"с3" comment:"концентрация ГСО-ПГС3"`
+	C4              float64 `db:"c4" toml:"с4" comment:"концентрация ГСО-ПГС4"`
+	AbsErrorLimit1  float64 `db:"abs_error_limit1" toml:"abs_error_limit1" comment:"предел допускаемой основной погрешности при подаче ГСО-ПГС1"`
+	AbsErrorLimit2  float64 `db:"abs_error_limit2" toml:"abs_error_limit2" comment:"предел допускаемой основной погрешности при подаче ГСО-ПГС2"`
+	AbsErrorLimit3  float64 `db:"abs_error_limit3" toml:"abs_error_limit3" comment:"предел допускаемой основной погрешности при подаче ГСО-ПГС3"`
+	AbsErrorLimit4  float64 `db:"abs_error_limit4" toml:"abs_error_limit4" comment:"предел допускаемой основной погрешности при подаче ГСО-ПГС4"`
+	VariationLimit3 float64 `db:"variation_limit3" toml:"variation_limit3" comment:"предел вариации показаний при ГСО-ПГС3"`
 }
 
 type Product struct {
 	ProductID int64 `db:"product_id"`
 	Serial    int   `db:"serial"`
+}
+
+func (p Party) CnTest(test int) float64 {
+	return ([]float64{p.C1, p.C2, p.C3, p.C4, p.C3, p.C1})[test]
+}
+
+func (p Party) AbsErrLimitTest(test int) float64 {
+	return ([]float64{
+		p.AbsErrorLimit1,
+		p.AbsErrorLimit2,
+		p.AbsErrorLimit3,
+		p.AbsErrorLimit4,
+		p.AbsErrorLimit3,
+		p.AbsErrorLimit1,
+	})[test]
 }

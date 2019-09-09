@@ -32,9 +32,10 @@ type
     TRunnerSvc = class
     public
         class procedure Cancel;static;
-        class procedure RunMainWork;static;
+        class procedure RunMainWork(Works:TArray<Boolean>);static;
         class procedure RunReadVars;static;
         class procedure SkipDelay;static;
+        class procedure SwitchGas(param1:Integer);static;
          
     end;
 
@@ -211,12 +212,12 @@ begin
 end;
 
 
-class procedure TRunnerSvc.RunMainWork;
+class procedure TRunnerSvc.RunMainWork(Works:TArray<Boolean>);
 var
-    req : ISuperobject;
+    req : ISuperobject;s:string;
 begin
     req := SO;
-    
+    SuperObject_SetField(req, 'Works', Works); 
     ThttpRpcClient.GetResponse(GetHttpServerAddr + '/rpc', 'RunnerSvc.RunMainWork', req); 
 end;
 
@@ -238,6 +239,16 @@ begin
     req := SO;
     
     ThttpRpcClient.GetResponse(GetHttpServerAddr + '/rpc', 'RunnerSvc.SkipDelay', req); 
+end;
+
+
+class procedure TRunnerSvc.SwitchGas(param1:Integer);
+var
+    req : ISuperobject;
+begin
+    req := SA([]);
+    req.AsArray.Add(param1); 
+    ThttpRpcClient.GetResponse(GetHttpServerAddr + '/rpc', 'RunnerSvc.SwitchGas', req); 
 end;
 
  

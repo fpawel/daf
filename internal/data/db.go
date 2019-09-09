@@ -25,6 +25,17 @@ func GetParty(partyID int64) (party Party) {
 	return
 }
 
+func GetPartyByProductID(productID int64) (party Party) {
+	if err := DB.Get(&party, `
+SELECT party.* 
+FROM product
+INNER JOIN party USING (party_id)
+WHERE product_id=?`, productID); err != nil {
+		panic(err)
+	}
+	return
+}
+
 func LastParty() (party Party) {
 	err := DB.Get(&party, `SELECT * FROM last_party`)
 	if err == sql.ErrNoRows {

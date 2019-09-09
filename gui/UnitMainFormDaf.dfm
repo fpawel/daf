@@ -24,7 +24,7 @@ object MainFormDaf: TMainFormDaf
     Height = 21
     Align = alBottom
     Caption = 'LabelStatus'
-    ExplicitWidth = 79
+    ExplicitWidth = 80
   end
   object PageControlMain: TPageControl
     Left = 0
@@ -44,34 +44,14 @@ object MainFormDaf: TMainFormDaf
     object TabSheetParty: TTabSheet
       Caption = #1058#1077#1082#1091#1097#1072#1103' '#1079#1072#1075#1088#1091#1079#1082#1072
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object TabSheetData: TTabSheet
       Caption = #1044#1072#1085#1085#1099#1077
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
-    object TabSheetJournal: TTabSheet
-      Caption = #1046#1091#1088#1085#1072#1083
+    object TabSheetConsole: TTabSheet
+      Caption = #1050#1086#1085#1089#1086#1083#1100
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
-    end
-    object TabSheetCharts: TTabSheet
-      Caption = #1043#1088#1072#1092#1080#1082#1080
-      ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
   end
   object PanelMessageBox: TPanel
@@ -326,7 +306,6 @@ object MainFormDaf: TMainFormDaf
         Left = 544
         Top = 0
         Width = 33
-        Height = 29
         Align = alRight
         ButtonHeight = 31
         ButtonWidth = 32
@@ -388,11 +367,12 @@ object MainFormDaf: TMainFormDaf
       Left = 71
       Top = 5
       Width = 100
-      Height = 18
+      Height = 23
       Margins.Left = 5
       Margins.Top = 5
       Align = alLeft
       Caption = 'LabelStatusTop'
+      ExplicitHeight = 18
     end
     object ToolBar1: TToolBar
       Left = 0
@@ -472,7 +452,7 @@ object MainFormDaf: TMainFormDaf
         Left = 5
         Top = 3
         Width = 58
-        Height = 18
+        Height = 25
         Margins.Left = 5
         Margins.Right = 5
         Align = alLeft
@@ -484,13 +464,14 @@ object MainFormDaf: TMainFormDaf
         Font.Style = []
         ParentFont = False
         Layout = tlCenter
+        ExplicitHeight = 18
       end
       object LabelProgress: TLabel
         AlignWithMargins = True
         Left = 679
         Top = 3
         Width = 31
-        Height = 18
+        Height = 25
         Margins.Left = 5
         Margins.Right = 5
         Align = alRight
@@ -502,6 +483,7 @@ object MainFormDaf: TMainFormDaf
         Font.Style = []
         ParentFont = False
         Layout = tlCenter
+        ExplicitHeight = 18
       end
       object ToolBar6: TToolBar
         Left = 715
@@ -1440,8 +1422,32 @@ object MainFormDaf: TMainFormDaf
       OnClick = N1Click
     end
     object N821: TMenuItem
-      Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1072' '#1052#1048#1051'-82'
+      Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1072' '#1044#1040#1060'-'#1052'...'
       OnClick = N821Click
+    end
+    object N2: TMenuItem
+      Caption = #1054#1090#1082#1083#1102#1095#1080#1090#1100' '#1075#1072#1079
+      OnClick = N41Click
+    end
+    object N11: TMenuItem
+      Tag = 1
+      Caption = #1043#1072#1079' 1'
+      OnClick = N41Click
+    end
+    object N21: TMenuItem
+      Tag = 2
+      Caption = #1043#1072#1079' 2'
+      OnClick = N41Click
+    end
+    object N31: TMenuItem
+      Tag = 3
+      Caption = #1043#1072#1079' 3'
+      OnClick = N41Click
+    end
+    object N41: TMenuItem
+      Tag = 4
+      Caption = #1043#1072#1079' 4'
+      OnClick = N41Click
     end
   end
   object TimerPerforming: TTimer

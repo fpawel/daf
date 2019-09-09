@@ -51,7 +51,9 @@ uses
   UnitFormDataTable in 'UnitFormDataTable.pas' {FormDataTable},
   UnitFormEditText in 'UnitFormEditText.pas' {FormEditText},
   richeditutils in 'utils\richeditutils.pas',
-  UnitFormProductData in 'UnitFormProductData.pas' {FormProductData};
+  UnitFormProductData in 'UnitFormProductData.pas' {FormProductData},
+  UnitFormSelectWorksDlg in 'UnitFormSelectWorksDlg.pas' {FormSelectWorksDlg},
+  UnitFormConsole in 'UnitFormConsole.pas' {FormConsole};
 
 {$R *.res}
 
@@ -66,5 +68,7 @@ begin
   Application.CreateForm(TFormPopup, FormPopup);
   Application.CreateForm(TFormEditText, FormEditText);
   Application.CreateForm(TFormProductData, FormProductData);
+  Application.CreateForm(TFormSelectWorksDlg, FormSelectWorksDlg);
+  Application.CreateForm(TFormConsole, FormConsole);
   Application.Run;
 end.

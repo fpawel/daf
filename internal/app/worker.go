@@ -27,6 +27,7 @@ type worker struct {
 	works        []string
 	portProducts *comport.ReadWriter
 	portHart     *comport.ReadWriter
+	gas          *int
 }
 
 func runWork(workName string, work func(x worker) error) {
@@ -67,6 +68,7 @@ func runWork(workName string, work func(x worker) error) {
 
 func newWorker(ctx context.Context, name string) worker {
 	return worker{
+		gas:   new(int),
 		log:   gohelp.NewLogWithSuffixKeys("work", fmt.Sprintf("%s", name)),
 		ctx:   ctx,
 		works: []string{name},
@@ -79,7 +81,7 @@ func newWorker(ctx context.Context, name string) worker {
 			}
 		}, func() comm.Config {
 			return comm.Config{
-				ReadByteTimeoutMillis: 50,
+				ReadByteTimeoutMillis: 100,
 				ReadTimeoutMillis:     1000,
 				MaxAttemptsRead:       3,
 			}

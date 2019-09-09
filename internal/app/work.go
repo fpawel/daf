@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	tnSoftVersion    = "Проверка версии ПО"
-	tnSetupCurrent   = "Настройка токового выхода"
-	tnThresholdsTest = "Установка порогов для настройки"
-	tnAdjust         = "Калибровка"
+	tnSoftVersion     = "Проверка версии ПО"
+	tnSetupCurrent    = "Настройка токового выхода"
+	tnSetupThresholds = "Установка порогов"
+	tnAdjust          = "Калибровка"
 )
 
 func (x worker) testSoftVersion() error {
@@ -76,13 +76,16 @@ func (x worker) setupCurrent() error {
 
 }
 
-func (x worker) setupThresholdTest() error {
-	return x.performTest(tnThresholdsTest, func(x worker) error {
+func (x worker) setupThresholds() error {
+	return x.performTest(tnSetupThresholds, func(x worker) error {
 		c := data.LastParty()
-		if err := x.writeProducts(tnThresholdsTest, 0x30, c.Thr1Test); err != nil {
+		f := func(k float64) float64 {
+			return c.ScaleBegin + (c.ScaleEnd-c.ScaleBegin)*0.7
+		}
+		if err := x.writeProducts(tnSetupThresholds, 0x30, f(0.2)); err != nil {
 			return err
 		}
-		return x.writeProducts(tnThresholdsTest, 0x31, c.Thr2Test)
+		return x.writeProducts(tnSetupThresholds, 0x31, f(0.7))
 	})
 }
 
@@ -111,9 +114,6 @@ func (x worker) adjust() error {
 }
 
 func (x worker) testMeasure() error {
-	defer func() {
-		_ = x.switchGas(0)
-	}()
 	for n, gas := range []int{1, 2, 3, 4, 3, 1} {
 		if err := x.testMeasureAt(n, gas); err != nil {
 			return err

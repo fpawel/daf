@@ -20,28 +20,24 @@ func getSets() guiSettings {
 }
 
 func setSets(x guiSettings) {
-	p := x.Party
-	data.DB.MustExec(`
+	if _, err := data.DB.NamedExec(`
 UPDATE party 
-	SET product_type = ?, 
-	    c1 = ?, 
-	    c2 = ?, 
-	    c3 = ?, 
-	    c4 = ?,
-	    component = ?,
-	    scale = ?,
-	    thr1_prod = ?,
-	    thr2_prod = ?,
-	    thr1_test = ?,
-	    thr2_test = ?,
-	    abs_err_rng = ?,
-	    abs_err_lim = ?,
-	    rel_err_lim = ?
-WHERE party_id = (SELECT party_id FROM party)`,
-		p.ProductType, p.C1, p.C2, p.C3, p.C4, p.Component, p.Scale,
-		p.Thr1Prod, p.Thr2Prod,
-		p.Thr1Test, p.Thr2Test,
-		p.AbsErrRng, p.AbsErrLim, p.RelErrLim)
+	SET product_type = :product_type, 
+	    c1 = :c1, 
+	    c2 = :c2, 
+	    c3 = :c3, 
+	    c4 = :c4,
+	    abs_error_limit1 = :abs_error_limit1, 
+	    abs_error_limit2 = :abs_error_limit2, 
+	    abs_error_limit3 = :abs_error_limit3, 
+	    abs_error_limit4 = :abs_error_limit4,
+	    component = :component,
+	    scale_begin = :scale_begin,
+	    scale_end = :scale_end,	    
+	    variation_limit3 = :variation_limit3
+WHERE party_id = (SELECT party_id FROM party)`, x.Party); err != nil {
+		panic(err)
+	}
 	c := GetConfig()
 	c.GuiSettings = x.App
 	SetConfig(c)

@@ -19,6 +19,7 @@ procedure SuperObject_SetField(x: ISuperObject; field: string;
 procedure SuperObject_SetField(x: ISuperObject; field: string; v: TArray<Int64>); overload;
 procedure SuperObject_SetField(x: ISuperObject; field: string; v: TArray<byte>); overload;
 procedure SuperObject_SetField(x: ISuperObject; field: string; v: TArray<word>); overload;
+procedure SuperObject_SetField(x: ISuperObject; field: string; v: TArray<boolean>); overload;
 
 procedure SuperObject_Get(x: ISuperObject; var v: int64); overload;
 procedure SuperObject_Get(x: ISuperObject; var v: integer); overload;
@@ -120,6 +121,15 @@ begin
         x.A[field].I[I] := v[I];
 end;
 
+
+procedure SuperObject_SetField(x: ISuperObject; field: string; v: TArray<boolean>);
+var
+    I: integer;
+begin
+    x.O[field] := SA([]);
+    for I := 0 to length(v) - 1 do
+        x.A[field].B[I] := v[I];
+end;
 
 
 

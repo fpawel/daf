@@ -41,7 +41,15 @@ func delay(x worker, duration time.Duration, name string) error {
 				return merry.New("для опроса необходимо установить галочку для как минимум одиного прибора")
 			}
 			for _, p := range party.CheckedProducts() {
-				_, _, err := x.readProduct(p)
+				go notify.Delay(nil, types.DelayInfo{
+					What:           name,
+					TotalSeconds:   int(duration.Seconds()),
+					ElapsedSeconds: int(time.Since(startTime).Seconds()),
+				})
+				_, err := x.readDafIndication(p)
+				if err == nil {
+					_, err = x.read6408(p)
+				}
 				if ctxRootWork.Err() != nil {
 					return ctxRootWork.Err()
 				}
@@ -53,11 +61,6 @@ func delay(x worker, duration time.Duration, name string) error {
 						return err
 					}
 				}
-				go notify.Delay(nil, types.DelayInfo{
-					What:           name,
-					TotalSeconds:   int(duration.Seconds()),
-					ElapsedSeconds: int(time.Since(startTime).Seconds()),
-				})
 				pause(x.ctx.Done(), millis(cfg.GetConfig().PauseReadPlaceMillis))
 			}
 		}

@@ -1,12 +1,21 @@
 package app
 
 import (
+	"fmt"
 	"github.com/ansel1/merry"
+	"github.com/fpawel/daf/internal/api/notify"
+	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/party"
 	"github.com/powerman/structlog"
 )
 
 type runner struct{}
+
+func (_ runner) SwitchGas(n int) {
+	runWork(fmt.Sprintf("Газовый блок %d", n), func(x worker) error {
+		return x.switchGas(n)
+	})
+}
 
 func (_ runner) Cancel() {
 	cancelWorkFunc()
@@ -20,14 +29,45 @@ func (_ runner) SkipDelay() {
 	log.Info("задержка прервана")
 }
 
-func (_ runner) RunMainWork() {
+func (_ runner) RunMainWork(c []bool) {
 	runWork("Настройка ДАФ-М", func(x worker) error {
-		for _, fun := range []func() error{
+
+		closeGasInEnd := func() error {
+			if err := x.switchGas(1); err != nil {
+				return err
+			}
+			if err := delay(x, minutes(cfg.GetConfig().DurationBlowAirMinutes), "продувка ПГС1"); err != nil {
+				return err
+			}
+			return x.switchGas(0)
+		}
+
+		defer func() {
+			if *x.gas == 0 {
+				return
+			}
+			x.log.Info("продувка воздухом по окончании настройки")
+			if err := closeGasInEnd(); err != nil {
+				notify.Warning(nil,
+					fmt.Sprintf("Не удалось продуть воздухом по окончании настройки.\n\nПричина: %v\n\n", err))
+			}
+		}()
+
+		for i, fun := range []func() error{
 			x.testSoftVersion,
 			x.setupCurrent,
-			x.setupThresholdTest,
+			x.setupThresholds,
+			x.adjust,
 			x.testMeasure,
 		} {
+			if i >= len(c) {
+				x.log.Warn(fmt.Sprintf("работа %d: индекс должен быть от 0 до %d", i, len(c)-1))
+				continue
+			}
+			if !c[i] {
+				x.log.Warn(fmt.Sprintf("работа %d: галочка снята", i))
+				continue
+			}
 			if err := fun(); err != nil {
 				return err
 			}
@@ -46,7 +86,11 @@ func (_ runner) RunReadVars() {
 				return errNoCheckedProducts.Here()
 			}
 			for _, p := range products {
-				if _, _, err := x.readProduct(p); err != nil && !isDeviceError(err) {
+
+				if _, err := x.readDafIndication(p); isFailWork(err) {
+					return err
+				}
+				if _, err := x.read6408(p); err != nil {
 					return err
 				}
 			}
@@ -54,4 +98,6 @@ func (_ runner) RunReadVars() {
 	})
 }
 
-var errNoCheckedProducts = merry.New("для опроса необходимо установить галочку для как минимум одного прибора")
+var (
+	errNoCheckedProducts = merry.New("для опроса необходимо установить галочку для как минимум одного прибора")
+)
