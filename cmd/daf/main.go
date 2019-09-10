@@ -60,7 +60,6 @@ func main() {
 			structlog.KeySource: " %6[2]s",
 			structlog.KeyUnit:   " %6[2]s",
 			internal.LogKeyWork: " %[1]s=`%[2]s`",
-			internal.LogKeyTest: " %[1]s=`%[2]s`",
 		})
 
 	modbus.SetLogKeysFormat()

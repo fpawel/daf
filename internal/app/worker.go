@@ -127,11 +127,9 @@ func (x worker) perform(name string, work func(x worker) error) error {
 
 func (x worker) performTest(name string, work func(x worker) error) error {
 	return x.perform(name, func(x worker) error {
-		x.log = logPrependSuffixKeys(x.log, internal.LogKeyTest, name)
 		clearTestEntries(name)
 		return work(x)
 	})
-
 }
 
 func (x worker) performWithWarn(work func() error) error {

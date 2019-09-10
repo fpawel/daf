@@ -15,7 +15,6 @@ func DataDir() string {
 const (
 	LogKeyWork           = "work"
 	LogKeyParentWork     = "parent_work"
-	LogKeyTest           = "test"
 	LogKeyHardwareDevice = "hardware_device"
 	LogProductID         = "product_id"
 	LogProductSerial     = "product_serial"
