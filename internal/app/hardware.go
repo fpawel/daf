@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	//ErrEN6408   = merry.New("стенд 6408")
-	ErrGasBlock = merry.New("газовый блок")
+	ErrHardware = merry.New("стендовое оборудование")
+	ErrEN6408   = merry.New("стенд 6408").WithCause(ErrHardware)
+	ErrGasBlock = merry.New("газовый блок").WithCause(ErrHardware)
 )
 
 type DafIndication struct {
@@ -32,17 +33,13 @@ type EN6408Value struct {
 	Threshold2 bool
 }
 
-//func init(){
-//	rand.Seed(time.Now().UnixNano())
-//}
-
 func (x worker) writeProduct(p party.Product, cmd modbus.DevCmd, arg float64) error {
 	//pause(x.ctx.Done(), time.Millisecond * 300)
 	//return nil
-	log := logPrependSuffixKeys(p.WrapLog(x.log), internal.LogKeyHardwareDevice, "daf")
-	err := modbus.Write32(log, x.ctx, x.portProducts, p.Addr, 0x10, cmd, arg)
+	log := logPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "daf")
+	err := modbus.Write32(log, x.ReaderDaf(), p.Addr, 0x10, cmd, arg)
 	if err != nil {
-		if isDeviceError(err) {
+		if isCommErrorOrDeadline(err) {
 			notify.PlaceConnection(nil, types.PlaceConnection{
 				Place: p.Place,
 				Text:  fmt.Sprintf("$%X: %v", cmd, err),
@@ -60,15 +57,16 @@ func (x worker) writeProduct(p party.Product, cmd modbus.DevCmd, arg float64) er
 
 func (x worker) read6408(p party.Product) (EN6408Value, error) {
 	//pause(x.ctx.Done(), time.Millisecond * 300)
+	//n := float64(time.Now().Nanosecond()) / 1_000_000_000.
 	//return EN6408Value{
-	//	OutputCurrent: 4 + rand.Float64() * 16,
-	//	Threshold1:    rand.Float64() < 0.5,
-	//	Threshold2:    rand.Float64() < 0.5,
+	//	OutputCurrent: 4 + 16 * n,
+	//	Threshold1:    n > 0.5,
+	//	Threshold2:    n > 0.5,
 	//}, nil
-	log := gohelp.LogPrependSuffixKeys(p.WrapLog(x.log), internal.LogKeyHardwareDevice, "ЭН6408")
+	log := gohelp.LogPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "ЭН6408")
 	var result EN6408Value
-	_, err := modbus.Read3(log, x.ctx,
-		x.portProducts, 32, modbus.Var(p.Addr-1)*2, 2, func(_, response []byte) (string, error) {
+	_, err := modbus.Read3(log, x.Reader6408(),
+		32, modbus.Var(p.Addr-1)*2, 2, func(_, response []byte) (string, error) {
 			b := response[3:]
 			result.OutputCurrent = (float64(b[0])*256 + float64(b[1])) / 100
 			result.Threshold1 = b[3]&1 == 0
@@ -76,7 +74,7 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 			return fmt.Sprintf("%+v", result), nil
 		})
 	if err = p.WrapError(err); err != nil {
-		return result, merry.Append(err, "ЭН6408")
+		return result, merry.Wrap(err).WithCause(ErrEN6408)
 	}
 	go notify.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
@@ -102,7 +100,7 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 func (x worker) readUInt16(p party.Product, Var modbus.Var, column string, formatFunc func(int) string) (uint16, error) {
 	//pause(x.ctx.Done(), time.Millisecond * 300)
 	//return uint16(rand.Uint32()), nil
-	log := logPrependSuffixKeys(p.WrapLog(x.log), internal.LogKeyHardwareDevice, "daf")
+	log := logPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "daf")
 	if len(column) > 0 {
 		log = gohelp.LogPrependSuffixKeys(log, internal.LogKeyDeviceVar, column)
 	}
@@ -114,7 +112,7 @@ func (x worker) readUInt16(p party.Product, Var modbus.Var, column string, forma
 		go notify.PlaceConnection(nil, c)
 	}()
 
-	value, err := modbus.Read3UInt16(log, x.ctx, x.portProducts, p.Addr, Var)
+	value, err := modbus.Read3UInt16(log, x.ReaderDaf(), p.Addr, Var)
 	if err = p.WrapError(err); err == nil {
 		if formatFunc == nil {
 			formatFunc = strconv.Itoa
@@ -123,7 +121,7 @@ func (x worker) readUInt16(p party.Product, Var modbus.Var, column string, forma
 		c.Ok = true
 		return value, err
 	}
-	if isDeviceError(err) {
+	if isCommErrorOrDeadline(err) {
 		c.Text = err.Error()
 	}
 	return 0, err
@@ -133,7 +131,7 @@ func (x worker) readFloat(p party.Product, Var modbus.Var, column string, format
 	//pause(x.ctx.Done(), time.Millisecond * 300)
 	//return rand.Float64(), nil
 
-	log := logPrependSuffixKeys(p.WrapLog(x.log), internal.LogKeyHardwareDevice, "daf")
+	log := logPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "daf")
 	if len(column) > 0 {
 		log = gohelp.LogPrependSuffixKeys(log, "column", column)
 	}
@@ -145,7 +143,7 @@ func (x worker) readFloat(p party.Product, Var modbus.Var, column string, format
 	defer func() {
 		go notify.PlaceConnection(nil, c)
 	}()
-	value, err := modbus.Read3BCD(log, x.ctx, x.portProducts, p.Addr, Var)
+	value, err := modbus.Read3BCD(log, x.ReaderDaf(), p.Addr, Var)
 	if err = p.WrapError(err); err == nil {
 		if formatFunc == nil {
 			formatFunc = func(f float64) string {
@@ -156,7 +154,7 @@ func (x worker) readFloat(p party.Product, Var modbus.Var, column string, format
 		c.Text = formatFunc(value)
 		return value, err
 	}
-	if isDeviceError(err) {
+	if isCommErrorOrDeadline(err) {
 		c.Text = err.Error()
 	}
 	return 0, err
@@ -190,7 +188,12 @@ func (x worker) blowGas(n int) error {
 	}); err != nil {
 		return err
 	}
-	return delayf(x, minutes(cfg.GetConfig().DurationBlowGasMinutes), "продувка ПГС%d", n)
+	c := cfg.GetConfig().DurationBlowGasMinutes
+	dur := 5
+	if n >= 0 && n < len(c) {
+		dur = c[n]
+	}
+	return delayf(x, minutes(dur), "продувка ПГС%d", n)
 }
 
 func (x worker) switchGas(n int) error {
@@ -209,7 +212,7 @@ func (x worker) switchGas(n int) error {
 			ProtoCmd: 0x10,
 			Data:     []byte{0, 32, 0, 1, 2, 0, byte(n)},
 		}
-		if _, err := req.GetResponse(x.log, ctxApp, x.portProducts, nil); err != nil {
+		if _, err := req.GetResponse(x.log, x.ReaderGas(), nil); err != nil {
 			return merry.WithCause(err, ErrGasBlock)
 		}
 		*x.gas = n

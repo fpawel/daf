@@ -119,7 +119,7 @@ var
 begin
     NotifyServices_SetEnabled(false);
     HttpRpcClient.TIMEOUT_CONNECT := 10;
-    //notify_services.CloseServerWindow;
+    notify_services.CloseServerWindow;
 
     fs := TFileStream.Create(ChangeFileExt(paramstr(0), '.position'),
       fmOpenWrite or fmCreate);

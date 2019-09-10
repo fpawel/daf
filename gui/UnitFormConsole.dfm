@@ -179,8 +179,6 @@ object FormConsole: TFormConsole
     OnDblClick = StringGrid1DblClick
     OnDrawCell = StringGrid1DrawCell
     OnKeyDown = StringGrid1KeyDown
-    ExplicitLeft = -2
-    ExplicitTop = -2
     ColWidths = (
       64
       64)

@@ -3,11 +3,8 @@ package party
 import (
 	"github.com/ansel1/merry"
 	"github.com/fpawel/comm/modbus"
-	"github.com/fpawel/daf/internal"
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/data"
-	"github.com/fpawel/gohelp"
-	"github.com/powerman/structlog"
 )
 
 type Product struct {
@@ -15,13 +12,6 @@ type Product struct {
 	Place   int
 	Addr    modbus.Addr
 	Checked bool
-}
-
-func (p Product) WrapLog(log *structlog.Logger) *structlog.Logger {
-	return gohelp.LogPrependSuffixKeys(log,
-		internal.LogProductSerial, p.Serial,
-		internal.LogProductID, p.ProductID,
-		internal.LogProductPlace, p.Place)
 }
 
 func (p Product) WrapError(err error) error {

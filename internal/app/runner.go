@@ -36,7 +36,7 @@ func (_ runner) RunMainWork(c []bool) {
 			if err := x.switchGas(1); err != nil {
 				return err
 			}
-			if err := delay(x, minutes(cfg.GetConfig().DurationBlowAirMinutes), "продувка ПГС1"); err != nil {
+			if err := delay(x, minutes(cfg.GetConfig().DurationBlowOutMinutes), "продувка ПГС1"); err != nil {
 				return err
 			}
 			return x.switchGas(0)
@@ -55,8 +55,8 @@ func (_ runner) RunMainWork(c []bool) {
 
 		for i, fun := range []func() error{
 			x.testSoftVersion,
+			x.setupParams,
 			x.setupCurrent,
-			x.setupThresholds,
 			x.adjust,
 			x.testMeasure,
 		} {

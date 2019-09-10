@@ -16,7 +16,6 @@ type Cell struct {
 	Text      string
 	Alignment Alignment
 	Color     string
-	Detail    string
 }
 
 type Alignment int
@@ -35,10 +34,6 @@ func header(xs []string) (r Row) {
 		})
 	}
 	return
-}
-
-func floatCell(v float64, prec int) Cell {
-	return Cell{Alignment: taRightJustify, Text: formatFloat(v, prec)}
 }
 
 func floatCellC(v float64, prec int, ok bool) Cell {

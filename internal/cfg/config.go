@@ -3,6 +3,7 @@ package cfg
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/fpawel/comm"
 	"github.com/fpawel/comm/modbus"
 	"github.com/fpawel/gohelp/must"
 	"io/ioutil"
@@ -17,13 +18,24 @@ type Config struct {
 }
 
 type GuiSettings struct {
-	ComportProducts        string `toml:"comport_products" comment:"СОМ порт приборов"`
-	ComportHart            string `toml:"comport_hart" comment:"СОМ порт HART модема"`
-	DurationBlowGasMinutes int    `toml:"duration_blow_gas" comment:"длительность продувки газа в минутах"`
-	DurationBlowAirMinutes int    `toml:"duration_blow_air" comment:"длительность продувки воздуха в минутах"`
-	PauseReadPlaceMillis   int    `toml:"pause_read_place" comment:"длительность паузы между опросом мест стенда"`
-	SoftVersion            byte   `toml:"soft_version" comment:"Контролирумое значение ВПО ДАФ-М"`
-	SoftVersionID          uint16 `toml:"soft_version_id" comment:"Контролирумое значение цифрового идентификатора ВПО ДАФ-М"`
+	ComportProducts        string  `toml:"comport_products" comment:"СОМ порт приборов"`
+	ComportHart            string  `toml:"comport_hart" comment:"СОМ порт HART модема"`
+	DurationBlowGasMinutes []int   `toml:"duration_blow_gas" comment:"длительности продувки газов в минутах"`
+	DurationBlowOutMinutes int     `toml:"duration_blow_out" comment:"длительность продувки воздуха в минутах"`
+	PauseReadPlaceMillis   int     `toml:"pause_read_place" comment:"длительность паузы между опросом мест стенда"`
+	SoftVersion            byte    `toml:"soft_version" comment:"Контролирумое значение ВПО ДАФ-М"`
+	SoftVersionID          uint16  `toml:"soft_version_id" comment:"Контролирумое значение цифрового идентификатора ВПО ДАФ-М"`
+	Temperature            float64 `toml:"temperature" comment:"Температура,\"С"`
+	Comm                   Comm    `toml:"comm" comment:"параметры приёмо-передачи оборудования"`
+}
+
+type DurationBlowGasMinutes []int
+
+type Comm struct {
+	Daf    comm.Config `toml:"daf" comment:"ДАФ-М"`
+	Gas    comm.Config `toml:"gas" comment:"Газовый блок"`
+	EN6408 comm.Config `toml:"en6408" comment:"Стенд ЭН8800-6408"`
+	Hart   comm.Config `toml:"hart" comment:"HART протокол"`
 }
 
 type Place struct {
@@ -100,8 +112,34 @@ var (
 		GuiSettings: GuiSettings{
 			ComportProducts:        "COM1",
 			ComportHart:            "COM2",
-			DurationBlowGasMinutes: 5,
-			DurationBlowAirMinutes: 1,
+			DurationBlowGasMinutes: []int{10, 5, 5, 5},
+			DurationBlowOutMinutes: 1,
+			PauseReadPlaceMillis:   0,
+			SoftVersion:            1,
+			SoftVersionID:          0x7116,
+			Temperature:            20,
+			Comm: Comm{
+				Daf: comm.Config{
+					ReadByteTimeoutMillis: 50,
+					ReadTimeoutMillis:     700,
+					MaxAttemptsRead:       3,
+				},
+				Gas: comm.Config{
+					ReadByteTimeoutMillis: 50,
+					ReadTimeoutMillis:     1000,
+					MaxAttemptsRead:       5,
+				},
+				EN6408: comm.Config{
+					ReadByteTimeoutMillis: 50,
+					ReadTimeoutMillis:     1000,
+					MaxAttemptsRead:       5,
+				},
+				Hart: comm.Config{
+					ReadByteTimeoutMillis: 100,
+					ReadTimeoutMillis:     2000,
+					MaxAttemptsRead:       5,
+				},
+			},
 		},
 		Network: []Place{
 			{
@@ -110,6 +148,7 @@ var (
 			},
 		},
 	}
+
 	config = func() Config {
 		c := defaultConfig
 		b, err := ioutil.ReadFile(fileName())

@@ -4,8 +4,8 @@ interface
 
 uses
     Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
-    System.Classes, Vcl.Graphics,
-    Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Vcl.StdCtrls,
+    System.Classes, Vcl.Graphics,  Vcl.grids,
+    Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
     server_data_types, System.Generics.Collections;
 
 type
@@ -15,7 +15,7 @@ type
     end;
 
     TFormDataTable = class(TForm)
-        StringGrid2: TStringGrid;
+    StringGrid2: TStringGrid;
         procedure StringGrid2DrawCell(Sender: TObject; ACol, ARow: integer;
           Rect: TRect; State: TGridDrawState);
         procedure StringGrid2DblClick(Sender: TObject);
@@ -69,26 +69,8 @@ begin
 end;
 
 procedure TFormDataTable.StringGrid2DblClick(Sender: TObject);
-var
-    r: TRect;
-    pt: TPoint;
 begin
-
-    with StringGrid2 do
-    begin
-        if length(FCells[Row][Col].Detail) = 0 then
-            exit;
-
-        FormPopup.RichEdit1.Text := FCells[Row][Col].Detail;
-        if length(FCells[Row][Col].Color) > 0 then
-            FormPopup.RichEdit1.Font.Color :=
-              StringToColor(FCells[Row][Col].Color);
-        r := CellRect(Col, Row);
-        pt := StringGrid2.ClientToScreen(r.TopLeft);
-        FormPopup.Left := pt.x + ColWidths[Col] + 3;
-        FormPopup.Top := pt.y + RowHeights[Row] + 3;
-        FormPopup.Show;
-    end;
+    FormPopup.ShowStringGridCellText(StringGrid2);
 end;
 
 procedure TFormDataTable.StringGrid2DrawCell(Sender: TObject;

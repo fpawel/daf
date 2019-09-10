@@ -25,8 +25,6 @@ object FormSelectWorksDlg: TFormSelectWorksDlg
     BevelKind = bkFlat
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitWidth = 188
-    ExplicitHeight = 192
     object CheckListBox1: TCheckListBox
       Left = 0
       Top = 0
@@ -39,15 +37,12 @@ object FormSelectWorksDlg: TFormSelectWorksDlg
       ItemHeight = 30
       Items.Strings = (
         #1055#1088#1086#1074#1077#1088#1082#1072' '#1074#1077#1088#1089#1080#1080' '#1055#1054
+        #1059#1089#1090#1072#1085#1086#1074#1082#1072' '#1087#1072#1088#1072#1084#1077#1090#1088#1086#1074
         #1053#1072#1089#1090#1088#1086#1081#1082#1072' '#1090#1086#1082#1086#1074#1086#1075#1086' '#1074#1099#1093#1086#1076#1072
-        #1059#1089#1090#1072#1085#1086#1074#1082#1072' '#1087#1086#1088#1086#1075#1086#1074
         #1050#1072#1083#1080#1073#1088#1086#1074#1082#1072
         #1055#1088#1086#1074#1077#1088#1082#1072' '#1076#1080#1072#1087#1072#1079#1086#1085#1072' '#1080#1079#1084#1077#1088#1077#1085#1080#1081)
       Style = lbOwnerDrawFixed
       TabOrder = 0
-      ExplicitLeft = -2
-      ExplicitWidth = 256
-      ExplicitHeight = 258
     end
     object ToolBarStop: TToolBar
       Left = 259
@@ -62,8 +57,6 @@ object FormSelectWorksDlg: TFormSelectWorksDlg
       EdgeOuter = esNone
       Images = ImageList3
       TabOrder = 1
-      ExplicitLeft = 152
-      ExplicitHeight = 188
       object ToolButton2: TToolButton
         Left = 0
         Top = 0

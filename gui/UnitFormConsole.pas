@@ -122,22 +122,9 @@ var
     r: TRect;
     pt: TPoint;
 begin
-    with StringGrid1 do
-    begin
-        if Row >= length(FEntries) then
+    if StringGrid1.Row >= length(FEntries) then
             exit;
-
-        with FEntries[Row] do
-        begin
-            FormPopup.RichEdit1.Text := FText;
-            FormPopup.RichEdit1.Font.Color := loglevelColor(FLevel);
-        end;
-        r := CellRect(Col, Row);
-        pt := StringGrid1.ClientToScreen(r.TopLeft);
-        FormPopup.Left := pt.X + 5;
-        FormPopup.Top := pt.Y + 5;
-        FormPopup.Show;
-    end;
+    FormPopup.ShowStringGridCellText(StringGrid1);
 end;
 
 procedure TFormConsole.StringGrid1DrawCell(Sender: TObject; ACol, ARow: integer;
@@ -165,19 +152,12 @@ begin
         with FEntries[ARow] do
             case ACol of
                 0:
-                    begin
-                        cnv.Font.Color := clGreen;
-                        AText := formatDatetime('hh:mm:ss', FTime1);
-                    end;
+                    cnv.Font.Color := loglevelColor(FLevel);
                 1:
-                    begin
-                        AText := formatEntryText(FEntries[ARow]);
-                        cnv.Font.Color := loglevelColor(FLevel);
-                    end;
-
+                    cnv.Font.Color := loglevelColor(FLevel);
             end;
 
-    StringGrid_DrawCellText(StringGrid1, ACol, ARow, Rect, ta, AText);
+    StringGrid_DrawCellText(StringGrid1, ACol, ARow, Rect, ta, StringGrid1.Cells[ACol,ARow]);
     // StringGrid_DrawCellBounds(StringGrid1.Canvas, ACol, ARow, Rect);
 end;
 
@@ -274,6 +254,12 @@ begin
         else
             RowCount := RowCount + 1;
         Row := RowCount - 1;
+        with FEntries[length(FEntries) - 1] do
+        begin
+            Cells[0, Row] := formatDatetime('hh:mm:ss', FTime1);
+            Cells[1, Row] := formatEntryText(FEntries[Row]);
+        end;
+
 
 
 

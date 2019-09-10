@@ -6,11 +6,11 @@ interface
 uses superobject, Winapi.Windows, Winapi.Messages, server_data_types;
 
 type
-    TPlaceConnectionHandler = reference to procedure (x:TPlaceConnection);
-    TWorkResultInfoHandler = reference to procedure (x:TWorkResultInfo);
     TDelayInfoHandler = reference to procedure (x:TDelayInfo);
     TInt64Handler = reference to procedure (x:Int64);
     TStringHandler = reference to procedure (x:string);
+    TPlaceConnectionHandler = reference to procedure (x:TPlaceConnection);
+    TWorkResultInfoHandler = reference to procedure (x:TWorkResultInfo);
     
 
 procedure HandleCopydata(var Message: TMessage);

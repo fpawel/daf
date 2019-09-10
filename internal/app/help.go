@@ -42,9 +42,18 @@ func minutes(n int) time.Duration {
 }
 
 func isFailWork(err error) bool {
-	return err != nil && !isDeviceError(err)
+	if err == nil {
+		return false
+	}
+	if merry.Is(err, ErrHardware) {
+		return true
+	}
+	if merry.Is(err, comm.Err) || merry.Is(err, context.DeadlineExceeded) {
+		return false
+	}
+	return true
 }
 
-func isDeviceError(err error) bool {
+func isCommErrorOrDeadline(err error) bool {
 	return merry.Is(err, comm.Err) || merry.Is(err, context.DeadlineExceeded)
 }

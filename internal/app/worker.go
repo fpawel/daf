@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/ansel1/merry"
-	"github.com/fpawel/comm"
 	"github.com/fpawel/comm/comport"
 	"github.com/fpawel/comm/modbus"
 	"github.com/fpawel/daf/internal"
@@ -25,8 +24,8 @@ type worker struct {
 	log          *structlog.Logger
 	ctx          context.Context
 	works        []string
-	portProducts *comport.ReadWriter
-	portHart     *comport.ReadWriter
+	portProducts *comport.Port
+	portHart     *comport.Port
 	gas          *int
 }
 
@@ -73,21 +72,14 @@ func newWorker(ctx context.Context, name string) worker {
 		ctx:   ctx,
 		works: []string{name},
 
-		portProducts: comport.NewReadWriter(func() comport.Config {
+		portProducts: comport.NewPort(func() comport.Config {
 			return comport.Config{
 				Baud:        9600,
 				ReadTimeout: time.Millisecond,
 				Name:        cfg.GetConfig().ComportProducts,
 			}
-		}, func() comm.Config {
-			return comm.Config{
-				ReadByteTimeoutMillis: 100,
-				ReadTimeoutMillis:     1000,
-				MaxAttemptsRead:       3,
-			}
 		}),
-
-		portHart: comport.NewReadWriter(func() comport.Config {
+		portHart: comport.NewPort(func() comport.Config {
 			return comport.Config{
 				Name:        cfg.GetConfig().ComportHart,
 				Baud:        1200,
@@ -95,14 +87,21 @@ func newWorker(ctx context.Context, name string) worker {
 				Parity:      comport.ParityOdd,
 				StopBits:    comport.Stop1,
 			}
-		}, func() comm.Config {
-			return comm.Config{
-				ReadByteTimeoutMillis: 50,
-				ReadTimeoutMillis:     2000,
-				MaxAttemptsRead:       5,
-			}
 		}),
 	}
+}
+
+func (x worker) ReaderDaf() modbus.ResponseReader {
+	return x.portProducts.NewResponseReader(x.ctx, cfg.GetConfig().Comm.Daf)
+}
+func (x worker) Reader6408() modbus.ResponseReader {
+	return x.portProducts.NewResponseReader(x.ctx, cfg.GetConfig().Comm.EN6408)
+}
+func (x worker) ReaderGas() modbus.ResponseReader {
+	return x.portProducts.NewResponseReader(x.ctx, cfg.GetConfig().Comm.Gas)
+}
+func (x worker) ReaderHart() modbus.ResponseReader {
+	return x.portHart.NewResponseReader(x.ctx, cfg.GetConfig().Comm.Hart)
 }
 
 func (x worker) performf(format string, args ...interface{}) func(func(x worker) error) error {
@@ -162,24 +161,30 @@ func (x worker) writeProducts(testName string, cmd modbus.DevCmd, arg float64) e
 	return x.performf("отправка команды %X, %v", cmd, arg)(func(x worker) error {
 		req := modbus.NewWrite32BCDRequest(0, 0x10, cmd, arg)
 		if cmd == 5 {
-			_, err := x.portProducts.Write(x.ctx, req.Bytes())
+			_, err := x.portProducts.Write(req.Bytes())
 			return err
 		}
-		return performProducts(testName, func(p party.Product) error {
+		return x.performProducts(testName, func(p party.Product, x worker) error {
 			return x.writeProduct(p, cmd, arg)
 		})
 	})
 }
 
-func performProducts(testName string, work func(p party.Product) error) error {
+func (x worker) performProducts(testName string, work func(p party.Product, x worker) error) error {
 	products := party.CheckedProducts()
 	if len(products) == 0 {
 		return errNoCheckedProducts.Here()
 	}
 	for _, p := range products {
-		err := work(p)
+		x.log = gohelp.LogPrependSuffixKeys(x.log,
+			internal.LogProductSerial, p.Serial,
+			internal.LogProductID, p.ProductID,
+			internal.LogProductPlace, p.Place)
+
+		err := work(p, x)
 		if err != nil {
-			addTestEntry(p.ProductID, testName, false, fmt.Sprintf("зафиксирован отказ: %v", err))
+			x.log.PrintErr(err)
+			addTestEntry(p.ProductID, testName, false, err.Error())
 		}
 		if isFailWork(err) {
 			return err

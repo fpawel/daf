@@ -9,15 +9,15 @@ import (
 )
 
 const (
-	tnSoftVersion     = "Проверка версии ПО"
-	tnSetupCurrent    = "Настройка токового выхода"
-	tnSetupThresholds = "Установка порогов"
-	tnAdjust          = "Калибровка"
+	tnSoftVersion  = "Проверка версии ПО"
+	tnSetupCurrent = "Настройка токового выхода"
+	tnSetupParams  = "Установка параметров"
+	tnAdjust       = "Калибровка"
 )
 
 func (x worker) testSoftVersion() error {
 	return x.performTest(tnSoftVersion, func(x worker) error {
-		return performProducts(tnSoftVersion, func(p party.Product) error {
+		return x.performProducts(tnSoftVersion, func(p party.Product, x worker) error {
 			c := cfg.GetConfig()
 			softVer, err := x.readFloat(p, varSoftVer, "", nil)
 			if err != nil {
@@ -47,7 +47,7 @@ func (x worker) setupCurrent() error {
 		}
 		pause(x.ctx.Done(), 5*time.Second)
 		x.log.Info("корректировка тока 4 мА")
-		if err := performProducts(tnSetupCurrent, func(p party.Product) error {
+		if err := x.performProducts(tnSetupCurrent, func(p party.Product, x worker) error {
 			v, err := x.read6408(p) // считать ток со стенда
 			if err != nil {
 				return err
@@ -61,7 +61,7 @@ func (x worker) setupCurrent() error {
 			return err
 		}
 		pause(x.ctx.Done(), 5*time.Second)
-		if err := performProducts(tnSetupCurrent, func(p party.Product) error {
+		if err := x.performProducts(tnSetupCurrent, func(p party.Product, x worker) error {
 			v, err := x.read6408(p)
 			if err != nil {
 				return err
@@ -76,16 +76,25 @@ func (x worker) setupCurrent() error {
 
 }
 
-func (x worker) setupThresholds() error {
-	return x.performTest(tnSetupThresholds, func(x worker) error {
-		c := data.LastParty()
+func (x worker) setupParams() error {
+	return x.performTest(tnSetupParams, func(x worker) error {
+		p := data.LastParty()
 		f := func(k float64) float64 {
-			return c.ScaleBegin + (c.ScaleEnd-c.ScaleBegin)*0.7
+			return p.ScaleBegin + (p.ScaleEnd-p.ScaleBegin)*0.7
 		}
-		if err := x.writeProducts(tnSetupThresholds, 0x30, f(0.2)); err != nil {
+		if err := x.writeProducts(tnSetupParams, 3, f(0.2)); err != nil {
 			return err
 		}
-		return x.writeProducts(tnSetupThresholds, 0x31, f(0.7))
+		if err := x.writeProducts(tnSetupParams, 4, f(0.7)); err != nil {
+			return err
+		}
+		if err := x.writeProducts(tnSetupParams, 7, float64(p.Component)); err != nil {
+			return err
+		}
+		if err := x.writeProducts(tnSetupParams, 8, cfg.GetConfig().Temperature); err != nil {
+			return err
+		}
+		return nil
 	})
 }
 
@@ -131,8 +140,7 @@ func (x worker) testMeasureAt(n, gas int) error {
 		data.DB.MustExec(`
 DELETE FROM product_test 
 WHERE test_number = ? AND product_id IN ( SELECT product_id FROM last_party_products) `, n)
-		return performProducts(what, func(p party.Product) error {
-			x := x
+		return x.performProducts(what, func(p party.Product, x worker) error {
 			dv, err := x.readDafIndication(p)
 			if isFailWork(err) {
 				return nil
@@ -141,7 +149,7 @@ WHERE test_number = ? AND product_id IN ( SELECT product_id FROM last_party_prod
 			if err != nil {
 				return nil
 			}
-			p.WrapLog(x.log).Info(fmt.Sprintf("сохранение для паспорта: %+v, %+v", dv, v))
+			x.log.Info(fmt.Sprintf("сохранение для паспорта: %+v, %+v", dv, v))
 			data.DB.MustExec(`
 REPLACE INTO product_test(product_id, test_number, concentration, output_current, thr1, thr2) 
 VALUES (?,?,?,?,?,?)`, p.ProductID, n, dv.Concentration, v.OutputCurrent, v.Threshold1, v.Threshold2)
