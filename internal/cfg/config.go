@@ -13,11 +13,11 @@ import (
 )
 
 type Config struct {
-	GuiSettings
+	AppConfig
 	Network []Place
 }
 
-type GuiSettings struct {
+type AppConfig struct {
 	ComportProducts        string  `toml:"comport_products" comment:"СОМ порт приборов"`
 	ComportHart            string  `toml:"comport_hart" comment:"СОМ порт HART модема"`
 	DurationBlowGasMinutes []int   `toml:"duration_blow_gas" comment:"длительности продувки газов в минутах"`
@@ -65,11 +65,10 @@ func Save() {
 	return
 }
 
-func SetConfig(v Config) {
+func ApplyConfig(v Config) {
 	mu.Lock()
 	defer mu.Unlock()
 	must.UnmarshalJSON(must.MarshalJSON(&v), &config)
-
 	if len(config.Network) == 0 {
 		config.Network = []Place{
 			{
@@ -78,7 +77,6 @@ func SetConfig(v Config) {
 			},
 		}
 	}
-
 	save()
 	return
 }
@@ -109,7 +107,7 @@ func save() {
 var (
 	mu            sync.Mutex
 	defaultConfig = Config{
-		GuiSettings: GuiSettings{
+		AppConfig: AppConfig{
 			ComportProducts:        "COM1",
 			ComportHart:            "COM2",
 			DurationBlowGasMinutes: []int{10, 5, 5, 5},

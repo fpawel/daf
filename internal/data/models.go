@@ -5,12 +5,12 @@ import (
 )
 
 type Party struct {
-	PartySettings
+	PartyConfig
 	PartyID   int64     `db:"party_id"`
 	CreatedAt time.Time `db:"created_at"`
 }
 
-type PartySettings struct {
+type PartyConfig struct {
 	ProductType     int     `db:"product_type" toml:"product_type" comment:"код исполнения ДАФ-М согласно ТУ"`
 	Component       int     `db:"component" toml:"component" comment:"код измеряемого компонента согласно ТУ"`
 	ScaleBegin      float64 `db:"scale_begin" toml:"scale_begin" comment:"нижняя граница диапазона измерений"`

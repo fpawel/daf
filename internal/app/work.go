@@ -80,7 +80,7 @@ func (x worker) setupParams() error {
 	return x.performTest(tnSetupParams, func(x worker) error {
 		p := data.LastParty()
 		f := func(k float64) float64 {
-			return p.ScaleBegin + (p.ScaleEnd-p.ScaleBegin)*0.7
+			return p.ScaleBegin + k*(p.ScaleEnd-p.ScaleBegin)
 		}
 		if err := x.writeProducts(tnSetupParams, 3, f(0.2)); err != nil {
 			return err
@@ -88,7 +88,7 @@ func (x worker) setupParams() error {
 		if err := x.writeProducts(tnSetupParams, 4, f(0.7)); err != nil {
 			return err
 		}
-		if err := x.writeProducts(tnSetupParams, 7, float64(p.Component)); err != nil {
+		if err := x.writeProducts(tnSetupParams, 7, float64(p.ProductType)); err != nil {
 			return err
 		}
 		if err := x.writeProducts(tnSetupParams, 8, cfg.GetConfig().Temperature); err != nil {

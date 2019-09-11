@@ -9,31 +9,31 @@ type
     
     TProduct = record
     public
+        Addr : Byte;
+        Checked : Boolean;
         ProductID : Int64;
         Serial : Integer;
         Place : Integer;
-        Addr : Byte;
-        Checked : Boolean;
         
     end;
     
     TParty = record
     public
-        ScaleEnd : Double;
         C3 : Double;
-        C4 : Double;
+        AbsErrorLimit3 : Double;
+        ScaleBegin : Double;
+        C1 : Double;
         AbsErrorLimit1 : Double;
         AbsErrorLimit4 : Double;
-        C1 : Double;
+        VariationLimit3 : Double;
+        CreatedAt : TDateTime;
+        Component : Integer;
+        C4 : Double;
         C2 : Double;
         AbsErrorLimit2 : Double;
-        VariationLimit3 : Double;
         PartyID : Int64;
-        CreatedAt : TDateTime;
         ProductType : Integer;
-        Component : Integer;
-        ScaleBegin : Double;
-        AbsErrorLimit3 : Double;
+        ScaleEnd : Double;
         
     end;
     
@@ -54,46 +54,46 @@ type
         
     end;
     
-    TGuiSettings = record
+    TAppConfig = record
     public
-        SoftVersion : Byte;
-        Temperature : Double;
         ComportProducts : string;
         ComportHart : string;
+        SoftVersion : Byte;
         DurationBlowGasMinutes : TArray<Integer>;
         DurationBlowOutMinutes : Integer;
         PauseReadPlaceMillis : Integer;
         SoftVersionID : Word;
+        Temperature : Double;
         Comm : TComm;
         
     end;
     
     TCell = record
     public
-        Color : string;
         Text : string;
         Alignment : Integer;
+        Color : string;
         
     end;
     
     TProductPassport = record
     public
+        T1 : TArray<TArray<TCell>>;
         T2 : TArray<TArray<TCell>>;
         PartyID : Int64;
         Serial : Integer;
         CreatedAt : TDateTime;
-        T1 : TArray<TArray<TCell>>;
         
     end;
     
     TProductInfo = record
     public
+        Serial : Integer;
+        Day : Integer;
         Hour : Integer;
         Minute : Integer;
         ProductID : Int64;
         PartyID : Int64;
-        Serial : Integer;
-        Day : Integer;
         
     end;
     
@@ -123,9 +123,9 @@ type
     
     TDelayInfo = record
     public
+        TotalSeconds : Integer;
         ElapsedSeconds : Integer;
         What : string;
-        TotalSeconds : Integer;
         
     end;
     

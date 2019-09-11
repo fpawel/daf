@@ -7,7 +7,7 @@ import (
 	"github.com/fpawel/daf/internal"
 	"github.com/fpawel/daf/internal/api/notify"
 	"github.com/fpawel/daf/internal/app"
-	"github.com/fpawel/gorunex/pkg/ccolor"
+	"github.com/fpawel/gotools/pkg/ccolor"
 	"github.com/powerman/structlog"
 	"io"
 	"os"
@@ -89,7 +89,7 @@ func newLogFileOutput() io.WriteCloser {
 	if err != nil {
 		panic(err)
 	}
-	return logFileOutput{logFile, sync.Mutex{}}
+	return &logFileOutput{logFile, sync.Mutex{}}
 }
 
 type logFileOutput struct {
@@ -97,12 +97,16 @@ type logFileOutput struct {
 	sync.Mutex
 }
 
-func (x logFileOutput) Write(p []byte) (int, error) {
-	if _, err := fmt.Fprint(x.File, time.Now().Format("15:04:05"), " "); err != nil {
-		panic(err)
-	}
-	if _, err := x.File.Write(p); err != nil {
-		panic(err)
-	}
+func (x *logFileOutput) Write(p []byte) (int, error) {
+	go func() {
+		x.Lock()
+		defer x.Unlock()
+		if _, err := fmt.Fprint(x.File, time.Now().Format("15:04:05"), " "); err != nil {
+			panic(err)
+		}
+		if _, err := x.File.Write(p); err != nil {
+			panic(err)
+		}
+	}()
 	return len(p), nil
 }

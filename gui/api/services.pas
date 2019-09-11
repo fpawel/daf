@@ -20,9 +20,9 @@ type
 
     TConfigSvc = class
     public
-        class function GetConfig:TGuiSettings;static;
+        class function GetConfig:TAppConfig;static;
         class function GetConfigToml:string;static;
-        class procedure SetConfig(C:TGuiSettings);static;
+        class procedure SetConfig(C:TAppConfig);static;
         class function SetConfigToml(param1:string):string;static;
         class function SetDefault:string;static;
         class procedure SetPlaceChecked(Place:Integer; Checked:Boolean);static;
@@ -142,7 +142,7 @@ begin
 end;
 
  
-class function TConfigSvc.GetConfig:TGuiSettings;
+class function TConfigSvc.GetConfig:TAppConfig;
 var
     req : ISuperobject;
 begin
@@ -162,7 +162,7 @@ begin
 end;
 
 
-class procedure TConfigSvc.SetConfig(C:TGuiSettings);
+class procedure TConfigSvc.SetConfig(C:TAppConfig);
 var
     req : ISuperobject;s:string;
 begin

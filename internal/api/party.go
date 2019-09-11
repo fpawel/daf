@@ -63,7 +63,7 @@ VALUES (?,?)`, data.LastParty().PartyID, serial, addr)
 	c := cfg.GetConfig()
 	c.EnsurePlace(len(products))
 	c.Network[len(products)].Addr = addr
-	cfg.SetConfig(c)
+	cfg.ApplyConfig(c)
 	*r = party.Products()
 	return nil
 }
@@ -87,7 +87,7 @@ func (_ *PartySvc) SetProductAddr(x struct {
 	}
 	c.EnsurePlace(x.Place)
 	c.Network[x.Place].Addr = x.Addr
-	cfg.SetConfig(c)
+	cfg.ApplyConfig(c)
 	return nil
 }
 

@@ -7,19 +7,27 @@ import (
 
 type ConfigSvc struct{}
 
-type guiSettings struct {
-	App   GuiSettings        `toml:"app" comment:"параметры связи и технологического процесса"`
-	Party data.PartySettings `toml:"party" comment:"параметры текущей загрузки"`
+type tomlConfig struct {
+	App   AppConfig        `toml:"app" comment:"параметры связи и технологического процесса"`
+	Party data.PartyConfig `toml:"party" comment:"параметры текущей загрузки"`
 }
 
-func getSets() guiSettings {
-	return guiSettings{
-		App:   GetConfig().GuiSettings,
-		Party: data.LastParty().PartySettings,
+func getTomlConfig() tomlConfig {
+	return tomlConfig{
+		App:   GetConfig().AppConfig,
+		Party: data.LastParty().PartyConfig,
 	}
 }
 
-func setSets(x guiSettings) {
+func (x *ConfigSvc) GetConfigToml(_ struct{}, r *string) error {
+	return tomlStringify(r, getTomlConfig())
+}
+
+func (_ *ConfigSvc) SetConfigToml(s [1]string, r *string) error {
+	var p tomlConfig
+	if err := toml.Unmarshal([]byte(s[0]), &p); err != nil {
+		return err
+	}
 	if _, err := data.DB.NamedExec(`
 UPDATE party 
 	SET product_type = :product_type, 
@@ -35,30 +43,18 @@ UPDATE party
 	    scale_begin = :scale_begin,
 	    scale_end = :scale_end,	    
 	    variation_limit3 = :variation_limit3
-WHERE party_id = (SELECT party_id FROM party)`, x.Party); err != nil {
+WHERE party_id = (SELECT party_id FROM party)`, p.Party); err != nil {
 		panic(err)
 	}
 	c := GetConfig()
-	c.GuiSettings = x.App
-	SetConfig(c)
-}
-
-func (x *ConfigSvc) GetConfigToml(_ struct{}, r *string) error {
-	return tomlStringify(r, getSets())
-}
-
-func (_ *ConfigSvc) SetConfigToml(s [1]string, r *string) error {
-	var p guiSettings
-	if err := toml.Unmarshal([]byte(s[0]), &p); err != nil {
-		return err
-	}
-	setSets(p)
-	return tomlStringify(r, getSets())
+	c.AppConfig = p.App
+	ApplyConfig(c)
+	return tomlStringify(r, getTomlConfig())
 }
 
 func (_ *ConfigSvc) SetDefault(_ struct{}, r *string) error {
-	SetConfig(defaultConfig)
-	return tomlStringify(r, getSets())
+	ApplyConfig(defaultConfig)
+	return tomlStringify(r, getTomlConfig())
 }
 
 func (_ *ConfigSvc) SetPlaceChecked(x struct {
@@ -68,19 +64,19 @@ func (_ *ConfigSvc) SetPlaceChecked(x struct {
 	c := GetConfig()
 	c.EnsurePlace(x.Place)
 	c.Network[x.Place].Checked = x.Checked
-	SetConfig(c)
+	ApplyConfig(c)
 	return nil
 }
 
-func (_ *ConfigSvc) SetConfig(x struct{ C GuiSettings }, _ *struct{}) error {
+func (_ *ConfigSvc) SetConfig(x struct{ C AppConfig }, _ *struct{}) error {
 	c := GetConfig()
-	c.GuiSettings = x.C
-	SetConfig(c)
+	c.AppConfig = x.C
+	ApplyConfig(c)
 	return nil
 }
 
-func (_ *ConfigSvc) GetConfig(_ struct{}, r *GuiSettings) error {
-	*r = GetConfig().GuiSettings
+func (_ *ConfigSvc) GetConfig(_ struct{}, r *AppConfig) error {
+	*r = GetConfig().AppConfig
 	return nil
 }
 
