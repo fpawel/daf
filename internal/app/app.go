@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/fpawel/daf/internal"
 	"github.com/fpawel/daf/internal/api/notify"
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/data"
@@ -22,12 +23,13 @@ func Run() {
 
 	// Преверяем, не было ли приложение запущено ранее.
 	// Если было, выдвигаем окно UI приложения на передний план и завершаем процесс.
-	if notify.ServerWindowAlreadyExists {
-		hWnd := winapp.FindWindow(notify.PeerWindowClassName)
+	if winapp.IsWindow(winapp.FindWindow(internal.ServerWindowClassName)) {
+		hWnd := winapp.FindWindow(internal.PeerWindowClassName)
 		win.ShowWindow(hWnd, win.SW_RESTORE)
 		win.SetForegroundWindow(hWnd)
 		log.Fatal("daf.exe already executing")
 	}
+	notifyWnd = notify.NewWindow(internal.ServerWindowClassName, internal.PeerWindowClassName)
 
 	var cancel func()
 	ctxApp, cancel = context.WithCancel(context.TODO())
@@ -39,33 +41,36 @@ func Run() {
 		}
 	}
 
-	go func() {
-		done := make(chan os.Signal, 1)
-		signal.Notify(done, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-		<-done
-		log.Info("signal close accepted")
-		notify.Window.Close()
-		return
-	}()
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	// цикл оконных сообщений
+mainLoop:
 	for {
-		var msg win.MSG
-		if win.GetMessage(&msg, 0, 0, 0) == 0 {
-			break
+
+		select {
+		case <-done:
+			log.Info("signal close accepted")
+			break mainLoop
+		default:
+			var msg win.MSG
+			if win.GetMessage(&msg, 0, 0, 0) == 0 {
+				break mainLoop
+			}
+			win.TranslateMessage(&msg)
+			win.DispatchMessage(&msg)
 		}
-		win.TranslateMessage(&msg)
-		win.DispatchMessage(&msg)
 	}
 	cancel()
 	closeHttpServer()
-	notify.Window.Close()
+	notifyWnd.W.Close()
 	log.ErrIfFail(data.DB.Close)
 	cfg.Save()
 	log.Debug("all canceled and closed")
 }
 
 var (
+	notifyWnd      notify.Window
 	ctxApp         context.Context
 	cancelWorkFunc = func() {}
 	skipDelayFunc  = func() {}

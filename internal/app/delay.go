@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/ansel1/merry"
-	"github.com/fpawel/daf/internal/api/notify"
 	"github.com/fpawel/daf/internal/api/types"
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/party"
@@ -34,14 +33,14 @@ func delay(x worker, duration time.Duration, name string) error {
 	return x.performf("%s: %s", name, myfmt.FormatDuration(duration))(func(x worker) error {
 		x.log.Info("задержка начата")
 		defer func() {
-			go notify.EndDelay(x.log.Info, "", "elapsed", myfmt.FormatDuration(time.Since(startTime)))
+			go notifyWnd.EndDelay(x.log.Info, "", "elapsed", myfmt.FormatDuration(time.Since(startTime)))
 		}()
 		for {
 			if len(party.CheckedProducts()) == 0 {
 				return merry.New("для опроса необходимо установить галочку для как минимум одиного прибора")
 			}
 			for _, p := range party.CheckedProducts() {
-				go notify.Delay(nil, types.DelayInfo{
+				go notifyWnd.Delay(nil, types.DelayInfo{
 					What:           name,
 					TotalSeconds:   int(duration.Seconds()),
 					ElapsedSeconds: int(time.Since(startTime).Seconds()),

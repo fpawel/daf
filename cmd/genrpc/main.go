@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/fpawel/daf/internal"
 	"github.com/fpawel/daf/internal/api"
 	"github.com/fpawel/daf/internal/api/types"
 	"github.com/fpawel/daf/internal/cfg"
@@ -21,8 +22,7 @@ func main() {
 			r.TypeOf((*api.ProductsSvc)(nil)),
 		},
 	}, delphirpc.SrcNotify{
-		PeerWindowClassName:   "TMainFormDaf",
-		ServerWindowClassName: "DafServerWindow",
+		ServerWindowClassName: internal.ServerWindowClassName,
 		Dir: filepath.Join(os.Getenv("GOPATH"),
 			"src", "github.com", "fpawel", "daf", "internal", "api", "notify"),
 		Types: []delphirpc.NotifyServiceType{

@@ -5,7 +5,6 @@ import (
 	"github.com/ansel1/merry"
 	"github.com/fpawel/comm/modbus"
 	"github.com/fpawel/daf/internal"
-	"github.com/fpawel/daf/internal/api/notify"
 	"github.com/fpawel/daf/internal/api/types"
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/party"
@@ -40,14 +39,14 @@ func (x worker) writeProduct(p party.Product, cmd modbus.DevCmd, arg float64) er
 	err := modbus.Write32(log, x.ReaderDaf(), p.Addr, 0x10, cmd, arg)
 	if err != nil {
 		if isCommErrorOrDeadline(err) {
-			notify.PlaceConnection(nil, types.PlaceConnection{
+			notifyWnd.PlaceConnection(nil, types.PlaceConnection{
 				Place: p.Place,
 				Text:  fmt.Sprintf("$%X: %v", cmd, err),
 			})
 		}
 		return err
 	}
-	notify.PlaceConnection(x.log.Info, types.PlaceConnection{
+	notifyWnd.PlaceConnection(x.log.Info, types.PlaceConnection{
 		Place: p.Place,
 		Text:  fmt.Sprintf("$%X<-%v", cmd, arg),
 		Ok:    true,
@@ -76,19 +75,19 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 	if err = p.WrapError(err); err != nil {
 		return result, merry.Wrap(err).WithCause(ErrEN6408)
 	}
-	go notify.PlaceConnection(nil, types.PlaceConnection{
+	go notifyWnd.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Ток",
 		Text:   myfmt.FormatFloat(result.OutputCurrent, -1),
 		Ok:     true,
 	})
-	go notify.PlaceConnection(nil, types.PlaceConnection{
+	go notifyWnd.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Реле 1",
 		Text:   formatOnOf(result.Threshold1),
 		Ok:     true,
 	})
-	go notify.PlaceConnection(nil, types.PlaceConnection{
+	go notifyWnd.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Реле 2",
 		Text:   formatOnOf(result.Threshold2),
@@ -109,7 +108,7 @@ func (x worker) readUInt16(p party.Product, Var modbus.Var, column string, forma
 		Column: column,
 	}
 	defer func() {
-		go notify.PlaceConnection(nil, c)
+		go notifyWnd.PlaceConnection(nil, c)
 	}()
 
 	value, err := modbus.Read3UInt16(log, x.ReaderDaf(), p.Addr, Var)
@@ -141,7 +140,7 @@ func (x worker) readFloat(p party.Product, Var modbus.Var, column string, format
 		Column: column,
 	}
 	defer func() {
-		go notify.PlaceConnection(nil, c)
+		go notifyWnd.PlaceConnection(nil, c)
 	}()
 	value, err := modbus.Read3BCD(log, x.ReaderDaf(), p.Addr, Var)
 	if err = p.WrapError(err); err == nil {

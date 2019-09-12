@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	"github.com/ansel1/merry"
-	"github.com/fpawel/daf/internal/api/notify"
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/party"
 	"github.com/powerman/structlog"
@@ -48,7 +47,7 @@ func (_ runner) RunMainWork(c []bool) {
 			}
 			x.log.Info("продувка воздухом по окончании настройки")
 			if err := closeGasInEnd(); err != nil {
-				notify.Warning(nil,
+				notifyWnd.Warning(nil,
 					fmt.Sprintf("Не удалось продуть воздухом по окончании настройки.\n\nПричина: %v\n\n", err))
 			}
 		}()

@@ -7,7 +7,6 @@ import (
 	"github.com/fpawel/comm/comport"
 	"github.com/fpawel/comm/modbus"
 	"github.com/fpawel/daf/internal"
-	"github.com/fpawel/daf/internal/api/notify"
 	"github.com/fpawel/daf/internal/api/types"
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/data"
@@ -47,21 +46,21 @@ func runWork(workName string, work func(x worker) error) {
 			wgWork.Done()
 		}()
 
-		go notify.WorkStarted(worker.log.Info, workName)
+		go notifyWnd.WorkStarted(worker.log.Info, workName)
 		err := work(worker)
 		if err == nil {
 			worker.log.Info("выполнено успешно")
-			go notify.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrOk, "успешно"})
+			go notifyWnd.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrOk, "успешно"})
 			return
 		}
 
 		if merry.Is(err, context.Canceled) {
 			worker.log.Warn("выполнение прервано")
-			go notify.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrCanceled, "перервано"})
+			go notifyWnd.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrCanceled, "перервано"})
 			return
 		}
 		worker.log.PrintErr(err, "stack", myfmt.FormatMerryStacktrace(err))
-		go notify.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrError, err.Error()})
+		go notifyWnd.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrError, err.Error()})
 	}()
 }
 
@@ -116,12 +115,12 @@ func (x worker) perform(name string, work func(x worker) error) error {
 		internal.LogKeyParentWork, fmt.Sprintf("%q", x.works),
 	)
 	x.works = append(x.works, name)
-	notify.Status(nil, strings.Join(x.works, ": "))
+	notifyWnd.Status(nil, strings.Join(x.works, ": "))
 	if err := work(x); err != nil {
 		return merry.Append(err, name)
 	}
 	x.works = x.works[:len(x.works)-1]
-	notify.Status(nil, strings.Join(x.works, ": "))
+	notifyWnd.Status(nil, strings.Join(x.works, ": "))
 	return nil
 }
 
@@ -146,7 +145,7 @@ func (x worker) performWithWarn(work func() error) error {
 func (x worker) raiseWarning(err error) error {
 	strErr := strings.Join(strings.Split(err.Error(), ": "), "\n\t -")
 
-	notify.Warning(nil,
+	notifyWnd.Warning(nil,
 		fmt.Sprintf("Не удалось выполнить: %s\n\nПричина: %s", x.works[len(x.works)-1], strErr))
 	if merry.Is(x.ctx.Err(), context.Canceled) {
 		return err
@@ -204,12 +203,12 @@ WHERE test = ? AND product_id IN (
 		ORDER BY created_at DESC
 		LIMIT 1) )`, testName)
 	for _, p := range party.Products() {
-		go notify.ProductDataChanged(nil, p.ProductID)
+		go notifyWnd.ProductDataChanged(nil, p.ProductID)
 	}
 }
 
 func addTestEntry(productID int64, testName string, ok bool, result string) {
 	data.DB.MustExec(`INSERT INTO product_entry(product_id, test, ok, message) VALUES (?, ?, ?, ?)`,
 		productID, testName, ok, result)
-	go notify.ProductDataChanged(nil, productID)
+	go notifyWnd.ProductDataChanged(nil, productID)
 }

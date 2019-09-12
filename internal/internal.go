@@ -13,6 +13,11 @@ func DataDir() string {
 }
 
 const (
+	PeerWindowClassName   = "TMainFormDaf"
+	ServerWindowClassName = "DafServerWindow"
+)
+
+const (
 	LogKeyWork           = "work"
 	LogKeyParentWork     = "parent_work"
 	LogKeyHardwareDevice = "hardware_device"
