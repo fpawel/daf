@@ -3,12 +3,19 @@ package app
 import (
 	"fmt"
 	"github.com/ansel1/merry"
+	"github.com/fpawel/comm/modbus"
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/party"
 	"github.com/powerman/structlog"
 )
 
 type runner struct{}
+
+func (_ runner) SetNetAddress(addr modbus.Addr) {
+	runWork(fmt.Sprintf("Установка адреса %d", addr), func(x worker) error {
+		return x.setNetAddress(addr)
+	})
+}
 
 func (_ runner) SwitchGas(n int) {
 	runWork(fmt.Sprintf("Газовый блок %d", n), func(x worker) error {

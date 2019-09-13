@@ -79,10 +79,6 @@ object FormLastParty: TFormLastParty
     Caption = 'Panel1'
     ShowCaption = False
     TabOrder = 1
-    ExplicitLeft = 368
-    ExplicitTop = 312
-    ExplicitWidth = 185
-    ExplicitHeight = 41
     object StringGrid1: TStringGrid
       AlignWithMargins = True
       Left = 3
@@ -104,8 +100,6 @@ object FormLastParty: TFormLastParty
       OnMouseDown = StringGrid1MouseDown
       OnSelectCell = StringGrid1SelectCell
       OnSetEditText = StringGrid1SetEditText
-      ExplicitLeft = 31
-      ExplicitTop = 0
       ColWidths = (
         64
         64

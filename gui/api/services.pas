@@ -34,6 +34,7 @@ type
         class procedure Cancel;static;
         class procedure RunMainWork(Works:TArray<Boolean>);static;
         class procedure RunReadVars;static;
+        class procedure SetNetAddress(param1:Byte);static;
         class procedure SkipDelay;static;
         class procedure SwitchGas(param1:Integer);static;
          
@@ -229,6 +230,16 @@ begin
     req := SO;
     
     ThttpRpcClient.GetResponse(GetHttpServerAddr + '/rpc', 'RunnerSvc.RunReadVars', req); 
+end;
+
+
+class procedure TRunnerSvc.SetNetAddress(param1:Byte);
+var
+    req : ISuperobject;
+begin
+    req := SA([]);
+    req.AsArray.Add(param1); 
+    ThttpRpcClient.GetResponse(GetHttpServerAddr + '/rpc', 'RunnerSvc.SetNetAddress', req); 
 end;
 
 

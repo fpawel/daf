@@ -15,6 +15,7 @@ func DataDir() string {
 const (
 	PeerWindowClassName   = "TMainFormDaf"
 	ServerWindowClassName = "DafServerWindow"
+	EnvKeySkipRunPeer     = "DAF_SKIP_RUN_PEER"
 )
 
 const (

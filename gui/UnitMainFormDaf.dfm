@@ -48,18 +48,10 @@ object MainFormDaf: TMainFormDaf
     object TabSheetData: TTabSheet
       Caption = #1044#1072#1085#1085#1099#1077
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object TabSheetConsole: TTabSheet
       Caption = #1050#1086#1085#1089#1086#1083#1100
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
   end
   object PanelMessageBox: TPanel
@@ -1423,6 +1415,7 @@ object MainFormDaf: TMainFormDaf
       000000000000}
   end
   object PopupMenu1: TPopupMenu
+    OnPopup = PopupMenu1Popup
     Left = 503
     Top = 64
     object N1: TMenuItem
@@ -1432,6 +1425,12 @@ object MainFormDaf: TMainFormDaf
     object N821: TMenuItem
       Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1072' '#1044#1040#1060'-'#1052'...'
       OnClick = N821Click
+    end
+    object MenuSetAddress: TMenuItem
+      Caption = #1059#1089#1090#1072#1085#1086#1074#1080#1090#1100' '#1072#1076#1088#1077#1089
+    end
+    object N3: TMenuItem
+      Caption = '-'
     end
     object N2: TMenuItem
       Caption = #1054#1090#1082#1083#1102#1095#1080#1090#1100' '#1075#1072#1079

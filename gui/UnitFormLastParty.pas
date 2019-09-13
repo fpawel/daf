@@ -47,7 +47,7 @@ type
         FhWndTip: THandle;
         FPlaceInterrogate: Integer;
         FPlaceConnection: TDictionary<Integer, TConnectionInfo>;
-        FProducts: TArray<TProduct>;
+
         procedure WMWindowPosChanged(var AMessage: TMessage);
           message WM_WINDOWPOSCHANGED;
         procedure WMEnterSizeMove(var Msg: TMessage); message WM_ENTERSIZEMOVE;
@@ -61,6 +61,7 @@ type
 
     public
         { Public declarations }
+        FProducts: TArray<TProduct>;
 
         procedure reload_data;
         procedure setup_products;

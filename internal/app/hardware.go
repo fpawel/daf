@@ -11,6 +11,7 @@ import (
 	"github.com/fpawel/gohelp"
 	"github.com/fpawel/gohelp/myfmt"
 	"strconv"
+	"time"
 )
 
 var (
@@ -30,6 +31,20 @@ type EN6408Value struct {
 	OutputCurrent float64
 	Threshold1,
 	Threshold2 bool
+}
+
+func (x worker) setNetAddress(addr modbus.Addr) error {
+	r := modbus.NewWrite32BCDRequest(0, 0x10, 5, float64(addr))
+	if err := x.portProducts.Open(); err != nil {
+		return err
+	}
+	x.log.Info(fmt.Sprintf("% X", r.Data))
+	if _, err := x.portProducts.Write(r.Data); err != nil {
+		return err
+	}
+	pause(x.ctx.Done(), time.Second)
+	_, err := modbus.Read3(x.log, x.ReaderDaf(), addr, 0, 2, nil)
+	return err
 }
 
 func (x worker) writeProduct(p party.Product, cmd modbus.DevCmd, arg float64) error {
@@ -225,12 +240,12 @@ type devVar struct {
 }
 
 var (
-	varC                      = devVar{0x00, "Концентрация"}
-	varThr1                   = devVar{0x1C, "Порог 1"}
-	varThr2                   = devVar{0x1E, "Порог 2"}
-	varMode                   = devVar{0x23, "Режим"}
-	varFailureCode            = devVar{0x20, "Отказ"}
-	varSoftVer     modbus.Var = 0x36
-	varSoftVerID   modbus.Var = 0x3A
+	varC           = devVar{0x00, "Концентрация"}
+	varThr1        = devVar{0x1C, "Порог 1"}
+	varThr2        = devVar{0x1E, "Порог 2"}
+	varMode        = devVar{0x23, "Режим"}
+	varFailureCode = devVar{0x20, "Отказ"}
+	varSoftVer     = modbus.Var(0x36)
+	varSoftVerID   = modbus.Var(0x3A)
 	//varGas         modbus.Var = 0x32
 )

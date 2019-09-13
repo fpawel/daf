@@ -35,7 +35,7 @@ func Run() {
 	ctxApp, cancel = context.WithCancel(context.TODO())
 	closeHttpServer := startHttpServer()
 
-	if v := os.Getenv("DAF_SKIP_RUN_PEER"); v != "true" {
+	if v := os.Getenv(internal.EnvKeySkipRunPeer); v != "true" {
 		if err := exec.Command(filepath.Join(filepath.Dir(os.Args[0]), "dafgui.exe")).Start(); err != nil {
 			panic(err)
 		}

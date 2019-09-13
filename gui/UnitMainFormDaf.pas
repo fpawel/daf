@@ -16,7 +16,7 @@ type
         ImageList4: TImageList;
         PageControlMain: TPageControl;
         TabSheetParty: TTabSheet;
-    TabSheetConsole: TTabSheet;
+        TabSheetConsole: TTabSheet;
         PanelMessageBox: TPanel;
         ImageError: TImage;
         ImageInfo: TImage;
@@ -46,11 +46,13 @@ type
         LabelStatusBottom1: TLabel;
         N821: TMenuItem;
         TabSheetData: TTabSheet;
-    N2: TMenuItem;
-    N11: TMenuItem;
-    N21: TMenuItem;
-    N31: TMenuItem;
-    N41: TMenuItem;
+        N2: TMenuItem;
+        N11: TMenuItem;
+        N21: TMenuItem;
+        N31: TMenuItem;
+        N41: TMenuItem;
+        N3: TMenuItem;
+        MenuSetAddress: TMenuItem;
         procedure FormShow(Sender: TObject);
         procedure FormCreate(Sender: TObject);
         procedure PageControlMainDrawTab(Control: TCustomTabControl;
@@ -66,8 +68,9 @@ type
         procedure ToolButton3Click(Sender: TObject);
         procedure N821Click(Sender: TObject);
         procedure ToolButtonStopClick(Sender: TObject);
-    procedure ToolButton1Click(Sender: TObject);
-    procedure N41Click(Sender: TObject);
+        procedure ToolButton1Click(Sender: TObject);
+        procedure N41Click(Sender: TObject);
+        procedure PopupMenu1Popup(Sender: TObject);
     private
         { Private declarations }
         procedure AppException(Sender: TObject; E: Exception);
@@ -75,6 +78,8 @@ type
         procedure SetupDelay(i: TDelayInfo);
         procedure OnWorkComplete(x: TWorkResultInfo);
         procedure OnWarning(content: string);
+
+        procedure SetAddresClick(Sender: TObject);
     public
         { Public declarations }
 
@@ -87,11 +92,11 @@ implementation
 
 {$R *.dfm}
 
-uses UnitFormLastParty, vclutils, JclDebug, ioutils,  app,
+uses UnitFormLastParty, vclutils, JclDebug, ioutils, app,
     services, UnitFormAppConfig, notify_services, HttpRpcClient, superobject,
-     dateutils, math, HttpExceptions, UnitFormData,
+    dateutils, math, HttpExceptions, UnitFormData,
     stringgridutils, UnitFormModalMessage, UnitFormEditText, UnitFormDataTable,
-  UnitFormSelectWorksDlg, UnitFormConsole;
+    UnitFormSelectWorksDlg, UnitFormConsole;
 
 function color_work_result(r: Integer): Tcolor;
 begin
@@ -119,7 +124,7 @@ var
 begin
     NotifyServices_SetEnabled(false);
     HttpRpcClient.TIMEOUT_CONNECT := 10;
-    notify_services.CloseServerWindow;
+    // notify_services.CloseServerWindow;
 
     fs := TFileStream.Create(ChangeFileExt(paramstr(0), '.position'),
       fmOpenWrite or fmCreate);
@@ -163,8 +168,6 @@ begin
         Show;
     end;
 
-
-
     with FormData do
     begin
         Font.Assign(self.Font);
@@ -172,7 +175,7 @@ begin
         BorderStyle := bsNone;
         Align := alClient;
         Show;
-        //FetchYearsMonths;
+        // FetchYearsMonths;
     end;
 
     with FormConsole do
@@ -185,8 +188,6 @@ begin
         FFileName := '';
         Show;
     end;
-
-
 
     PageControlMain.ActivePageIndex := 0;
 
@@ -254,7 +255,7 @@ begin
 
     if PageControl.ActivePage = TabSheetData then
     begin
-        //FormProductData.Parent :=FormData;
+        // FormProductData.Parent :=FormData;
         FormData.FetchYearsMonths;
     end
     else if PageControl.ActivePage = TabSheetParty then
@@ -268,6 +269,23 @@ procedure TMainFormDaf.PageControlMainDrawTab(Control: TCustomTabControl;
 TabIndex: Integer; const Rect: TRect; Active: Boolean);
 begin
     PageControl_DrawVerticalTab(Control, TabIndex, Rect, Active);
+end;
+
+procedure TMainFormDaf.PopupMenu1Popup(Sender: TObject);
+var
+    i: Integer;
+    m: TMenuItem;
+begin
+    MenuSetAddress.Clear;
+    for i := 0 to length(FormLastParty.FProducts) - 1 do
+    begin
+        m := TMenuItem.Create(nil);
+        m.Caption := Inttostr(FormLastParty.FProducts[i].Addr);
+        m.Tag := FormLastParty.FProducts[i].Addr;
+        m.OnClick := SetAddresClick;
+        MenuSetAddress.Add(m);
+    end;
+
 end;
 
 procedure TMainFormDaf.TimerPerformingTimer(Sender: TObject);
@@ -334,7 +352,7 @@ end;
 
 procedure TMainFormDaf.N41Click(Sender: TObject);
 begin
-    TRunnerSvc.SwitchGas((Sender as TComponent ).Tag);
+    TRunnerSvc.SwitchGas((Sender as TComponent).Tag);
 
 end;
 
@@ -344,7 +362,7 @@ begin
         with ClientToScreen(Point(0, Height)) do
         begin
             ToolButtonRun.PopupMenu.CloseMenu;
-            FormSelectWorksDlg.Left := X + 5;
+            FormSelectWorksDlg.Left := x + 5;
             FormSelectWorksDlg.Top := Y + 5;
             FormSelectWorksDlg.Show;
         end;
@@ -421,7 +439,7 @@ begin
     LabelDelayElepsedTime.Caption := FormatDateTime('HH:mm:ss',
       IncSecond(0, i.ElapsedSeconds));
     LabelProgress.Caption :=
-      inttostr(ceil(ProgressBar1.Position * 100 / ProgressBar1.Max)) + '%';
+      Inttostr(ceil(ProgressBar1.Position * 100 / ProgressBar1.Max)) + '%';
 end;
 
 procedure TMainFormDaf.OnWorkComplete(x: TWorkResultInfo);
@@ -469,7 +487,7 @@ begin
                   ': не выполнено';
             end;
     else
-        raise Exception.Create('unknown work result: ' + inttostr(x.Result));
+        raise Exception.Create('unknown work result: ' + Inttostr(x.Result));
     end;
 
     RichEditlMessageBoxText.Text := stringreplace(x.Message, ': ',
@@ -497,6 +515,11 @@ begin
     FormModalMessage.ShowModal;
     if FormModalMessage.ModalResult <> mrOk then
         TRunnerSvc.Cancel;
+end;
+
+procedure TMainFormDaf.SetAddresClick(Sender: TObject);
+begin
+    TRunnerSvc.SetNetAddress((Sender as TComponent).Tag);
 end;
 
 end.
