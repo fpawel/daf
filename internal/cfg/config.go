@@ -32,6 +32,7 @@ type AppConfig struct {
 type DurationBlowGasMinutes []int
 
 type Comm struct {
+	Log    bool        `toml:"log" comment:"логгирование посылок COM портов"`
 	Daf    comm.Config `toml:"daf" comment:"ДАФ-М"`
 	Gas    comm.Config `toml:"gas" comment:"Газовый блок"`
 	EN6408 comm.Config `toml:"en6408" comment:"Стенд ЭН8800-6408"`
@@ -69,6 +70,7 @@ func ApplyConfig(v Config) {
 	mu.Lock()
 	defer mu.Unlock()
 	must.UnmarshalJSON(must.MarshalJSON(&v), &config)
+	comm.SetEnableLog(config.Comm.Log)
 	if len(config.Network) == 0 {
 		config.Network = []Place{
 			{
@@ -117,6 +119,7 @@ var (
 			SoftVersionID:          0x7116,
 			Temperature:            20,
 			Comm: Comm{
+				Log: true,
 				Daf: comm.Config{
 					ReadByteTimeoutMillis: 50,
 					ReadTimeoutMillis:     700,
@@ -157,6 +160,9 @@ var (
 		if err = json.Unmarshal(b, &c); err != nil {
 			fmt.Println(err, fileName())
 		}
+
+		comm.SetEnableLog(c.Comm.Log)
+
 		return c
 	}()
 )
