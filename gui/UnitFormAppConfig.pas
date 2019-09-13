@@ -65,7 +65,7 @@ end;
 procedure TFormAppConfig.FormShow(Sender: TObject);
 var
     s: string;
-    v: TGuiSettings;
+    v: TAppConfig;
 
     p: TParty;
 
@@ -88,7 +88,7 @@ end;
 
 procedure TFormAppConfig.ComboBoxComportProductsChange(Sender: TObject);
 var
-    v: TGuiSettings;
+    v: TAppConfig;
 begin
     if not FEnableOnEdit then
         exit;
