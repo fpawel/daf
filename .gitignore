@@ -13,3 +13,6 @@ internal/api/notify/api_generated.go
 *.identcache
 *.local
 *.stat
+gui/api/notify_services.pas
+gui/api/server_data_types.pas
+gui/api/services.pas

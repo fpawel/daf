@@ -12,7 +12,7 @@ import (
 
 var (
 	DB = func() *sqlx.DB {
-		db := gohelp.OpenSqliteDBx(filepath.Join(internal.DataDir(), "daf.sqlite"))
+		db := gohelp.MustOpenSqliteDBx(filepath.Join(internal.DataDir(), "daf.sqlite"))
 		db.MustExec(SQLCreate)
 		return db
 	}()
