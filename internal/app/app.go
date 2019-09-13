@@ -40,26 +40,23 @@ func Run() {
 			panic(err)
 		}
 	}
-
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	go func() {
+		done := make(chan os.Signal, 1)
+		signal.Notify(done, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+		<-done
+		log.Info("signal close accepted")
+		notifyWnd.W.Close()
+		return
+	}()
 
 	// цикл оконных сообщений
-mainLoop:
 	for {
-
-		select {
-		case <-done:
-			log.Info("signal close accepted")
-			break mainLoop
-		default:
-			var msg win.MSG
-			if win.GetMessage(&msg, 0, 0, 0) == 0 {
-				break mainLoop
-			}
-			win.TranslateMessage(&msg)
-			win.DispatchMessage(&msg)
+		var msg win.MSG
+		if win.GetMessage(&msg, 0, 0, 0) == 0 {
+			break
 		}
+		win.TranslateMessage(&msg)
+		win.DispatchMessage(&msg)
 	}
 	cancel()
 	closeHttpServer()
