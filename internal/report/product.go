@@ -1,6 +1,7 @@
 package report
 
 import (
+	"github.com/fpawel/daf/internal/daf"
 	"github.com/fpawel/daf/internal/data"
 	"math"
 	"strconv"
@@ -84,8 +85,6 @@ WHERE product_id = ?
 ORDER BY test_number`, productID); err != nil {
 		panic(err)
 	}
-	p1n := []bool{false, false, true, true, true, false}
-	p2n := []bool{false, false, false, true, false, false}
 
 	var (
 		C3i   float64
@@ -110,8 +109,8 @@ ORDER BY test_number`, productID); err != nil {
 		r[1][x.Test+1] = floatCellC(x.C, 3, okC)
 		r[2][x.Test+1] = floatCellC(x.I, 3, okCi)
 		r[3][x.Test+1] = floatCellC(Ci, 3, okCi)
-		r[4][x.Test+1] = onOffCell(x.T1, x.T1 == p1n[x.Test])
-		r[5][x.Test+1] = onOffCell(x.T2, x.T1 == p2n[x.Test])
+		r[4][x.Test+1] = onOffCell(x.T1, x.T1 == daf.MustThr1[x.Test])
+		r[5][x.Test+1] = onOffCell(x.T2, x.T1 == daf.MustThr2[x.Test])
 		if x.Test == 4 && C3set && p.C3 != 0 {
 			variation := C3i - Ci
 			r[6][x.Test+1] = floatCellC(variation, 1, math.Abs(variation) < p.VariationLimit3)

@@ -1,17 +1,5 @@
 package internal
 
-import (
-	"os"
-	"path/filepath"
-)
-
-func DataDir() string {
-	if os.Getenv("DAF_DEV_DB") == "true" {
-		return filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "fpawel", "daf", "build")
-	}
-	return filepath.Dir(os.Args[0])
-}
-
 const (
 	PeerWindowClassName   = "TMainFormDaf"
 	ServerWindowClassName = "DafServerWindow"
@@ -27,5 +15,6 @@ const (
 	LogProductPlace      = "product_place"
 	LogKeyGasValve       = "gas_valve"
 	LogValueGasSwitcher  = "gas_switcher"
-	LogKeyDeviceVar      = "device_var"
+	LogKeyDafVar         = "daf_var"
+	LogKeyDafCmd         = "daf_cmd"
 )

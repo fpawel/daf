@@ -22,7 +22,6 @@ type AppConfig struct {
 	ComportHart            string  `toml:"comport_hart" comment:"СОМ порт HART модема"`
 	DurationBlowGasMinutes []int   `toml:"duration_blow_gas" comment:"длительности продувки газов в минутах"`
 	DurationBlowOutMinutes int     `toml:"duration_blow_out" comment:"длительность продувки воздуха в минутах"`
-	PauseReadPlaceMillis   int     `toml:"pause_read_place" comment:"длительность паузы между опросом мест стенда"`
 	SoftVersion            byte    `toml:"soft_version" comment:"Контролирумое значение ВПО ДАФ-М"`
 	SoftVersionID          uint16  `toml:"soft_version_id" comment:"Контролирумое значение цифрового идентификатора ВПО ДАФ-М"`
 	Temperature            float64 `toml:"temperature" comment:"Температура,\"С"`
@@ -114,7 +113,6 @@ var (
 			ComportHart:            "COM2",
 			DurationBlowGasMinutes: []int{10, 5, 5, 5},
 			DurationBlowOutMinutes: 1,
-			PauseReadPlaceMillis:   0,
 			SoftVersion:            1,
 			SoftVersionID:          0x7116,
 			Temperature:            20,
@@ -132,8 +130,9 @@ var (
 				},
 				EN6408: comm.Config{
 					ReadByteTimeoutMillis: 50,
-					ReadTimeoutMillis:     1000,
+					ReadTimeoutMillis:     3000,
 					MaxAttemptsRead:       5,
+					PauseMillis:           100,
 				},
 				Hart: comm.Config{
 					ReadByteTimeoutMillis: 100,

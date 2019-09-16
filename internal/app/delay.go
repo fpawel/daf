@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/ansel1/merry"
 	"github.com/fpawel/daf/internal/api/types"
-	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/party"
 	"github.com/fpawel/gohelp"
 	"github.com/fpawel/gohelp/myfmt"
@@ -60,7 +59,6 @@ func delay(x worker, duration time.Duration, name string) error {
 						return err
 					}
 				}
-				pause(x.ctx.Done(), millis(cfg.GetConfig().PauseReadPlaceMillis))
 			}
 		}
 	})

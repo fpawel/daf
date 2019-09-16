@@ -53,7 +53,8 @@ uses
   richeditutils in 'utils\richeditutils.pas',
   UnitFormProductData in 'UnitFormProductData.pas' {FormProductData},
   UnitFormSelectWorksDlg in 'UnitFormSelectWorksDlg.pas' {FormSelectWorksDlg},
-  UnitFormConsole in 'UnitFormConsole.pas' {FormConsole};
+  UnitFormConsole in 'UnitFormConsole.pas' {FormConsole},
+  UnitFormModbus1 in 'UnitFormModbus1.pas' {FormModbus1};
 
 {$R *.res}
 
@@ -70,5 +71,6 @@ begin
   Application.CreateForm(TFormProductData, FormProductData);
   Application.CreateForm(TFormSelectWorksDlg, FormSelectWorksDlg);
   Application.CreateForm(TFormConsole, FormConsole);
+  Application.CreateForm(TFormModbus1, FormModbus1);
   Application.Run;
 end.

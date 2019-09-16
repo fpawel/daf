@@ -20,10 +20,15 @@ type
     Panel17: TPanel;
     Panel18: TPanel;
     ComboBoxComportHart: TComboBox;
+    Panel3: TPanel;
+    Panel4: TPanel;
+    Shape3: TShape;
+    CheckBox1: TCheckBox;
         procedure FormCreate(Sender: TObject);
         procedure FormDeactivate(Sender: TObject);
         procedure FormShow(Sender: TObject);
         procedure ComboBoxComportProductsChange(Sender: TObject);
+    procedure CheckBox1Click(Sender: TObject);
     private
         { Private declarations }
         FhWndTip: THandle;
@@ -50,7 +55,7 @@ implementation
 
 {$R *.dfm}
 
-uses stringutils, services, server_data_types, comport;
+uses stringutils, services, server_data_types, comport, UnitFormModbus1;
 
 procedure setupCB(cb: TComboBox; s: string);
 begin
@@ -70,6 +75,7 @@ var
     p: TParty;
 
 begin
+    CheckBox1.Checked := FormModbus1.Visible;
     FEnableOnEdit := false;
     EnumComports(ComboBoxComportProducts.Items);
     EnumComports(ComboBoxComportHart.Items);
@@ -84,6 +90,12 @@ end;
 procedure TFormAppConfig.FormDeactivate(Sender: TObject);
 begin
     Hide;
+end;
+
+procedure TFormAppConfig.CheckBox1Click(Sender: TObject);
+begin
+    FormModbus1.Height := 51;
+    FormModbus1.Visible := CheckBox1.Checked;
 end;
 
 procedure TFormAppConfig.ComboBoxComportProductsChange(Sender: TObject);
