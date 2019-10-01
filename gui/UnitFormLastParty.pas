@@ -44,7 +44,6 @@ type
     private
         { Private declarations }
         Last_Edited_Col, Last_Edited_Row: Integer;
-        FhWndTip: THandle;
         FPlaceInterrogate: Integer;
         FPlaceConnection: TDictionary<Integer, TConnectionInfo>;
 
@@ -80,7 +79,7 @@ implementation
 
 uses stringgridutils, stringutils, dateutils,
     vclutils, ComponentBaloonHintU, services, HttpRpcClient, app,
-    UnitMainFormDaf, UnitFormProductData;
+    UnitMainFormDaf, UnitFormProductData, UnitFormPopup;
 
 {$R *.dfm}
 
@@ -99,19 +98,19 @@ end;
 
 procedure TFormLastParty.WMEnterSizeMove(var Msg: TMessage);
 begin
-    CloseWindow(FhWndTip);
+    //FormErrorMessage.Hide;
     inherited;
 end;
 
 procedure TFormLastParty.WMWindowPosChanged(var AMessage: TMessage);
 begin
-    CloseWindow(FhWndTip);
+    //FormErrorMessage.Hide;
     inherited;
 end;
 
 procedure TFormLastParty.WMActivateApp(var AMessage: TMessage);
 begin
-    CloseWindow(FhWndTip);
+    //FormErrorMessage.Hide;
     inherited;
 end;
 
@@ -156,6 +155,9 @@ procedure TFormLastParty.StringGrid1SetEditText(Sender: TObject;
   ACol, ARow: Integer; const Value: string);
 var
     p: TProduct;
+
+    r: TRect;
+    pt: TPoint;
 begin
     if ARow = 0 then
         exit;
@@ -176,13 +178,19 @@ begin
                     1:
                         UpdateAddr(ACol, ARow, Value);
                 end;
-                CloseWindow(FhWndTip);
+                FormPopup.Hide;
             except
                 on E: Exception do
                 begin
-                    FhWndTip := StringGrid1.ShowBalloonTip(TIconKind.Error,
-                      'Ошибка', Format('место %d: "%s": %s',
-                      [ARow, Value, E.Message]));
+                    with FormPopup do
+                    begin
+                        Caption := 'Ошибка';
+                        ImageInfo.Hide;
+                        ImageError.Show;
+                        SetText( Format('место %d: "%s": %s',
+                          [ARow-1, Value, E.Message]) );
+                        ShowAtStringGridCell(StringGrid1);
+                    end;
                 end;
             end;
             StringGrid1.OnSetEditText := StringGrid1SetEditText;
@@ -403,7 +411,7 @@ procedure TFormLastParty.UpdateAddr(ACol, ARow: Integer; Value: string);
 var
     p: TProduct;
 begin
-    CloseWindow(FhWndTip);
+    FormPopup.Hide;
     p := FProducts[ARow - 1];
     try
         TPartySvc.SetProductAddr(ARow - 1, StrToInt(Value));
@@ -422,7 +430,7 @@ procedure TFormLastParty.UpdateSerial(ACol, ARow: Integer; Value: string);
 var
     p: TProduct;
 begin
-    CloseWindow(FhWndTip);
+    FormPopup.Hide;
     p := FProducts[ARow - 1];
     try
         TPartySvc.SetProductSerial(p.ProductID, Value);

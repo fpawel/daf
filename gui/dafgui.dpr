@@ -53,7 +53,8 @@ uses
   richeditutils in 'utils\richeditutils.pas',
   UnitFormProductData in 'UnitFormProductData.pas' {FormProductData},
   UnitFormSelectWorksDlg in 'UnitFormSelectWorksDlg.pas' {FormSelectWorksDlg},
-  UnitFormConsole in 'UnitFormConsole.pas' {FormConsole};
+  UnitFormConsole in 'UnitFormConsole.pas' {FormConsole},
+  logfile in 'logfile.pas';
 
 {$R *.res}
 
