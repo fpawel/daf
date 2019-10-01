@@ -3,8 +3,8 @@ object FormAppConfig: TFormAppConfig
   Top = 0
   BorderStyle = bsToolWindow
   Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
-  ClientHeight = 105
-  ClientWidth = 307
+  ClientHeight = 150
+  ClientWidth = 329
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -21,8 +21,8 @@ object FormAppConfig: TFormAppConfig
     AlignWithMargins = True
     Left = 5
     Top = 5
-    Width = 297
-    Height = 97
+    Width = 319
+    Height = 140
     Margins.Left = 5
     Margins.Top = 5
     Margins.Right = 5
@@ -30,19 +30,21 @@ object FormAppConfig: TFormAppConfig
     Align = alTop
     Caption = #1057#1054#1052' '#1087#1086#1088#1090#1099
     TabOrder = 0
+    ExplicitWidth = 345
     object Panel1: TPanel
       Left = 2
       Top = 23
-      Width = 293
+      Width = 315
       Height = 38
       Align = alTop
       BevelOuter = bvNone
       BorderWidth = 1
       TabOrder = 0
+      ExplicitWidth = 293
       object Shape1: TShape
         Left = 1
         Top = 36
-        Width = 291
+        Width = 313
         Height = 1
         Align = alBottom
         Pen.Color = cl3DLight
@@ -53,7 +55,7 @@ object FormAppConfig: TFormAppConfig
       object Panel2: TPanel
         Left = 1
         Top = 1
-        Width = 160
+        Width = 200
         Height = 35
         Align = alLeft
         Alignment = taRightJustify
@@ -62,7 +64,7 @@ object FormAppConfig: TFormAppConfig
         TabOrder = 1
       end
       object ComboBoxComportProducts: TComboBox
-        Left = 180
+        Left = 210
         Top = 4
         Width = 98
         Height = 26
@@ -85,17 +87,31 @@ object FormAppConfig: TFormAppConfig
     object Panel17: TPanel
       Left = 2
       Top = 61
-      Width = 293
+      Width = 315
       Height = 38
       Align = alTop
       BevelOuter = bvNone
       BorderWidth = 1
       TabOrder = 1
+      ExplicitLeft = 3
+      ExplicitTop = 59
+      ExplicitWidth = 341
+      object Shape3: TShape
+        Left = 1
+        Top = 36
+        Width = 313
+        Height = 1
+        Align = alBottom
+        Pen.Color = cl3DLight
+        ExplicitLeft = 2
+        ExplicitTop = 37
+        ExplicitWidth = 291
+      end
       object Panel18: TPanel
         Left = 1
         Top = 1
-        Width = 160
-        Height = 36
+        Width = 200
+        Height = 35
         Align = alLeft
         Alignment = taRightJustify
         BevelOuter = bvNone
@@ -103,7 +119,7 @@ object FormAppConfig: TFormAppConfig
         TabOrder = 0
       end
       object ComboBoxComportHart: TComboBox
-        Left = 180
+        Left = 210
         Top = 4
         Width = 98
         Height = 26
@@ -121,6 +137,38 @@ object FormAppConfig: TFormAppConfig
         OnChange = ComboBoxComportProductsChange
         Items.Strings = (
           'COM1')
+      end
+    end
+    object Panel3: TPanel
+      Left = 2
+      Top = 99
+      Width = 315
+      Height = 38
+      Align = alTop
+      BevelOuter = bvNone
+      BorderWidth = 1
+      TabOrder = 2
+      ExplicitLeft = 3
+      ExplicitTop = 97
+      ExplicitWidth = 341
+      object Panel4: TPanel
+        Left = 1
+        Top = 1
+        Width = 200
+        Height = 36
+        Align = alLeft
+        Alignment = taRightJustify
+        BevelOuter = bvNone
+        Caption = #1055#1086#1082#1072#1079#1072#1090#1100' '#1087#1072#1085#1077#1083#1100' MODBUS'
+        TabOrder = 0
+      end
+      object CheckBox1: TCheckBox
+        Left = 210
+        Top = 12
+        Width = 23
+        Height = 17
+        TabOrder = 1
+        OnClick = CheckBox1Click
       end
     end
   end

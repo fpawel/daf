@@ -35,6 +35,24 @@ func (_ runner) SkipDelay() {
 	log.Info("задержка прервана")
 }
 
+func (_ runner) Read3(Var modbus.Var) {
+	runWork(fmt.Sprintf("read3 %d", Var), func(x worker) error {
+		for _, p := range party.CheckedProducts() {
+			_, _ = x.readFloat(p, Var, "", nil)
+		}
+		return nil
+	})
+}
+
+func (_ runner) Write32(cmd modbus.DevCmd, value float64) {
+	runWork(fmt.Sprintf("write32 %d %v", cmd, value), func(x worker) error {
+		for _, p := range party.CheckedProducts() {
+			_ = x.writeProduct(p, dafCmd{Code: cmd}, value)
+		}
+		return nil
+	})
+}
+
 func (_ runner) RunMainWork(c []bool) {
 	runWork("Настройка ДАФ-М", func(x worker) error {
 

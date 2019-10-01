@@ -13,11 +13,11 @@ func logPrependSuffixKeys(log comm.Logger, a ...interface{}) *structlog.Logger {
 	return gohelp.LogPrependSuffixKeys(log, a...)
 }
 
-func formatOnOf(b bool) string {
+func formatBool(b bool, strTrue, strFalse string) string {
 	if b {
-		return "ВКЛ"
+		return strTrue
 	}
-	return "выкл"
+	return strFalse
 }
 
 func pause(chDone <-chan struct{}, d time.Duration) {

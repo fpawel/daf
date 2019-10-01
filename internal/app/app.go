@@ -19,6 +19,8 @@ import (
 
 func Run() {
 
+	data.OpenProd()
+
 	log := structlog.New()
 
 	// Преверяем, не было ли приложение запущено ранее.

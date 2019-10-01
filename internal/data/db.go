@@ -2,20 +2,34 @@ package data
 
 import (
 	"database/sql"
-	"github.com/fpawel/daf/internal"
 	"github.com/fpawel/gohelp"
 	"github.com/jmoiron/sqlx"
+	"os"
 	"path/filepath"
 )
 
 //go:generate go run github.com/fpawel/gohelp/cmd/sqlstr/...
 
+func OpenDev() {
+	Open(filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "fpawel", "daf", "build", "daf.sqlite"))
+}
+
+func OpenProd() {
+	Open(filepath.Join(filepath.Dir(os.Args[0]), "daf.sqlite"))
+}
+
+func Open(filename string) {
+	DB = gohelp.MustOpenSqliteDBx(filename)
+	DB.MustExec(SQLCreate)
+}
+
 var (
-	DB = func() *sqlx.DB {
-		db := gohelp.MustOpenSqliteDBx(filepath.Join(internal.DataDir(), "daf.sqlite"))
-		db.MustExec(SQLCreate)
-		return db
-	}()
+	//DB = func() *sqlx.DB {
+	//	db := gohelp.MustOpenSqliteDBx(filepath.Join(internal.DataDir(), "daf.sqlite"))
+	//	db.MustExec(SQLCreate)
+	//	return db
+	//}()
+	DB *sqlx.DB
 )
 
 func GetParty(partyID int64) (party Party) {

@@ -96,7 +96,7 @@ uses UnitFormLastParty, vclutils, JclDebug, ioutils, app,
     services, UnitFormAppConfig, notify_services, HttpRpcClient, superobject,
     dateutils, math, HttpExceptions, UnitFormData,
     stringgridutils, UnitFormModalMessage, UnitFormEditText, UnitFormDataTable,
-    UnitFormSelectWorksDlg, UnitFormConsole;
+    UnitFormSelectWorksDlg, UnitFormConsole, UnitFormModbus1;
 
 function color_work_result(r: Integer): Tcolor;
 begin
@@ -124,7 +124,7 @@ var
 begin
     NotifyServices_SetEnabled(false);
     HttpRpcClient.TIMEOUT_CONNECT := 10;
-    // notify_services.CloseServerWindow;
+     notify_services.CloseServerWindow;
 
     fs := TFileStream.Create(ChangeFileExt(paramstr(0), '.position'),
       fmOpenWrite or fmCreate);
@@ -156,6 +156,16 @@ begin
         Font.Assign(self.Font);
         BorderStyle := bsNone;
         Align := alClient;
+    end;
+
+    with FormModbus1 do
+    begin
+        Font.Assign(self.Font);
+        Parent := TabSheetParty;
+        BorderStyle := bsNone;
+        Align := alBottom;
+        Height := 89;
+        hide;
     end;
 
     with FormLastParty do

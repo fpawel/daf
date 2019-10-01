@@ -1,6 +1,7 @@
 package data
 
 import (
+	"math"
 	"time"
 )
 
@@ -31,8 +32,20 @@ type Product struct {
 	Serial    int   `db:"serial"`
 }
 
+func (p Party) Ci(i float64) float64 {
+	return (i - 4.) * (p.ScaleEnd - p.ScaleBegin) / 16.
+}
+
 func (p Party) CnTest(test int) float64 {
 	return ([]float64{p.C1, p.C2, p.C3, p.C4, p.C3, p.C1})[test]
+}
+
+func (p Party) TestConcentrationOk(test int, c float64) bool {
+	return math.Abs(c-p.CnTest(test)) < p.AbsErrLimitTest(test)
+}
+
+func (p Party) TestOutputCurrentOk(test int, i float64) bool {
+	return math.Abs(p.Ci(i)-p.CnTest(test)) < p.AbsErrLimitTest(test)
 }
 
 func (p Party) AbsErrLimitTest(test int) float64 {

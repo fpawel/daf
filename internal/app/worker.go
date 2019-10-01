@@ -103,6 +103,13 @@ func (x worker) ReaderHart() modbus.ResponseReader {
 	return x.portHart.NewResponseReader(x.ctx, cfg.GetConfig().Comm.Hart)
 }
 
+func (x worker) pause(t time.Duration) {
+	_ = x.performf("пауза %v", t)(func(x worker) error {
+		pause(x.ctx.Done(), t)
+		return nil
+	})
+}
+
 func (x worker) performf(format string, args ...interface{}) func(func(x worker) error) error {
 	return func(work func(x worker) error) error {
 		return x.perform(fmt.Sprintf(format, args...), work)
@@ -154,13 +161,8 @@ func (x worker) raiseWarning(err error) error {
 	return nil
 }
 
-func (x worker) writeProducts(testName string, cmd modbus.DevCmd, arg float64) error {
-	return x.performf("отправка команды %X, %v", cmd, arg)(func(x worker) error {
-		req := modbus.NewWrite32BCDRequest(0, 0x10, cmd, arg)
-		if cmd == 5 {
-			_, err := x.portProducts.Write(req.Bytes())
-			return err
-		}
+func (x worker) writeProducts(testName string, cmd dafCmd, arg float64) error {
+	return x.performf("%s код=%d параметр=%v", cmd.Name, cmd.Code, arg)(func(x worker) error {
 		return x.performProducts(testName, func(p party.Product, x worker) error {
 			return x.writeProduct(p, cmd, arg)
 		})

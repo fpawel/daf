@@ -21,16 +21,15 @@ var (
 )
 
 type DafIndication struct {
-	Concentration,
-	Threshold1, Threshold2,
+	C,
+	Thr1, Thr2,
 	Failure float64
 	Mode uint16
 }
 
 type EN6408Value struct {
-	OutputCurrent float64
-	Threshold1,
-	Threshold2 bool
+	I          float64
+	Thr1, Thr2 bool
 }
 
 func (x worker) setNetAddress(addr modbus.Addr) error {
@@ -47,23 +46,26 @@ func (x worker) setNetAddress(addr modbus.Addr) error {
 	return err
 }
 
-func (x worker) writeProduct(p party.Product, cmd modbus.DevCmd, arg float64) error {
+func (x worker) writeProduct(p party.Product, cmd dafCmd, arg float64) error {
 	//pause(x.ctx.Done(), time.Millisecond * 300)
 	//return nil
-	log := logPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "daf")
-	err := modbus.Write32(log, x.ReaderDaf(), p.Addr, 0x10, cmd, arg)
+	log := logPrependSuffixKeys(x.log,
+		internal.LogKeyHardwareDevice, "daf",
+		internal.LogKeyDafCmd, fmt.Sprintf("`%s`", cmd.Name))
+
+	err := modbus.Write32(log, x.ReaderDaf(), p.Addr, 0x10, cmd.Code, arg)
 	if err != nil {
 		if isCommErrorOrDeadline(err) {
 			notifyWnd.PlaceConnection(nil, types.PlaceConnection{
 				Place: p.Place,
-				Text:  fmt.Sprintf("$%X: %v", cmd, err),
+				Text:  fmt.Sprintf("%s %d: %v", cmd.Name, cmd.Code, err),
 			})
 		}
 		return err
 	}
 	notifyWnd.PlaceConnection(x.log.Info, types.PlaceConnection{
 		Place: p.Place,
-		Text:  fmt.Sprintf("$%X<-%v", cmd, arg),
+		Text:  fmt.Sprintf("%s %d<-%v", cmd.Name, cmd.Code, arg),
 		Ok:    true,
 	})
 	return nil
@@ -77,14 +79,15 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 	//	Threshold1:    n > 0.5,
 	//	Threshold2:    n > 0.5,
 	//}, nil
+
 	log := gohelp.LogPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "ЭН6408")
 	var result EN6408Value
 	_, err := modbus.Read3(log, x.Reader6408(),
 		32, modbus.Var(p.Addr-1)*2, 2, func(_, response []byte) (string, error) {
 			b := response[3:]
-			result.OutputCurrent = (float64(b[0])*256 + float64(b[1])) / 100
-			result.Threshold1 = b[3]&1 == 0
-			result.Threshold2 = b[3]&2 == 0
+			result.I = (float64(b[0])*256 + float64(b[1])) / 100
+			result.Thr1 = b[3]&1 == 0
+			result.Thr2 = b[3]&2 == 0
 			return fmt.Sprintf("%+v", result), nil
 		})
 	if err = p.WrapError(err); err != nil {
@@ -93,19 +96,19 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 	go notifyWnd.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Ток",
-		Text:   myfmt.FormatFloat(result.OutputCurrent, -1),
+		Text:   myfmt.FormatFloat(result.I, -1),
 		Ok:     true,
 	})
 	go notifyWnd.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Реле 1",
-		Text:   formatOnOf(result.Threshold1),
+		Text:   formatBool(result.Thr1, "ВКЛ", "выкл"),
 		Ok:     true,
 	})
 	go notifyWnd.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Реле 2",
-		Text:   formatOnOf(result.Threshold2),
+		Text:   formatBool(result.Thr2, "ВКЛ", "выкл"),
 		Ok:     true,
 	})
 	return result, nil
@@ -116,7 +119,7 @@ func (x worker) readUInt16(p party.Product, Var modbus.Var, column string, forma
 	//return uint16(rand.Uint32()), nil
 	log := logPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "daf")
 	if len(column) > 0 {
-		log = gohelp.LogPrependSuffixKeys(log, internal.LogKeyDeviceVar, column)
+		log = gohelp.LogPrependSuffixKeys(log, internal.LogKeyDafVar, column)
 	}
 	c := types.PlaceConnection{
 		Place:  p.Place,
@@ -176,12 +179,12 @@ func (x worker) readFloat(p party.Product, Var modbus.Var, column string, format
 
 func (x worker) readDafIndication(p party.Product) (r DafIndication, err error) {
 	for _, a := range []struct {
-		Var devVar
+		Var dafVar
 		p   *float64
 	}{
-		{varC, &r.Concentration},
-		{varThr1, &r.Threshold1},
-		{varThr2, &r.Threshold2},
+		{varC, &r.C},
+		{varThr1, &r.Thr1},
+		{varThr2, &r.Thr2},
 		{varFailureCode, &r.Failure},
 	} {
 		if *a.p, err = x.readFloat(p, a.Var.Code, a.Var.Name, nil); err != nil {
@@ -234,18 +237,40 @@ func (x worker) switchGas(n int) error {
 	})
 }
 
-type devVar struct {
+type dafVar struct {
 	Code modbus.Var
 	Name string
 }
 
 var (
-	varC           = devVar{0x00, "Концентрация"}
-	varThr1        = devVar{0x1C, "Порог 1"}
-	varThr2        = devVar{0x1E, "Порог 2"}
-	varMode        = devVar{0x23, "Режим"}
-	varFailureCode = devVar{0x20, "Отказ"}
-	varSoftVer     = modbus.Var(0x36)
-	varSoftVerID   = modbus.Var(0x3A)
+	varC           = dafVar{0x00, "Концентрация"}
+	varThr1        = dafVar{0x1C, "Порог 1"}
+	varThr2        = dafVar{0x1E, "Порог 2"}
+	varMode        = dafVar{0x23, "Режим"}
+	varFailureCode = dafVar{0x20, "Отказ"}
+)
+
+const (
+	varSoftVer   = modbus.Var(0x36)
+	varSoftVerID = modbus.Var(0x3A)
 	//varGas         modbus.Var = 0x32
+)
+
+type dafCmd struct {
+	Code modbus.DevCmd
+	Name string
+}
+
+var (
+	cmdAdjustBeg = dafCmd{1, "корректировка нулевых показаний"}
+	cmdAdjustEnd = dafCmd{2, "корректировка чувствительности"}
+	cmdSetupThr1 = dafCmd{3, "установка порога 1"}
+	cmdSetupThr2 = dafCmd{4, "установка порога 2"}
+	//cmdSetupAddr = dafCmd{5,"установка адреса"}
+	cmdSetupType = dafCmd{7, "установка кода исполнения"}
+	cmdSetupTemp = dafCmd{8, "установка температуры"}
+	cmdSetup4    = dafCmd{9, "корректировка 4 мА"}
+	cmdSetup20   = dafCmd{0x0A, "корректировка 20 мА"}
+	cmdMode4     = dafCmd{0x0B, "установка 4 мА"}
+	cmdMode20    = dafCmd{0x0C, "установка 20 мА"}
 )
