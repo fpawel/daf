@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/fpawel/daf/internal/api"
 	"github.com/fpawel/daf/internal/cfg"
-	"github.com/fpawel/gohelp/must"
+	"github.com/fpawel/daf/internal/pkg/must"
 	"github.com/powerman/rpc-codec/jsonrpc2"
 	"github.com/powerman/structlog"
 	"github.com/tdewolff/minify"

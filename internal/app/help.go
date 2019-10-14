@@ -4,13 +4,13 @@ import (
 	"context"
 	"github.com/ansel1/merry"
 	"github.com/fpawel/comm"
-	"github.com/fpawel/gohelp"
+	"github.com/fpawel/daf/internal/pkg"
 	"github.com/powerman/structlog"
 	"time"
 )
 
 func logPrependSuffixKeys(log comm.Logger, a ...interface{}) *structlog.Logger {
-	return gohelp.LogPrependSuffixKeys(log, a...)
+	return pkg.LogPrependSuffixKeys(log, a...)
 }
 
 func formatBool(b bool, strTrue, strFalse string) string {
@@ -33,9 +33,9 @@ func pause(chDone <-chan struct{}, d time.Duration) {
 	}
 }
 
-func millis(n int) time.Duration {
-	return time.Duration(n) * time.Millisecond
-}
+//func millis(n int) time.Duration {
+//	return time.Duration(n) * time.Millisecond
+//}
 
 func minutes(n int) time.Duration {
 	return time.Duration(n) * time.Minute

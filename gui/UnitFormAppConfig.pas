@@ -75,7 +75,6 @@ var
     p: TParty;
 
 begin
-    CheckBox1.Checked := FormModbus1.Visible;
     FEnableOnEdit := false;
     EnumComports(ComboBoxComportProducts.Items);
     EnumComports(ComboBoxComportHart.Items);

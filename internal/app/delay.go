@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/ansel1/merry"
+	"github.com/fpawel/daf/internal/api/notify"
 	"github.com/fpawel/daf/internal/api/types"
 	"github.com/fpawel/daf/internal/party"
-	"github.com/fpawel/gohelp"
-	"github.com/fpawel/gohelp/myfmt"
+	"github.com/fpawel/daf/internal/pkg"
 	"time"
 )
 
@@ -17,7 +17,7 @@ func delayf(x worker, duration time.Duration, format string, a ...interface{}) e
 
 func delay(x worker, duration time.Duration, name string) error {
 	startTime := time.Now()
-	x.log = gohelp.LogPrependSuffixKeys(x.log, "start", startTime.Format("15:04:05"))
+	x.log = pkg.LogPrependSuffixKeys(x.log, "start", startTime.Format("15:04:05"))
 	ctxRootWork := x.ctx
 
 	{
@@ -25,26 +25,26 @@ func delay(x worker, duration time.Duration, name string) error {
 		x.ctx, skipDelay = context.WithTimeout(x.ctx, duration)
 		skipDelayFunc = func() {
 			skipDelay()
-			x.log.Info("задержка прервана", "elapsed", myfmt.FormatDuration(time.Since(startTime)))
+			x.log.Info("задержка прервана", "elapsed", pkg.FormatDuration(time.Since(startTime)))
 		}
 	}
 
-	return x.performf("%s: %s", name, myfmt.FormatDuration(duration))(func(x worker) error {
+	return x.performf("%s: %s", name, pkg.FormatDuration(duration))(func(x worker) error {
 		x.log.Info("задержка начата")
 		defer func() {
-			go notifyWnd.EndDelay(x.log.Info, "", "elapsed", myfmt.FormatDuration(time.Since(startTime)))
+			notify.EndDelay(x.log.Info, "", "elapsed", pkg.FormatDuration(time.Since(startTime)))
 		}()
 		for {
 			if len(party.CheckedProducts()) == 0 {
 				return merry.New("для опроса необходимо установить галочку для как минимум одиного прибора")
 			}
 			for _, p := range party.CheckedProducts() {
-				go notifyWnd.Delay(nil, types.DelayInfo{
+				notify.Delay(nil, types.DelayInfo{
 					What:           name,
 					TotalSeconds:   int(duration.Seconds()),
 					ElapsedSeconds: int(time.Since(startTime).Seconds()),
 				})
-				_, err := x.readDafIndication(p)
+				_, err := x.readDafFloat(p, varConcentration)
 				if err == nil {
 					_, err = x.read6408(p)
 				}

@@ -43,7 +43,7 @@ UPDATE party
 	    scale_begin = :scale_begin,
 	    scale_end = :scale_end,	    
 	    variation_limit3 = :variation_limit3
-WHERE party_id = (SELECT party_id FROM party)`, p.Party); err != nil {
+WHERE party_id = (SELECT party_id FROM last_party)`, p.Party); err != nil {
 		panic(err)
 	}
 	c := GetConfig()

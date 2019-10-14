@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/fpawel/comm"
 	"github.com/fpawel/comm/modbus"
-	"github.com/fpawel/gohelp/must"
+	"github.com/fpawel/daf/internal/pkg/must"
 	"io/ioutil"
 	"os"
 	"path/filepath"

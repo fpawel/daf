@@ -5,11 +5,11 @@ import (
 	"github.com/ansel1/merry"
 	"github.com/fpawel/comm/modbus"
 	"github.com/fpawel/daf/internal"
+	"github.com/fpawel/daf/internal/api/notify"
 	"github.com/fpawel/daf/internal/api/types"
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/party"
-	"github.com/fpawel/gohelp"
-	"github.com/fpawel/gohelp/myfmt"
+	"github.com/fpawel/daf/internal/pkg"
 	"strconv"
 	"time"
 )
@@ -19,13 +19,6 @@ var (
 	ErrEN6408   = merry.New("стенд 6408").WithCause(ErrHardware)
 	ErrGasBlock = merry.New("газовый блок").WithCause(ErrHardware)
 )
-
-type DafIndication struct {
-	C,
-	Thr1, Thr2,
-	Failure float64
-	Mode uint16
-}
 
 type EN6408Value struct {
 	I          float64
@@ -56,14 +49,14 @@ func (x worker) writeProduct(p party.Product, cmd dafCmd, arg float64) error {
 	err := modbus.Write32(log, x.ReaderDaf(), p.Addr, 0x10, cmd.Code, arg)
 	if err != nil {
 		if isCommErrorOrDeadline(err) {
-			notifyWnd.PlaceConnection(nil, types.PlaceConnection{
+			notify.PlaceConnection(nil, types.PlaceConnection{
 				Place: p.Place,
 				Text:  fmt.Sprintf("%s %d: %v", cmd.Name, cmd.Code, err),
 			})
 		}
-		return err
+		return merry.Append(err, cmd.Name)
 	}
-	notifyWnd.PlaceConnection(x.log.Info, types.PlaceConnection{
+	notify.PlaceConnection(x.log.Info, types.PlaceConnection{
 		Place: p.Place,
 		Text:  fmt.Sprintf("%s %d<-%v", cmd.Name, cmd.Code, arg),
 		Ok:    true,
@@ -80,7 +73,7 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 	//	Threshold2:    n > 0.5,
 	//}, nil
 
-	log := gohelp.LogPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "ЭН6408")
+	log := pkg.LogPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "ЭН6408")
 	var result EN6408Value
 	_, err := modbus.Read3(log, x.Reader6408(),
 		32, modbus.Var(p.Addr-1)*2, 2, func(_, response []byte) (string, error) {
@@ -93,19 +86,19 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 	if err = p.WrapError(err); err != nil {
 		return result, merry.Wrap(err).WithCause(ErrEN6408)
 	}
-	go notifyWnd.PlaceConnection(nil, types.PlaceConnection{
+	notify.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Ток",
-		Text:   myfmt.FormatFloat(result.I, -1),
+		Text:   pkg.FormatFloat(result.I, -1),
 		Ok:     true,
 	})
-	go notifyWnd.PlaceConnection(nil, types.PlaceConnection{
+	notify.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Реле 1",
 		Text:   formatBool(result.Thr1, "ВКЛ", "выкл"),
 		Ok:     true,
 	})
-	go notifyWnd.PlaceConnection(nil, types.PlaceConnection{
+	notify.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Реле 2",
 		Text:   formatBool(result.Thr2, "ВКЛ", "выкл"),
@@ -119,14 +112,14 @@ func (x worker) readUInt16(p party.Product, Var modbus.Var, column string, forma
 	//return uint16(rand.Uint32()), nil
 	log := logPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "daf")
 	if len(column) > 0 {
-		log = gohelp.LogPrependSuffixKeys(log, internal.LogKeyDafVar, column)
+		log = pkg.LogPrependSuffixKeys(log, internal.LogKeyDafVar, column)
 	}
 	c := types.PlaceConnection{
 		Place:  p.Place,
 		Column: column,
 	}
 	defer func() {
-		go notifyWnd.PlaceConnection(nil, c)
+		notify.PlaceConnection(nil, c)
 	}()
 
 	value, err := modbus.Read3UInt16(log, x.ReaderDaf(), p.Addr, Var)
@@ -144,13 +137,13 @@ func (x worker) readUInt16(p party.Product, Var modbus.Var, column string, forma
 	return 0, err
 }
 
-func (x worker) readFloat(p party.Product, Var modbus.Var, column string, formatFunc func(float64) string) (float64, error) {
+func (x worker) readFloat(p party.Product, Var modbus.Var, column string) (float64, error) {
 	//pause(x.ctx.Done(), time.Millisecond * 300)
 	//return rand.Float64(), nil
 
 	log := logPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "daf")
 	if len(column) > 0 {
-		log = gohelp.LogPrependSuffixKeys(log, "column", column)
+		log = pkg.LogPrependSuffixKeys(log, "column", column)
 	}
 
 	c := types.PlaceConnection{
@@ -158,17 +151,12 @@ func (x worker) readFloat(p party.Product, Var modbus.Var, column string, format
 		Column: column,
 	}
 	defer func() {
-		go notifyWnd.PlaceConnection(nil, c)
+		notify.PlaceConnection(nil, c)
 	}()
 	value, err := modbus.Read3BCD(log, x.ReaderDaf(), p.Addr, Var)
 	if err = p.WrapError(err); err == nil {
-		if formatFunc == nil {
-			formatFunc = func(f float64) string {
-				return myfmt.FormatFloat(value, -1)
-			}
-		}
 		c.Ok = true
-		c.Text = formatFunc(value)
+		c.Text = pkg.FormatFloat(value, -1)
 		return value, err
 	}
 	if isCommErrorOrDeadline(err) {
@@ -177,24 +165,30 @@ func (x worker) readFloat(p party.Product, Var modbus.Var, column string, format
 	return 0, err
 }
 
-func (x worker) readDafIndication(p party.Product) (r DafIndication, err error) {
-	for _, a := range []struct {
-		Var dafVar
-		p   *float64
-	}{
-		{varC, &r.C},
-		{varThr1, &r.Thr1},
-		{varThr2, &r.Thr2},
-		{varFailureCode, &r.Failure},
-	} {
-		if *a.p, err = x.readFloat(p, a.Var.Code, a.Var.Name, nil); err != nil {
-			return
+func (x worker) interrogate(p party.Product) error {
+	for _, v := range []dafVar{
+		varConcentration,
+		varSignalSensor,
+		varFailureCode,
+		varType, varGas, varMeasureRange, varThr1, varThr2} {
+		if _, err := x.readDafFloat(p, v); isFailWork(err) {
+			return err
 		}
 	}
-	if r.Mode, err = x.readUInt16(p, varMode.Code, varMode.Name, nil); err == nil {
-		return
+	if _, err := x.readDafUInt16(p, varMode); isFailWork(err) {
+		return err
 	}
-	return
+	if _, err := x.read6408(p); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (x worker) readDafFloat(p party.Product, dafVar dafVar) (float64, error) {
+	return x.readFloat(p, dafVar.Code, dafVar.Name)
+}
+func (x worker) readDafUInt16(p party.Product, dafVar dafVar) (uint16, error) {
+	return x.readUInt16(p, varMode.Code, varMode.Name, nil)
 }
 
 func (x worker) blowGas(n int) error {
@@ -220,7 +214,7 @@ func (x worker) switchGas(n int) error {
 	if n != 0 {
 		s = fmt.Sprintf("включить ПГС%d", n)
 	}
-	x.log = gohelp.LogPrependSuffixKeys(x.log,
+	x.log = pkg.LogPrependSuffixKeys(x.log,
 		internal.LogKeyHardwareDevice, internal.LogValueGasSwitcher,
 		internal.LogKeyGasValve, n)
 	return x.perform(s, func(x worker) error {
@@ -243,11 +237,16 @@ type dafVar struct {
 }
 
 var (
-	varC           = dafVar{0x00, "Концентрация"}
-	varThr1        = dafVar{0x1C, "Порог 1"}
-	varThr2        = dafVar{0x1E, "Порог 2"}
-	varMode        = dafVar{0x23, "Режим"}
-	varFailureCode = dafVar{0x20, "Отказ"}
+	varConcentration = dafVar{0x00, "Концентрация"}
+	varThr1          = dafVar{0x1C, "Порог 1"}
+	varThr2          = dafVar{0x1E, "Порог 2"}
+	varMode          = dafVar{0x23, "Режим"}
+	varFailureCode   = dafVar{0x20, "Отказ"}
+	varSignalSensor  = dafVar{86, "Uдат"}
+
+	varGas          = dafVar{50, "Газ"}
+	varType         = dafVar{224 + 25*2, "Исполнение"}
+	varMeasureRange = dafVar{0xEC, "Диапазон"}
 )
 
 const (
@@ -262,15 +261,17 @@ type dafCmd struct {
 }
 
 var (
-	cmdAdjustBeg = dafCmd{1, "корректировка нулевых показаний"}
-	cmdAdjustEnd = dafCmd{2, "корректировка чувствительности"}
-	cmdSetupThr1 = dafCmd{3, "установка порога 1"}
-	cmdSetupThr2 = dafCmd{4, "установка порога 2"}
+	cmdAdjustBeg = dafCmd{1, "корректировка нулевых показаний ДАФ"}
+	cmdAdjustEnd = dafCmd{2, "корректировка чувствительности ДАФ"}
+	cmdSetupThr1 = dafCmd{3, "установка порога 1 ДАФ"}
+	cmdSetupThr2 = dafCmd{4, "установка порога 2 ДАФ"}
 	//cmdSetupAddr = dafCmd{5,"установка адреса"}
-	cmdSetupType = dafCmd{7, "установка кода исполнения"}
-	cmdSetupTemp = dafCmd{8, "установка температуры"}
-	cmdSetup4    = dafCmd{9, "корректировка 4 мА"}
-	cmdSetup20   = dafCmd{0x0A, "корректировка 20 мА"}
-	cmdMode4     = dafCmd{0x0B, "установка 4 мА"}
-	cmdMode20    = dafCmd{0x0C, "установка 20 мА"}
+	cmdSetupType      = dafCmd{7, "установка кода исполнения ДАФ"}
+	cmdSetupComponent = dafCmd{6, "установка кода измеряемого компонента ДАФ"}
+
+	cmdSetupTemp = dafCmd{8, "установка температуры ДАФ"}
+	cmdSetup4    = dafCmd{9, "корректировка 4 мА ДАФ"}
+	cmdSetup20   = dafCmd{0x0A, "корректировка 20 мА ДАФ"}
+	cmdMode4     = dafCmd{0x0B, "установка 4 мА ДАФ"}
+	cmdMode20    = dafCmd{0x0C, "установка 20 мА ДАФ"}
 )

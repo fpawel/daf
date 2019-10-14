@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ansel1/merry"
 	"github.com/fpawel/comm/modbus"
+	"github.com/fpawel/daf/internal/api/notify"
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/party"
 	"github.com/powerman/structlog"
@@ -38,7 +39,7 @@ func (_ runner) SkipDelay() {
 func (_ runner) Read3(Var modbus.Var) {
 	runWork(fmt.Sprintf("read3 %d", Var), func(x worker) error {
 		for _, p := range party.CheckedProducts() {
-			_, _ = x.readFloat(p, Var, "", nil)
+			_, _ = x.readFloat(p, Var, "")
 		}
 		return nil
 	})
@@ -72,7 +73,7 @@ func (_ runner) RunMainWork(c []bool) {
 			}
 			x.log.Info("продувка воздухом по окончании настройки")
 			if err := closeGasInEnd(); err != nil {
-				notifyWnd.Warning(nil,
+				notify.Warning(nil,
 					fmt.Sprintf("Не удалось продуть воздухом по окончании настройки.\n\nПричина: %v\n\n", err))
 			}
 		}()
@@ -103,18 +104,13 @@ func (_ runner) RunMainWork(c []bool) {
 func (_ runner) RunReadVars() {
 
 	runWork("опрос", func(x worker) error {
-
 		for {
 			products := party.CheckedProducts()
 			if len(products) == 0 {
 				return errNoCheckedProducts.Here()
 			}
 			for _, p := range products {
-
-				if _, err := x.readDafIndication(p); isFailWork(err) {
-					return err
-				}
-				if _, err := x.read6408(p); err != nil {
+				if err := x.interrogate(p); err != nil {
 					return err
 				}
 			}

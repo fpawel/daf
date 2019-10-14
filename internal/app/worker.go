@@ -7,12 +7,12 @@ import (
 	"github.com/fpawel/comm/comport"
 	"github.com/fpawel/comm/modbus"
 	"github.com/fpawel/daf/internal"
+	"github.com/fpawel/daf/internal/api/notify"
 	"github.com/fpawel/daf/internal/api/types"
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/data"
 	"github.com/fpawel/daf/internal/party"
-	"github.com/fpawel/gohelp"
-	"github.com/fpawel/gohelp/myfmt"
+	"github.com/fpawel/daf/internal/pkg"
 	"github.com/powerman/structlog"
 	"strings"
 	"sync"
@@ -46,28 +46,28 @@ func runWork(workName string, work func(x worker) error) {
 			wgWork.Done()
 		}()
 
-		go notifyWnd.WorkStarted(worker.log.Info, workName)
+		notify.WorkStarted(worker.log.Info, workName)
 		err := work(worker)
 		if err == nil {
 			worker.log.Info("выполнено успешно")
-			go notifyWnd.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrOk, "успешно"})
+			notify.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrOk, "успешно"})
 			return
 		}
 
 		if merry.Is(err, context.Canceled) {
 			worker.log.Warn("выполнение прервано")
-			go notifyWnd.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrCanceled, "перервано"})
+			notify.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrCanceled, "перервано"})
 			return
 		}
-		worker.log.PrintErr(err, "stack", myfmt.FormatMerryStacktrace(err))
-		go notifyWnd.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrError, err.Error()})
+		worker.log.PrintErr(err, "stack", pkg.FormatMerryStacktrace(err))
+		notify.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrError, err.Error()})
 	}()
 }
 
 func newWorker(ctx context.Context, name string) worker {
 	return worker{
 		gas:   new(int),
-		log:   gohelp.NewLogWithSuffixKeys("work", fmt.Sprintf("%s", name)),
+		log:   pkg.NewLogWithSuffixKeys("work", fmt.Sprintf("%s", name)),
 		ctx:   ctx,
 		works: []string{name},
 
@@ -122,12 +122,12 @@ func (x worker) perform(name string, work func(x worker) error) error {
 		internal.LogKeyParentWork, fmt.Sprintf("%q", x.works),
 	)
 	x.works = append(x.works, name)
-	notifyWnd.Status(nil, strings.Join(x.works, ": "))
+	notify.Status(nil, strings.Join(x.works, ": "))
 	if err := work(x); err != nil {
 		return merry.Append(err, name)
 	}
 	x.works = x.works[:len(x.works)-1]
-	notifyWnd.Status(nil, strings.Join(x.works, ": "))
+	notify.Status(nil, strings.Join(x.works, ": "))
 	return nil
 }
 
@@ -152,7 +152,7 @@ func (x worker) performWithWarn(work func() error) error {
 func (x worker) raiseWarning(err error) error {
 	strErr := strings.Join(strings.Split(err.Error(), ": "), "\n\t -")
 
-	notifyWnd.Warning(nil,
+	notify.Warning(nil,
 		fmt.Sprintf("Не удалось выполнить: %s\n\nПричина: %s", x.works[len(x.works)-1], strErr))
 	if merry.Is(x.ctx.Err(), context.Canceled) {
 		return err
@@ -175,14 +175,14 @@ func (x worker) performProducts(testName string, work func(p party.Product, x wo
 		return errNoCheckedProducts.Here()
 	}
 	for _, p := range products {
-		x.log = gohelp.LogPrependSuffixKeys(x.log,
+		x.log = pkg.LogPrependSuffixKeys(x.log,
 			internal.LogProductSerial, p.Serial,
 			internal.LogProductID, p.ProductID,
 			internal.LogProductPlace, p.Place)
 
 		err := work(p, x)
 		if err != nil {
-			x.log.PrintErr(err)
+			x.log.PrintErr(err, structlog.KeyStack, structlog.Auto)
 			addTestEntry(p.ProductID, testName, false, err.Error())
 		}
 		if isFailWork(err) {
@@ -205,12 +205,12 @@ WHERE test = ? AND product_id IN (
 		ORDER BY created_at DESC
 		LIMIT 1) )`, testName)
 	for _, p := range party.Products() {
-		go notifyWnd.ProductDataChanged(nil, p.ProductID)
+		notify.ProductDataChanged(nil, p.ProductID)
 	}
 }
 
 func addTestEntry(productID int64, testName string, ok bool, result string) {
 	data.DB.MustExec(`INSERT INTO product_entry(product_id, test, ok, message) VALUES (?, ?, ?, ?)`,
 		productID, testName, ok, result)
-	go notifyWnd.ProductDataChanged(nil, productID)
+	notify.ProductDataChanged(nil, productID)
 }

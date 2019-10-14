@@ -2,8 +2,8 @@ object FormPopup: TFormPopup
   Left = 0
   Top = 0
   BorderStyle = bsSizeToolWin
-  ClientHeight = 163
-  ClientWidth = 675
+  ClientHeight = 170
+  ClientWidth = 729
   Color = clInfoBk
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,6 +13,9 @@ object FormPopup: TFormPopup
   OldCreateOrder = False
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
+  DesignSize = (
+    729
+    170)
   PixelsPerInch = 96
   TextHeight = 23
   object ImageError: TImage
@@ -232,9 +235,10 @@ object FormPopup: TFormPopup
   end
   object RichEdit1: TRichEdit
     Left = 104
-    Top = 0
-    Width = 780
-    Height = 163
+    Top = 9
+    Width = 617
+    Height = 153
+    Anchors = [akLeft, akTop, akRight, akBottom]
     BorderStyle = bsNone
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText

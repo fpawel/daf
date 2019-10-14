@@ -1,9 +1,9 @@
 package internal
 
-const (
-	PeerWindowClassName   = "TMainFormDaf"
-	ServerWindowClassName = "DafServerWindow"
-	EnvKeySkipRunPeer     = "DAF_SKIP_RUN_PEER"
+import (
+	"github.com/fpawel/daf/internal/pkg/winapp"
+	"github.com/lxn/win"
+	"github.com/powerman/structlog"
 )
 
 const (
@@ -18,3 +18,28 @@ const (
 	LogKeyDafVar         = "daf_var"
 	LogKeyDafCmd         = "daf_cmd"
 )
+
+const (
+	DelphiWindowClassName = "TMainFormDaf"
+	WindowClassName       = "DafServerWindow"
+)
+
+func HWnd() win.HWND {
+	return winapp.FindWindow(WindowClassName)
+}
+
+//func HWndDelphi() win.HWND{
+//	return winapp.FindWindow(DelphiWindowClassName)
+//}
+
+func CloseHWnd() {
+	log.Debug("close window")
+	win.PostMessage(HWnd(), win.WM_CLOSE, 0, 0)
+	winapp.EnumWindowsWithClassName(func(hWnd win.HWND, winClassName string) {
+		if winClassName == DelphiWindowClassName {
+			win.PostMessage(hWnd, win.WM_CLOSE, 0, 0)
+		}
+	})
+}
+
+var log = structlog.New()

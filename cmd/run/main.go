@@ -1,34 +1,23 @@
 package main
 
 import (
-	"flag"
+	"github.com/fpawel/comm/modbus"
 	"github.com/fpawel/daf/internal"
 	"github.com/fpawel/daf/internal/api/notify"
-	"github.com/fpawel/gotools/pkg/rungo"
+	"github.com/fpawel/gotools/pkg/copydata"
+	"github.com/fpawel/gotools/pkg/logfile"
 	"github.com/powerman/structlog"
 	"os"
 	"path/filepath"
 )
 
 func main() {
-	args := flag.String("args", "", "command line arguments to pass")
-	flag.Parse()
-	rungo.Cmd{
-		ExeName: "daf.exe",
-		ExeArgs: *args,
-		UseGUI:  true,
-		NotifyGUI: rungo.NotifyGUI{
-			MsgCodeConsole: notify.MsgWriteConsole,
-			MsgCodePanic:   notify.MsgPanic,
-			WindowClass:    internal.PeerWindowClassName,
-		},
-	}.Exec()
-}
+	log := structlog.New()
 
-func init() {
 	structlog.DefaultLogger.
 		SetPrefixKeys(
-			structlog.KeyApp, structlog.KeyPID, structlog.KeyLevel, structlog.KeyUnit, structlog.KeyTime,
+			structlog.KeyApp,
+			structlog.KeyPID, structlog.KeyLevel, structlog.KeyUnit, structlog.KeyTime,
 		).
 		SetDefaultKeyvals(
 			structlog.KeyApp, filepath.Base(os.Args[0]),
@@ -39,7 +28,15 @@ func init() {
 		).
 		SetSuffixKeys(structlog.KeySource).
 		SetKeysFormat(map[string]string{
+			structlog.KeyTime:   " %[2]s",
 			structlog.KeySource: " %6[2]s",
 			structlog.KeyUnit:   " %6[2]s",
 		})
+	modbus.SetLogKeysFormat()
+
+	log.ErrIfFail(func() error {
+		return logfile.Exec(
+			copydata.NewWriter(notify.MsgWriteConsole, internal.WindowClassName, internal.DelphiWindowClassName),
+			"daf.exe")
+	})
 }
