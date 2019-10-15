@@ -185,10 +185,10 @@ func (x worker) interrogate(p party.Product) error {
 }
 
 func (x worker) readDafFloat(p party.Product, dafVar dafVar) (float64, error) {
-	return x.readFloat(p, dafVar.Code, dafVar.Name)
+	return x.readFloat(p, dafVar.Code, dafVar.String())
 }
 func (x worker) readDafUInt16(p party.Product, dafVar dafVar) (uint16, error) {
-	return x.readUInt16(p, varMode.Code, varMode.Name, nil)
+	return x.readUInt16(p, varMode.Code, dafVar.String(), nil)
 }
 
 func (x worker) blowGas(n int) error {
@@ -237,16 +237,16 @@ type dafVar struct {
 }
 
 var (
-	varConcentration = dafVar{0x00, "Концентрация"}
-	varThr1          = dafVar{0x1C, "Порог 1"}
-	varThr2          = dafVar{0x1E, "Порог 2"}
-	varMode          = dafVar{0x23, "Режим"}
-	varFailureCode   = dafVar{0x20, "Отказ"}
-	varSignalSensor  = dafVar{86, "Uдат"}
+	varConcentration = dafVar{0x00, "конц."}
+	varThr1          = dafVar{0x1C, "порог1"}
+	varThr2          = dafVar{0x1E, "порог2"}
+	varMode          = dafVar{0x23, "режим"}
+	varFailureCode   = dafVar{0x20, "отказ"}
+	varSignalSensor  = dafVar{86, "датчик"}
 
-	varGas          = dafVar{50, "Газ"}
-	varType         = dafVar{224 + 25*2, "Исполнение"}
-	varMeasureRange = dafVar{0xEC, "Диапазон"}
+	varGas          = dafVar{50, "газ"}
+	varType         = dafVar{224 + 25*2, "исп."}
+	varMeasureRange = dafVar{0xEC, "диап."}
 )
 
 const (
@@ -258,6 +258,10 @@ const (
 type dafCmd struct {
 	Code modbus.DevCmd
 	Name string
+}
+
+func (x dafVar) String() string {
+	return fmt.Sprintf("[0x%X] %s", x.Code, x.Name)
 }
 
 var (

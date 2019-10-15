@@ -54,7 +54,7 @@ func CheckedProducts() (products []Product) {
 
 func Products() (products []Product) {
 	if err := data.DB.Select(&products, `
-SELECT product_id, serial FROM product 
+SELECT product_id, serial, scale_begin, scale_end FROM product 
 WHERE party_id = (SELECT party_id FROM last_party) 
 ORDER BY product_id`); err != nil {
 		panic(err)

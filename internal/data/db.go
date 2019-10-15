@@ -62,3 +62,12 @@ ORDER BY product_id`, partyID); err != nil {
 	}
 	return
 }
+
+func MustSetProductScaleEnd(productID int64, scaleEnd float64) {
+	DB.MustExec(`UPDATE product SET scale_end = ? WHERE product_id = ?`,
+		scaleEnd, productID)
+}
+
+func MustSetProductScaleBegin0(productID int64) {
+	DB.MustExec(`UPDATE product SET scale_begin = 0 WHERE product_id = ?`, productID)
+}

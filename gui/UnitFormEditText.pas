@@ -68,15 +68,25 @@ begin
 end;
 
 procedure TFormEditText.ToolButton2Click(Sender: TObject);
+var
+    ASelStart : integer;
 begin
+    ASelStart := RichEdit1.SelStart;
     RichEdit1.Text := TConfigSvc.SetConfigToml(RichEdit1.Text);
+    RichEdit1.SelStart := ASelStart;
+     RichEdit1.SelLength := 0 ;
     Colorize;
 end;
 
 procedure TFormEditText.ToolButton3Click(Sender: TObject);
+var
+    ASelStart : integer;
 begin
+    ASelStart := RichEdit1.SelStart;
     RichEdit1.Text :=  TConfigSvc.GetConfigToml;
     ToolButton2.Enabled := false;
+    RichEdit1.SelStart := ASelStart;
+     RichEdit1.SelLength := 0 ;
     Colorize;
 end;
 

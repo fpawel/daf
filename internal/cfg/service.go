@@ -39,9 +39,7 @@ UPDATE party
 	    abs_error_limit2 = :abs_error_limit2, 
 	    abs_error_limit3 = :abs_error_limit3, 
 	    abs_error_limit4 = :abs_error_limit4,
-	    component = :component,
-	    scale_begin = :scale_begin,
-	    scale_end = :scale_end,	    
+	    component = :component,	    	    
 	    variation_limit3 = :variation_limit3
 WHERE party_id = (SELECT party_id FROM last_party)`, p.Party); err != nil {
 		panic(err)

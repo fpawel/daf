@@ -3,10 +3,9 @@ package app
 import (
 	"fmt"
 	"github.com/fpawel/daf/internal/cfg"
-	"github.com/fpawel/daf/internal/daf"
 	"github.com/fpawel/daf/internal/data"
 	"github.com/fpawel/daf/internal/party"
-	"github.com/fpawel/daf/internal/pkg"
+	"strconv"
 	"time"
 )
 
@@ -84,27 +83,60 @@ func (x worker) setupCurrent() error {
 
 func (x worker) setupParams() error {
 	return x.performTest(tnSetupParams, func(x worker) error {
-		p := data.LastParty()
-		f := func(k float64) float64 {
-			return p.ScaleBegin + k*(p.ScaleEnd-p.ScaleBegin)
-		}
-		if err := x.writeProducts(tnSetupParams, cmdSetupType, float64(p.ProductType)); err != nil {
+		lastParty := data.LastParty()
+		productType := float64(lastParty.ProductType)
+		gas := float64(lastParty.Component)
+		temp := cfg.GetConfig().Temperature
+
+		if err := x.performProducts(tnSetupParams, func(p party.Product, x worker) error {
+			if err := x.writeProduct(p, cmdSetupType, productType); err != nil {
+				return err
+			}
+			addTestEntry(p.ProductID, tnSetupParams, true,
+				fmt.Sprintf("установлено исполнение %v", productType))
+
+			if err := x.writeProduct(p, cmdSetupComponent, gas); err != nil {
+				return err
+			}
+			addTestEntry(p.ProductID, tnSetupParams, true,
+				fmt.Sprintf("установлен газ %v", gas))
+
+			if err := x.writeProduct(p, cmdSetupTemp, temp); err != nil {
+				return err
+			}
+			addTestEntry(p.ProductID, tnSetupParams, true,
+				fmt.Sprintf("установлена температура %v\"C", temp))
+
+			scaleEnd, err := x.readDafFloat(p, varMeasureRange)
+			if err != nil {
+				return err
+			}
+			addTestEntry(p.ProductID, tnSetupParams, true,
+				fmt.Sprintf("считан диапазон измерения %v", scaleEnd))
+
+			data.MustSetProductScaleBegin0(p.ProductID)
+			data.MustSetProductScaleEnd(p.ProductID, scaleEnd)
+
+			thr1, thr2 := 0.2*scaleEnd, 0.7*scaleEnd
+
+			if err := x.writeProduct(p, cmdSetupThr1, thr1); err != nil {
+				return err
+			}
+			addTestEntry(p.ProductID, tnSetupParams, true,
+				fmt.Sprintf("установлен порог1 %v", thr1))
+
+			if err := x.writeProduct(p, cmdSetupThr2, thr2); err != nil {
+				return err
+			}
+			addTestEntry(p.ProductID, tnSetupParams, true,
+				fmt.Sprintf("установлен порог2 %v", thr2))
+
+			return nil
+
+		}); err != nil {
 			return err
 		}
 
-		if err := x.writeProducts(tnSetupParams, cmdSetupComponent, float64(p.Component)); err != nil {
-			return err
-		}
-
-		if err := x.writeProducts(tnSetupParams, cmdSetupTemp, cfg.GetConfig().Temperature); err != nil {
-			return err
-		}
-		if err := x.writeProducts(tnSetupParams, cmdSetupThr1, f(0.2)); err != nil {
-			return err
-		}
-		if err := x.writeProducts(tnSetupParams, cmdSetupThr2, f(0.7)); err != nil {
-			return err
-		}
 		return nil
 	})
 }
@@ -157,43 +189,62 @@ WHERE test_number = ? AND product_id IN ( SELECT product_id FROM last_party_prod
 			if isFailWork(err) {
 				return nil
 			}
-			v, err := x.read6408(p)
+			scaleEnd, err := x.readDafFloat(p, varMeasureRange)
 			if err != nil {
 				return nil
 			}
-			x.log.Info(fmt.Sprintf("сохранение для паспорта: %+v, %+v", concentration, v))
+			value6408, err := x.read6408(p)
+			if err != nil {
+				return nil
+			}
+			x.log.Info(fmt.Sprintf("сохранение для паспорта: %+v, %+v", concentration, value6408))
+
+			data.MustSetProductScaleBegin0(p.ProductID)
+			data.MustSetProductScaleEnd(p.ProductID, scaleEnd)
+
 			data.DB.MustExec(`
 REPLACE INTO product_test(product_id, test_number, concentration, output_current, thr1, thr2) 
-VALUES (?,?,?,?,?,?)`, p.ProductID, n, concentration, v.I, v.Thr1, v.Thr1)
+VALUES (?,?,?,?,?,?)`, p.ProductID, n, concentration, value6408.I, value6408.Thr1, value6408.Thr1)
 
-			testConcentrationResult{
-				C:         concentration,
-				Dc:        pc.CnTest(n) - concentration,
-				I:         v.I,
-				Ci:        pc.Ci(v.I),
-				Di:        pc.CnTest(n) - pc.Ci(v.I),
-				AbsErrLim: pc.AbsErrLimitTest(n),
-				OkC:       pc.TestConcentrationOk(n, concentration),
-				OkI:       pc.TestOutputCurrentOk(n, v.I),
-				Thr1:      v.Thr1,
-				Thr2:      v.Thr2,
-				MustThr1:  daf.MustThr1[n],
-				MustThr2:  daf.MustThr2[n],
+			test := pc.Tests()[n]
+
+			testResult{
+				Test:          test,
+				Concentration: concentration,
+				Current:       value6408.I,
+				ScaleEnd:      scaleEnd,
+				Thr1:          value6408.Thr1,
+				Thr2:          value6408.Thr2,
 			}.addEntry(p.ProductID, what)
 			return nil
 		})
 	})
 }
 
-type testConcentrationResult struct {
-	C, Dc, I, Ci, Di, AbsErrLim    float64
-	OkC, OkI                       bool
-	Thr1, Thr2, MustThr1, MustThr2 bool
+type testResult struct {
+	data.Test
+	Concentration,
+	Current,
+	ScaleEnd float64
+	Thr1, Thr2 bool
 }
 
-func (x testConcentrationResult) addEntry(productID int64, what string) {
+func (x testResult) AbsErrorConcentration() float64 {
+	return x.Nominal - x.Concentration
+}
+func (x testResult) AbsErrorCurrent() float64 {
+	return x.Nominal - data.CurrentToConcentration(x.Current, 0, x.ScaleEnd)
+}
+func (x testResult) ConcentrationOk() bool {
+	return x.Test.ConcentrationOk(x.Concentration)
+}
+func (x testResult) CurrentOk() bool {
+	return x.Test.CurrentOk(x.Current, 0, x.ScaleEnd)
+}
+
+func (x testResult) addEntry(productID int64, what string) {
 	f1 := func(v float64) string {
-		return pkg.FormatFloat(v, 1)
+		return strconv.FormatFloat(v, 'g', -1, 64)
 	}
 	fb := func(v bool) string {
 		return formatBool(v, "соответсвует", "не соответствует")
@@ -201,19 +252,24 @@ func (x testConcentrationResult) addEntry(productID int64, what string) {
 	fbp := func(v bool) string {
 		return formatBool(v, "ВКЛ", "выкл.")
 	}
+
+	concentrationCurrent := data.CurrentToConcentration(x.Current, 0, x.ScaleEnd)
+
 	s := fmt.Sprintf(
 		`конц.=%v погр.=%v макс.=%v - %s
+диапазон 0...%v,
 ток=%v конц.=%v погр.=%v - %s
 ПОРОГ1=%q, должно быть %q - %s
 ПОРОГ2=%q, должно быть %q - %s`,
-		f1(x.C),
-		f1(x.Dc),
-		f1(x.AbsErrLim),
-		fb(x.OkC),
-		f1(x.I),
-		f1(x.Ci),
-		f1(x.Di),
-		fb(x.OkI),
+		f1(x.Concentration),
+		f1(x.Nominal-x.Concentration),
+		f1(x.AbsErrorLimit),
+		fb(x.ConcentrationOk()),
+		f1(x.ScaleEnd),
+		f1(x.Current),
+		f1(concentrationCurrent),
+		f1(x.Nominal-concentrationCurrent),
+		fb(x.CurrentOk()),
 		fbp(x.Thr1),
 		fbp(x.MustThr1),
 		fb(x.Thr1 == x.MustThr1),
@@ -222,7 +278,7 @@ func (x testConcentrationResult) addEntry(productID int64, what string) {
 		fb(x.Thr2 == x.MustThr2),
 	)
 
-	ok := x.OkC && x.OkI && x.Thr1 == x.MustThr1 && x.Thr2 == x.MustThr2
+	ok := x.ConcentrationOk() && x.CurrentOk() && x.Thr1 == x.MustThr1 && x.Thr2 == x.MustThr2
 
 	addTestEntry(productID, what, ok, s)
 }

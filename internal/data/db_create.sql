@@ -7,8 +7,6 @@ CREATE TABLE IF NOT EXISTS party
     created_at       TIMESTAMP           NOT NULL                                DEFAULT (datetime('now')) UNIQUE,
     product_type     SMALLINT            NOT NULL                                DEFAULT 1 CHECK ( product_type > 0 ),
     component        SMALLINT            NOT NULL                                DEFAULT 1 CHECK ( component > 0 ),
-    scale_begin      REAL                NOT NULL                                DEFAULT 0,
-    scale_end        REAL                NOT NULL                                DEFAULT 1000,
     c1               REAL                NOT NULL CHECK ( c1 >= 0 )              DEFAULT 0,
     c2               REAL                NOT NULL CHECK ( c2 >= 0 )              DEFAULT 200,
     c3               REAL                NOT NULL CHECK ( c3 >= 0 )              DEFAULT 1000,
@@ -30,9 +28,11 @@ LIMIT 1;
 
 CREATE TABLE IF NOT EXISTS product
 (
-    product_id INTEGER PRIMARY KEY NOT NULL,
-    party_id   INTEGER             NOT NULL,
-    serial     INTEGER             NOT NULL CHECK (serial > 0 ),
+    product_id  INTEGER PRIMARY KEY NOT NULL,
+    party_id    INTEGER             NOT NULL,
+    serial      INTEGER             NOT NULL CHECK (serial > 0 ),
+    scale_begin REAL                NOT NULL DEFAULT 0,
+    scale_end   REAL                NOT NULL DEFAULT 1000,
     UNIQUE (party_id, serial),
     FOREIGN KEY (party_id) REFERENCES party (party_id) ON DELETE CASCADE
 );

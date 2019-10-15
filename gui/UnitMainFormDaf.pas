@@ -124,6 +124,7 @@ var
 begin
     NotifyServices_SetEnabled(false);
     HttpRpcClient.TIMEOUT_CONNECT := 10;
+    TRunnerSvc.Cancel;
      //notify_services.CloseServerWindow;
 
     fs := TFileStream.Create(ChangeFileExt(paramstr(0), '.position'),
@@ -233,6 +234,7 @@ begin
             Application.ProcessMessages;
         end);
 
+    TRunnerSvc.Cancel;
     NotifyServices_SetEnabled(true);
 end;
 
