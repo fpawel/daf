@@ -13,7 +13,6 @@ import (
 
 func main() {
 	log := structlog.New()
-
 	structlog.DefaultLogger.
 		SetPrefixKeys(
 			structlog.KeyApp,
@@ -33,10 +32,8 @@ func main() {
 			structlog.KeyUnit:   " %6[2]s",
 		})
 	modbus.SetLogKeysFormat()
-
+	guiWriter := copydata.NewWriter(notify.MsgWriteConsole, internal.WindowClassName, internal.DelphiWindowClassName)
 	log.ErrIfFail(func() error {
-		return logfile.Exec(
-			copydata.NewWriter(notify.MsgWriteConsole, internal.WindowClassName, internal.DelphiWindowClassName),
-			"daf.exe")
+		return logfile.Exec(guiWriter, "daf.exe")
 	})
 }
