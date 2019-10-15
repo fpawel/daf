@@ -11,6 +11,17 @@ import (
 
 type PartySvc struct{}
 
+func (_ *PartySvc) DeleteTestEntries(x [1]string, _ *struct{}) error {
+	data.DB.MustExec(`
+DELETE FROM product_entry 
+WHERE product_id IN (
+    SELECT product_id 
+    FROM last_party_products
+    ) 
+  AND test = ?`, x[0])
+	return nil
+}
+
 func (_ *PartySvc) NewParty(_ struct{}, _ *struct{}) error {
 	data.DB.MustExec(`INSERT INTO party DEFAULT VALUES`)
 	data.DB.MustExec(`INSERT INTO product(party_id, serial) VALUES ( (SELECT last_party.party_id FROM last_party), 1 )`)

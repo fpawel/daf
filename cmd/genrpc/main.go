@@ -11,11 +11,11 @@ import (
 )
 
 func main() {
-	delphiSrcDir := filepath.Join(os.Getenv("DELPHIPATH"), "src", "github.com", "fpawel", "dafgui", "api")
+	delphiSrcDir := filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "fpawel", "daf", "gui", "api")
 
 	must.EnsureDir(delphiSrcDir)
 
-	servicesSrc := NewServicesUnit("elco", []r.Type{
+	servicesSrc := NewServicesUnit("daf", []r.Type{
 		r.TypeOf((*api.PartySvc)(nil)),
 		r.TypeOf((*cfg.ConfigSvc)(nil)),
 		r.TypeOf((*api.RunnerSvc)(nil)),

@@ -6,13 +6,19 @@ uses
     Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
     System.Classes, Vcl.Graphics,
     Vcl.Controls, Vcl.Forms, Vcl.Dialogs, UnitFormDataTable, server_data_types,
-    services, stringgridutils, Vcl.ExtCtrls;
+    services, stringgridutils, Vcl.ExtCtrls, Vcl.Menus;
 
 type
     TFormProductData = class(TForm)
         Panel1: TPanel;
-    Panel2: TPanel;
+        Panel2: TPanel;
+        PopupMenu1: TPopupMenu;
+        N1: TMenuItem;
+        N2: TMenuItem;
         procedure FormCreate(Sender: TObject);
+        procedure N1Click(Sender: TObject);
+        procedure PopupMenu1Popup(Sender: TObject);
+        procedure N2Click(Sender: TObject);
     private
         { Private declarations }
         FFormDataTable1, FFormDataTable2: TFormDataTable;
@@ -22,7 +28,7 @@ type
     public
         { Public declarations }
         procedure FetchProductData(productID: int64);
-        procedure OnProductDataChanged(x:Int64);
+        procedure OnProductDataChanged(x: int64);
 
     end;
 
@@ -40,6 +46,35 @@ begin
     FFormDataTable1 := TFormDataTable.Create(self);
     FFormDataTable2 := TFormDataTable.Create(self);
 
+    FFormDataTable2.StringGrid2.PopupMenu := PopupMenu1;
+
+end;
+
+procedure TFormProductData.N1Click(Sender: TObject);
+var
+    ro: integer;
+    entryID: int64;
+    Entries: TArray<int64>;
+begin
+    with FFormDataTable2.StringGrid2 do
+    begin
+        for ro := Selection.Top to Selection.Bottom do
+        begin
+            SetLength(Entries, Length(Entries) + 1);
+            Entries[Length(Entries) - 1] := StrToInt64(Cells[0, ro]);
+        end;
+    end;
+    TProductsSvc.DeleteEntries(Entries);
+    SetupProduct;
+
+end;
+
+procedure TFormProductData.N2Click(Sender: TObject);
+begin
+    with FFormDataTable2.StringGrid2 do
+        TPartySvc.DeleteTestEntries(Cells[2, Row]);
+    SetupProduct;
+
 end;
 
 procedure TFormProductData.FetchProductData(productID: int64);
@@ -55,7 +90,7 @@ begin
     pp := TProductsSvc.ProductPassport(FProductID);
     Panel1.Caption := Format('ДАФ-М %d №%d партия %d %s',
       [FProductID, pp.Serial, pp.PartyID, DateTimeToStr(pp.CreatedAt)]);
-    Panel1.top := 0;
+    Panel1.Top := 0;
     with FFormDataTable1 do
     begin
         Font.Assign(self.Font);
@@ -84,7 +119,7 @@ end;
 
 procedure TFormProductData.SetupColumnsWidth2;
 var
-    ACol: Integer;
+    ACol: integer;
 begin
     with FFormDataTable2.StringGrid2 do
     begin
@@ -98,10 +133,27 @@ begin
     end;
 end;
 
-procedure TFormProductData.OnProductDataChanged(x:Int64);
+procedure TFormProductData.OnProductDataChanged(x: int64);
 begin
     if FProductID = x then
         SetupProduct;
+end;
+
+procedure TFormProductData.PopupMenu1Popup(Sender: TObject);
+begin
+    with FFormDataTable2.StringGrid2 do
+    begin
+        if Row > 0 then
+        begin
+            N2.Caption := 'Удалить записи "' + Cells[2, Row] +
+              '" для всей партии';
+            N2.Visible := true;
+        end
+        else
+        begin
+            N2.Visible := false;
+        end;
+    end;
 end;
 
 end.

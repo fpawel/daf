@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS product_test
 
 CREATE TABLE IF NOT EXISTS product_entry
 (
+    product_entry_id  INTEGER PRIMARY KEY NOT NULL,
     product_id INTEGER   NOT NULL,
     stored_at  TIMESTAMP NOT NULL DEFAULT (DATETIME('now')),
     test       TEXT      NOT NULL,

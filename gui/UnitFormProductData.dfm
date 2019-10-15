@@ -48,7 +48,18 @@ object FormProductData: TFormProductData
     ParentFont = False
     ShowCaption = False
     TabOrder = 1
-    ExplicitTop = 8
-    ExplicitHeight = 25
+  end
+  object PopupMenu1: TPopupMenu
+    OnPopup = PopupMenu1Popup
+    Left = 544
+    Top = 136
+    object N1: TMenuItem
+      Caption = #1059#1076#1072#1083#1080#1090#1100' '#1074#1099#1073#1088#1072#1085#1085#1099#1077' '#1079#1072#1087#1080#1089#1080
+      OnClick = N1Click
+    end
+    object N2: TMenuItem
+      Caption = #1059#1076#1072#1083#1080#1090#1100' "'#1079#1072#1087#1080#1089#1100'" '#1076#1083#1103' '#1074#1089#1077#1081' '#1087#1072#1088#1090#1080#1080
+      OnClick = N2Click
+    end
   end
 end

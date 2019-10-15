@@ -125,13 +125,14 @@ ORDER BY test_number`, productID); err != nil {
 
 func IndividualPassport2(productID int64) Table {
 	var xs []struct {
-		Test     string    `db:"test"`
-		StoredAt time.Time `db:"stored_at"`
-		Message  string    `db:"message"`
-		Ok       bool      `db:"ok"`
+		ProductEntryID int64     `db:"product_entry_id"`
+		Test           string    `db:"test"`
+		StoredAt       time.Time `db:"stored_at"`
+		Message        string    `db:"message"`
+		Ok             bool      `db:"ok"`
 	}
 	if err := data.DB.Select(&xs, `
-SELECT test, stored_at, ok, message 
+SELECT product_entry_id, test, stored_at, ok, message 
 FROM product_entry 
 WHERE product_id = ?
 ORDER BY stored_at`, productID); err != nil {
@@ -139,7 +140,7 @@ ORDER BY stored_at`, productID); err != nil {
 	}
 	r := []Row{
 		header([]string{
-			"Время", "Работа", "Результат",
+			"ID", "Время", "Работа", "Результат",
 		}),
 	}
 	for _, x := range xs {
@@ -152,6 +153,10 @@ ORDER BY stored_at`, productID); err != nil {
 			c.Color = "clRed"
 		}
 		r = append(r, Row{
+			Cell{
+				Text:      strconv.Itoa(int(x.ProductEntryID)),
+				Alignment: taCenter,
+			},
 			Cell{
 				Text:      x.StoredAt.In(time.Local).Format("2006-01-02 15:04"),
 				Alignment: taCenter,

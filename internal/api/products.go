@@ -4,6 +4,8 @@ import (
 	"github.com/fpawel/daf/internal/api/types"
 	"github.com/fpawel/daf/internal/data"
 	"github.com/fpawel/daf/internal/report"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -70,5 +72,15 @@ func (_ *ProductsSvc) PartyProducts(x [1]int64, r *[]data.Product) error {
 	if *r == nil {
 		*r = []data.Product{}
 	}
+	return nil
+}
+
+func (_ *ProductsSvc) DeleteEntries(x struct{ Entries []int64 }, _ *struct{}) error {
+	var xs []string
+	for _, id := range x.Entries {
+		xs = append(xs, strconv.FormatInt(id, 10))
+	}
+	s := "(" + strings.Join(xs, ",") + ")"
+	data.DB.MustExec(`DELETE FROM product_entry WHERE product_entry_id IN ` + s)
 	return nil
 }

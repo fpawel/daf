@@ -420,7 +420,7 @@ begin
     begin
         NotifyServices_SetEnabled(false);
         HttpRpcClient.TIMEOUT_CONNECT := 10;
-        notify_services.CloseServerWindow;
+        //notify_services.CloseServerWindow;
 
         Application.OnException := nil;
         Application.Terminate;

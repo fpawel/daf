@@ -6,8 +6,6 @@ import (
 	"github.com/fpawel/daf/internal/pkg/must"
 	"github.com/powerman/rpc-codec/jsonrpc2"
 	"github.com/powerman/structlog"
-	"github.com/tdewolff/minify"
-	"github.com/tdewolff/minify/html"
 	"golang.org/x/sys/windows/registry"
 	"net"
 	"net/http"
@@ -27,8 +25,6 @@ func startHttpServer() func() {
 
 	// Server provide a HTTP transport on /rpc endpoint.
 	http.Handle("/rpc", jsonrpc2.HTTPHandler(nil))
-	minifyHtml := minify.New()
-	minifyHtml.AddFunc("text/html", html.Minify)
 
 	http.Handle("/assets/",
 		http.StripPrefix("/assets/",

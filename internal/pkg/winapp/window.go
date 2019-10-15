@@ -2,9 +2,9 @@ package winapp
 
 import (
 	"github.com/fpawel/daf/internal/pkg/must"
-	"github.com/lxn/walk"
 	"github.com/lxn/win"
 	"syscall"
+	"unsafe"
 )
 
 type WindowProcedure = func(hWnd win.HWND, msg uint32, wParam, lParam uintptr) uintptr
@@ -21,7 +21,7 @@ func NewWindowWithClassName(windowClassName string, windowProcedure WindowProced
 		return 0
 	}
 
-	walk.MustRegisterWindowClassWithWndProcPtr(
+	mustRegisterWindowClassWithWndProcPtr(
 		windowClassName, syscall.NewCallback(wndProc))
 
 	return win.CreateWindowEx(
@@ -37,4 +37,43 @@ func NewWindowWithClassName(windowClassName string, windowProcedure WindowProced
 		0,
 		win.GetModuleHandle(nil),
 		nil)
+}
+
+func mustRegisterWindowClassWithWndProcPtr(className string, wndProcPtr uintptr) {
+	mustRegisterWindowClassWithWndProcPtrAndStyle(className, wndProcPtr, 0)
+}
+
+func mustRegisterWindowClassWithWndProcPtrAndStyle(className string, wndProcPtr uintptr, style uint32) {
+
+	hInst := win.GetModuleHandle(nil)
+	if hInst == 0 {
+		panic("GetModuleHandle")
+	}
+
+	hIcon := win.LoadIcon(hInst, win.MAKEINTRESOURCE(7)) // rsrc uses 7 for app icon
+	if hIcon == 0 {
+		hIcon = win.LoadIcon(0, win.MAKEINTRESOURCE(win.IDI_APPLICATION))
+	}
+	if hIcon == 0 {
+		panic("LoadIcon")
+	}
+
+	hCursor := win.LoadCursor(0, win.MAKEINTRESOURCE(win.IDC_ARROW))
+	if hCursor == 0 {
+		panic("LoadCursor")
+	}
+
+	var wc win.WNDCLASSEX
+	wc.CbSize = uint32(unsafe.Sizeof(wc))
+	wc.LpfnWndProc = wndProcPtr
+	wc.HInstance = hInst
+	wc.HIcon = hIcon
+	wc.HCursor = hCursor
+	wc.HbrBackground = win.COLOR_BTNFACE + 1
+	wc.LpszClassName = must.UTF16PtrFromString(className)
+	wc.Style = style
+
+	if atom := win.RegisterClassEx(&wc); atom == 0 {
+		panic("RegisterClassEx")
+	}
 }
