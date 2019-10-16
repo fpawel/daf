@@ -44,7 +44,7 @@ func delay(x worker, duration time.Duration, name string) error {
 					TotalSeconds:   int(duration.Seconds()),
 					ElapsedSeconds: int(time.Since(startTime).Seconds()),
 				})
-				_, err := x.readDafFloat(p, varConcentration)
+				_, err := x.readFloatVar(p, varConcentration)
 				if err == nil {
 					_, err = x.read6408(p)
 				}

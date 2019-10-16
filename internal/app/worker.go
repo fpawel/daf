@@ -49,18 +49,32 @@ func runWork(workName string, work func(x worker) error) {
 		notify.WorkStarted(worker.log.Info, workName)
 		err := work(worker)
 		if err == nil {
-			worker.log.Info("выполнено успешно")
-			notify.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrOk, "успешно"})
+			worker.log.Info("выполнено окончено")
+			notify.WorkComplete(
+				worker.log.Info,
+				types.WorkResultInfo{
+					Work:    workName,
+					Result:  types.WrOk,
+					Message: "выполнение окончено",
+				})
 			return
 		}
 
 		if merry.Is(err, context.Canceled) {
 			worker.log.Warn("выполнение прервано")
-			notify.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrCanceled, "перервано"})
+			notify.WorkComplete(worker.log.Info, types.WorkResultInfo{
+				Work:    workName,
+				Result:  types.WrCanceled,
+				Message: "выполнение перервано",
+			})
 			return
 		}
 		worker.log.PrintErr(err, "stack", pkg.FormatMerryStacktrace(err))
-		notify.WorkComplete(worker.log.Info, types.WorkResultInfo{workName, types.WrError, err.Error()})
+		notify.WorkComplete(worker.log.Info, types.WorkResultInfo{
+			Work:    workName,
+			Result:  types.WrError,
+			Message: fmt.Sprintf("выполнение окончено с ошибкой: %v", err),
+		})
 	}()
 }
 

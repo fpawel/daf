@@ -26,8 +26,6 @@ type
         RichEditlMessageBoxText: TRichEdit;
         PanelTop: TPanel;
         LabelStatusTop: TLabel;
-        ToolBar1: TToolBar;
-        ToolButtonRun: TToolButton;
         ToolBar3: TToolBar;
         ToolButton1: TToolButton;
         ToolButton4: TToolButton;
@@ -40,19 +38,15 @@ type
         ProgressBar1: TProgressBar;
         ToolBarStop: TToolBar;
         ToolButton2: TToolButton;
-        PopupMenu1: TPopupMenu;
-        N1: TMenuItem;
         TimerPerforming: TTimer;
         LabelStatusBottom1: TLabel;
-        N821: TMenuItem;
         TabSheetData: TTabSheet;
-        N2: TMenuItem;
-        N11: TMenuItem;
-        N21: TMenuItem;
-        N31: TMenuItem;
-        N41: TMenuItem;
-        N3: TMenuItem;
-        MenuSetAddress: TMenuItem;
+    MainMenu1: TMainMenu;
+    N2: TMenuItem;
+    N3: TMenuItem;
+    N4: TMenuItem;
+    N5: TMenuItem;
+    MODBUS1: TMenuItem;
         procedure FormShow(Sender: TObject);
         procedure FormCreate(Sender: TObject);
         procedure PageControlMainDrawTab(Control: TCustomTabControl;
@@ -60,17 +54,15 @@ type
         procedure PageControlMainChange(Sender: TObject);
         procedure FormClose(Sender: TObject; var Action: TCloseAction);
         procedure ToolButton4Click(Sender: TObject);
-        procedure N1Click(Sender: TObject);
-        procedure ToolButtonRunClick(Sender: TObject);
         procedure TimerPerformingTimer(Sender: TObject);
         procedure FormResize(Sender: TObject);
         procedure ToolButton2Click(Sender: TObject);
         procedure ToolButton3Click(Sender: TObject);
-        procedure N821Click(Sender: TObject);
         procedure ToolButtonStopClick(Sender: TObject);
         procedure ToolButton1Click(Sender: TObject);
-        procedure N41Click(Sender: TObject);
-        procedure PopupMenu1Popup(Sender: TObject);
+    procedure N3Click(Sender: TObject);
+    procedure N4Click(Sender: TObject);
+    procedure MODBUS1Click(Sender: TObject);
     private
         { Private declarations }
         procedure AppException(Sender: TObject; E: Exception);
@@ -96,7 +88,7 @@ uses UnitFormLastParty, vclutils, JclDebug, ioutils, app,
     services, UnitFormAppConfig, notify_services, HttpRpcClient, superobject,
     dateutils, math, HttpExceptions, UnitFormData,
     stringgridutils, UnitFormModalMessage, UnitFormEditText, UnitFormDataTable,
-    UnitFormSelectWorksDlg, UnitFormConsole;
+    UnitFormSelectWorksDlg, UnitFormConsole, UnitFormModbus;
 
 function color_work_result(r: Integer): Tcolor;
 begin
@@ -191,6 +183,16 @@ begin
         Show;
     end;
 
+    with FormModbus do
+    begin
+        Font.Assign(self.Font);
+        Parent := TabSheetParty;
+        BorderStyle := bsNone;
+        Align := alRight;
+        // FFileName := ExtractFileDir(paramstr(0)) + '\elco.log';
+        Hide;
+    end;
+
     PageControlMain.ActivePageIndex := 0;
 
     SetOnWorkStarted(
@@ -274,23 +276,6 @@ begin
     PageControl_DrawVerticalTab(Control, TabIndex, Rect, Active);
 end;
 
-procedure TMainFormDaf.PopupMenu1Popup(Sender: TObject);
-var
-    i: Integer;
-    m: TMenuItem;
-begin
-    MenuSetAddress.Clear;
-    for i := 0 to length(FormLastParty.FProducts) - 1 do
-    begin
-        m := TMenuItem.Create(nil);
-        m.Caption := Inttostr(FormLastParty.FProducts[i].Addr);
-        m.Tag := FormLastParty.FProducts[i].Addr;
-        m.OnClick := SetAddresClick;
-        MenuSetAddress.Add(m);
-    end;
-
-end;
-
 procedure TMainFormDaf.TimerPerformingTimer(Sender: TObject);
 var
     v: Integer;
@@ -331,13 +316,6 @@ begin
         end;
 end;
 
-procedure TMainFormDaf.ToolButtonRunClick(Sender: TObject);
-begin
-    with ToolButtonRun do
-        with ClientToScreen(Point(0, Height)) do
-            PopupMenu1.Popup(x, Y);
-end;
-
 procedure TMainFormDaf.ToolButtonStopClick(Sender: TObject);
 begin
     TRunnerSvc.SkipDelay;
@@ -348,27 +326,22 @@ begin
     notify_services.HandleCopydata(Message);
 end;
 
-procedure TMainFormDaf.N1Click(Sender: TObject);
+procedure TMainFormDaf.MODBUS1Click(Sender: TObject);
 begin
-    TRunnerSvc.RunReadVars;
-end;
-
-procedure TMainFormDaf.N41Click(Sender: TObject);
-begin
-    TRunnerSvc.SwitchGas((Sender as TComponent).Tag);
+    FormModbus.Visible := not FormModbus.Visible;
 
 end;
 
-procedure TMainFormDaf.N821Click(Sender: TObject);
+procedure TMainFormDaf.N3Click(Sender: TObject);
 begin
-    with ToolButtonRun do
-        with ClientToScreen(Point(0, Height)) do
-        begin
-            ToolButtonRun.PopupMenu.CloseMenu;
-            FormSelectWorksDlg.Left := x + 5;
-            FormSelectWorksDlg.Top := Y + 5;
-            FormSelectWorksDlg.Show;
-        end;
+    TThread.CreateAnonymousThread(TRunnerSvc.RunReadVars).Start;
+end;
+
+procedure TMainFormDaf.N4Click(Sender: TObject);
+begin
+    FormSelectWorksDlg.Position := poScreenCenter;
+    FormSelectWorksDlg.Show;
+    ShowWindow(FormSelectWorksDlg.Handle, SW_RESTORE);
 end;
 
 procedure TMainFormDaf.AppException(Sender: TObject; E: Exception);
@@ -467,7 +440,7 @@ begin
                 ImageError.Hide;
                 LabelStatusTop.Font.Color := clNavy;
                 RichEditlMessageBoxText.Font.Color := clNavy;
-                PanelMessageBoxTitle.Caption := x.Work + ': успешно';
+                PanelMessageBoxTitle.Caption := x.Work ;
                 LabelStatusTop.Caption := LabelStatusTop.Caption + ': успешно';
             end;
         1:
@@ -476,7 +449,7 @@ begin
                 ImageError.Hide;
                 LabelStatusTop.Font.Color := clMaroon;
                 RichEditlMessageBoxText.Font.Color := clMaroon;
-                PanelMessageBoxTitle.Caption := x.Work + ': прервано';
+                PanelMessageBoxTitle.Caption := x.Work;
                 LabelStatusTop.Caption := LabelStatusTop.Caption + ': прервано';
             end;
         2:
@@ -485,7 +458,7 @@ begin
                 ImageError.Show;
                 LabelStatusTop.Font.Color := clRed;
                 RichEditlMessageBoxText.Font.Color := clRed;
-                PanelMessageBoxTitle.Caption := x.Work + ': не выполнено';
+                PanelMessageBoxTitle.Caption := x.Work + ': ошибка';
                 LabelStatusTop.Caption := LabelStatusTop.Caption +
                   ': не выполнено';
             end;

@@ -36,10 +36,16 @@ func (_ runner) SkipDelay() {
 	log.Info("задержка прервана")
 }
 
-func (_ runner) Read3(Var modbus.Var) {
+func (_ runner) Read3(Var modbus.Var, bcd bool) {
+	column := fmt.Sprintf("%d (%X)", Var, Var)
 	runWork(fmt.Sprintf("read3 %d", Var), func(x worker) error {
 		for _, p := range party.CheckedProducts() {
-			_, _ = x.readFloat(p, Var, "")
+			if bcd {
+				_, _ = x.readFloat(p, Var, column)
+			} else {
+				_, _ = x.read2(p, Var, column)
+			}
+
 		}
 		return nil
 	})

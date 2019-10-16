@@ -9,7 +9,7 @@ type Runner interface {
 	SwitchGas(int)
 	RunMainWork([]bool)
 	SetNetAddress(addr modbus.Addr)
-	Read3(Var modbus.Var)
+	Read3(Var modbus.Var, bcd bool)
 	Write32(cmd modbus.DevCmd, value float64)
 }
 
@@ -26,8 +26,8 @@ func (x *RunnerSvc) Write32(n [2]float64, _ *struct{}) error {
 	return nil
 }
 
-func (x *RunnerSvc) Read3(n [1]int, _ *struct{}) error {
-	x.r.Read3(modbus.Var(n[0]))
+func (x *RunnerSvc) Read3(n [2]int, _ *struct{}) error {
+	x.r.Read3(modbus.Var(n[0]), n[0] != 0)
 	return nil
 }
 

@@ -37,7 +37,7 @@ procedure TFormSelectWorksDlg.FormCreate(Sender: TObject);
 var
     i: integer;
 begin
-    for I := 0 to CheckListBox1.Items.Count - 1 do
+    for i := 0 to CheckListBox1.Items.Count - 1 do
         CheckListBox1.Checked[i] := true;
 end;
 
@@ -47,15 +47,19 @@ begin
 end;
 
 procedure TFormSelectWorksDlg.ToolButton2Click(Sender: TObject);
-var Works:TArray<boolean>;
-    i:integer;
+var
+    Works: TArray<boolean>;
+    i: integer;
 begin
-    SetLength(works, CheckListBox1.Items.Count);
-    for I := 0 to CheckListBox1.Items.Count - 1 do
-        works[i] := CheckListBox1.Checked[i];
+    SetLength(Works, CheckListBox1.Items.Count);
+    for i := 0 to CheckListBox1.Items.Count - 1 do
+        Works[i] := CheckListBox1.Checked[i];
     hide;
-    TRunnerSvc.RunMainWork(works);
-
+    TThread.CreateAnonymousThread(
+        procedure
+        begin
+            TRunnerSvc.RunMainWork(Works);
+        end).Start;
 end;
 
 end.

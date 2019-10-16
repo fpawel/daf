@@ -65,14 +65,6 @@ func (x worker) writeProduct(p party.Product, cmd dafCmd, arg float64) error {
 }
 
 func (x worker) read6408(p party.Product) (EN6408Value, error) {
-	//pause(x.ctx.Done(), time.Millisecond * 300)
-	//n := float64(time.Now().Nanosecond()) / 1_000_000_000.
-	//return EN6408Value{
-	//	OutputCurrent: 4 + 16 * n,
-	//	Threshold1:    n > 0.5,
-	//	Threshold2:    n > 0.5,
-	//}, nil
-
 	log := pkg.LogPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "ЭН6408")
 	var result EN6408Value
 	_, err := modbus.Read3(log, x.Reader6408(),
@@ -134,6 +126,7 @@ func (x worker) readUInt16(p party.Product, Var modbus.Var, column string, forma
 	if isCommErrorOrDeadline(err) {
 		c.Text = err.Error()
 	}
+
 	return 0, err
 }
 
@@ -162,20 +155,23 @@ func (x worker) readFloat(p party.Product, Var modbus.Var, column string) (float
 	if isCommErrorOrDeadline(err) {
 		c.Text = err.Error()
 	}
+
 	return 0, err
 }
 
 func (x worker) interrogate(p party.Product) error {
-	for _, v := range []dafVar{
+	vars := []dafVar{
 		varConcentration,
 		varSignalSensor,
 		varFailureCode,
-		varType, varGas, varMeasureRange, varThr1, varThr2} {
-		if _, err := x.readDafFloat(p, v); isFailWork(err) {
+		varType, varGas, varMeasureRange, varThr1, varThr2,
+	}
+	for _, v := range vars {
+		if _, err := x.readFloatVar(p, v); isFailWork(err) {
 			return err
 		}
 	}
-	if _, err := x.readDafUInt16(p, varMode); isFailWork(err) {
+	if _, err := x.readUInt16Var(p, varMode); isFailWork(err) {
 		return err
 	}
 	if _, err := x.read6408(p); err != nil {
@@ -184,11 +180,35 @@ func (x worker) interrogate(p party.Product) error {
 	return nil
 }
 
-func (x worker) readDafFloat(p party.Product, dafVar dafVar) (float64, error) {
+func (x worker) readFloatVar(p party.Product, dafVar dafVar) (float64, error) {
 	return x.readFloat(p, dafVar.Code, dafVar.String())
 }
-func (x worker) readDafUInt16(p party.Product, dafVar dafVar) (uint16, error) {
+func (x worker) readUInt16Var(p party.Product, dafVar dafVar) (uint16, error) {
 	return x.readUInt16(p, varMode.Code, dafVar.String(), nil)
+}
+
+func (x worker) read2(p party.Product, Var modbus.Var, column string) ([]byte, error) {
+	log := logPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "daf")
+	if len(column) > 0 {
+		log = pkg.LogPrependSuffixKeys(log, "column", column)
+	}
+	c := types.PlaceConnection{
+		Place:  p.Place,
+		Column: column,
+	}
+	defer func() {
+		notify.PlaceConnection(nil, c)
+	}()
+	bs, err := modbus.Read3(log, x.ReaderDaf(), p.Addr, Var, 2, nil)
+	if err = p.WrapError(err); err == nil {
+		c.Ok = true
+		c.Text = fmt.Sprintf("% X", bs)
+		return bs, nil
+	}
+	if isCommErrorOrDeadline(err) {
+		c.Text = err.Error()
+	}
+	return nil, err
 }
 
 func (x worker) blowGas(n int) error {

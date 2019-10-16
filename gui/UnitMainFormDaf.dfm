@@ -10,6 +10,7 @@ object MainFormDaf: TMainFormDaf
   Font.Height = -16
   Font.Name = 'Segoe UI'
   Font.Style = []
+  Menu = MainMenu1
   OldCreateOrder = False
   OnClose = FormClose
   OnCreate = FormCreate
@@ -48,18 +49,10 @@ object MainFormDaf: TMainFormDaf
     object TabSheetData: TTabSheet
       Caption = #1044#1072#1085#1085#1099#1077
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object TabSheetConsole: TTabSheet
       Caption = #1050#1086#1085#1089#1086#1083#1100
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
   end
   object PanelMessageBox: TPanel
@@ -372,7 +365,7 @@ object MainFormDaf: TMainFormDaf
     TabOrder = 2
     object LabelStatusTop: TLabel
       AlignWithMargins = True
-      Left = 71
+      Left = 38
       Top = 5
       Width = 100
       Height = 23
@@ -380,31 +373,8 @@ object MainFormDaf: TMainFormDaf
       Margins.Top = 5
       Align = alLeft
       Caption = 'LabelStatusTop'
+      ExplicitLeft = 71
       ExplicitHeight = 18
-    end
-    object ToolBar1: TToolBar
-      Left = 0
-      Top = 0
-      Width = 33
-      Height = 31
-      Align = alLeft
-      ButtonHeight = 30
-      ButtonWidth = 30
-      Caption = 'ToolBar1'
-      EdgeInner = esNone
-      EdgeOuter = esNone
-      Images = ImageList4
-      TabOrder = 0
-      object ToolButtonRun: TToolButton
-        Left = 0
-        Top = 0
-        Hint = #1042#1099#1087#1086#1083#1085#1080#1090#1100' '#1087#1086#1089#1083#1077#1076#1086#1074#1072#1090#1077#1083#1100#1085#1086#1089#1090#1100' '#1079#1072#1084#1077#1088#1086#1074
-        Caption = 'ToolButton'
-        ImageIndex = 7
-        ParentShowHint = False
-        ShowHint = True
-        OnClick = ToolButtonRunClick
-      end
     end
     object ToolBar3: TToolBar
       Left = 925
@@ -418,7 +388,7 @@ object MainFormDaf: TMainFormDaf
       EdgeInner = esNone
       EdgeOuter = esNone
       Images = ImageList4
-      TabOrder = 1
+      TabOrder = 0
       object ToolButton1: TToolButton
         Left = 0
         Top = 0
@@ -438,9 +408,9 @@ object MainFormDaf: TMainFormDaf
       end
     end
     object PanelDelay: TPanel
-      Left = 174
+      Left = 141
       Top = 0
-      Width = 751
+      Width = 784
       Height = 31
       Align = alClient
       Alignment = taLeftJustify
@@ -453,8 +423,10 @@ object MainFormDaf: TMainFormDaf
       Font.Style = [fsBold]
       ParentBackground = False
       ParentFont = False
-      TabOrder = 2
+      TabOrder = 1
       Visible = False
+      ExplicitLeft = 174
+      ExplicitWidth = 751
       object LabelDelayElepsedTime: TLabel
         AlignWithMargins = True
         Left = 5
@@ -476,7 +448,7 @@ object MainFormDaf: TMainFormDaf
       end
       object LabelProgress: TLabel
         AlignWithMargins = True
-        Left = 679
+        Left = 712
         Top = 3
         Width = 31
         Height = 25
@@ -491,10 +463,11 @@ object MainFormDaf: TMainFormDaf
         Font.Style = []
         ParentFont = False
         Layout = tlCenter
+        ExplicitLeft = 679
         ExplicitHeight = 18
       end
       object ToolBar6: TToolBar
-        Left = 715
+        Left = 748
         Top = 0
         Width = 36
         Height = 31
@@ -506,6 +479,7 @@ object MainFormDaf: TMainFormDaf
         EdgeOuter = esNone
         Images = ImageList4
         TabOrder = 0
+        ExplicitLeft = 715
         object ToolButtonStop: TToolButton
           Left = 0
           Top = 0
@@ -522,7 +496,7 @@ object MainFormDaf: TMainFormDaf
       object Panel2: TPanel
         Left = 68
         Top = 0
-        Width = 606
+        Width = 639
         Height = 31
         Align = alClient
         Alignment = taLeftJustify
@@ -536,21 +510,23 @@ object MainFormDaf: TMainFormDaf
         ParentBackground = False
         ParentFont = False
         TabOrder = 1
+        ExplicitWidth = 606
         DesignSize = (
-          606
+          639
           31)
         object ProgressBar1: TProgressBar
           Left = 3
           Top = 8
-          Width = 600
+          Width = 633
           Height = 15
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
+          ExplicitWidth = 600
         end
       end
     end
     object ToolBarStop: TToolBar
-      Left = 33
+      Left = 0
       Top = 0
       Width = 33
       Height = 31
@@ -561,8 +537,9 @@ object MainFormDaf: TMainFormDaf
       EdgeInner = esNone
       EdgeOuter = esNone
       Images = ImageList4
-      TabOrder = 3
+      TabOrder = 2
       Visible = False
+      ExplicitLeft = 33
       object ToolButton2: TToolButton
         Left = 0
         Top = 0
@@ -1422,54 +1399,33 @@ object MainFormDaf: TMainFormDaf
       0000000000000000000000000000000000000000000000000000000000000000
       000000000000}
   end
-  object PopupMenu1: TPopupMenu
-    OnPopup = PopupMenu1Popup
-    Left = 503
-    Top = 64
-    object N1: TMenuItem
-      Caption = #1054#1087#1088#1086#1089
-      OnClick = N1Click
-    end
-    object N821: TMenuItem
-      Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1072' '#1044#1040#1060'-'#1052'...'
-      OnClick = N821Click
-    end
-    object MenuSetAddress: TMenuItem
-      Caption = #1059#1089#1090#1072#1085#1086#1074#1080#1090#1100' '#1072#1076#1088#1077#1089
-    end
-    object N3: TMenuItem
-      Caption = '-'
-    end
-    object N2: TMenuItem
-      Caption = #1054#1090#1082#1083#1102#1095#1080#1090#1100' '#1075#1072#1079
-      OnClick = N41Click
-    end
-    object N11: TMenuItem
-      Tag = 1
-      Caption = #1043#1072#1079' 1'
-      OnClick = N41Click
-    end
-    object N21: TMenuItem
-      Tag = 2
-      Caption = #1043#1072#1079' 2'
-      OnClick = N41Click
-    end
-    object N31: TMenuItem
-      Tag = 3
-      Caption = #1043#1072#1079' 3'
-      OnClick = N41Click
-    end
-    object N41: TMenuItem
-      Tag = 4
-      Caption = #1043#1072#1079' 4'
-      OnClick = N41Click
-    end
-  end
   object TimerPerforming: TTimer
     Enabled = False
     Interval = 100
     OnTimer = TimerPerformingTimer
     Left = 256
     Top = 208
+  end
+  object MainMenu1: TMainMenu
+    Left = 248
+    Top = 291
+    object N2: TMenuItem
+      Caption = #1059#1087#1088#1072#1074#1083#1077#1085#1080#1077
+      object N3: TMenuItem
+        Caption = #1054#1087#1088#1086#1089
+        OnClick = N3Click
+      end
+      object N4: TMenuItem
+        Caption = #1040#1074#1090#1086#1084#1072#1090#1080#1095#1077#1089#1082#1072#1103' '#1085#1072#1089#1090#1088#1086#1081#1082#1072
+        OnClick = N4Click
+      end
+    end
+    object N5: TMenuItem
+      Caption = #1042#1080#1076
+      object MODBUS1: TMenuItem
+        Caption = #1055#1072#1085#1077#1083#1100' MODBUS'
+        OnClick = MODBUS1Click
+      end
+    end
   end
 end

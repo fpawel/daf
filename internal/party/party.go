@@ -1,6 +1,7 @@
 package party
 
 import (
+	"fmt"
 	"github.com/ansel1/merry"
 	"github.com/fpawel/comm/modbus"
 	"github.com/fpawel/daf/internal/cfg"
@@ -12,6 +13,10 @@ type Product struct {
 	Place   int
 	Addr    modbus.Addr
 	Checked bool
+}
+
+func (p Product) Key() string {
+	return fmt.Sprintf("место %d, ДАФ-М %d, адрес %d", p.Place, p.Serial, p.Addr)
 }
 
 func (p Product) WrapError(err error) error {

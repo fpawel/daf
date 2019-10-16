@@ -45,7 +45,7 @@ func isFailWork(err error) bool {
 	if err == nil {
 		return false
 	}
-	if merry.Is(err, ErrHardware) {
+	if merry.Is(err, context.Canceled) || merry.Is(err, ErrHardware) {
 		return true
 	}
 	if merry.Is(err, comm.Err) || merry.Is(err, context.DeadlineExceeded) {

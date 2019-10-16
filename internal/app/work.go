@@ -107,7 +107,7 @@ func (x worker) setupParams() error {
 			addTestEntry(p.ProductID, tnSetupParams, true,
 				fmt.Sprintf("установлена температура %v\"C", temp))
 
-			scaleEnd, err := x.readDafFloat(p, varMeasureRange)
+			scaleEnd, err := x.readFloatVar(p, varMeasureRange)
 			if err != nil {
 				return err
 			}
@@ -185,11 +185,11 @@ func (x worker) testMeasureAt(n, gas int) error {
 DELETE FROM product_test 
 WHERE test_number = ? AND product_id IN ( SELECT product_id FROM last_party_products) `, n)
 		return x.performProducts(what, func(p party.Product, x worker) error {
-			concentration, err := x.readDafFloat(p, varConcentration)
+			concentration, err := x.readFloatVar(p, varConcentration)
 			if isFailWork(err) {
 				return nil
 			}
-			scaleEnd, err := x.readDafFloat(p, varMeasureRange)
+			scaleEnd, err := x.readFloatVar(p, varMeasureRange)
 			if err != nil {
 				return nil
 			}

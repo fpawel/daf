@@ -54,7 +54,8 @@ uses
   UnitFormProductData in 'UnitFormProductData.pas' {FormProductData},
   UnitFormSelectWorksDlg in 'UnitFormSelectWorksDlg.pas' {FormSelectWorksDlg},
   UnitFormConsole in 'UnitFormConsole.pas' {FormConsole},
-  logfile in 'logfile.pas';
+  logfile in 'logfile.pas',
+  UnitFormModbus in 'UnitFormModbus.pas' {FormModbus};
 
 {$R *.res}
 
@@ -71,5 +72,6 @@ begin
   Application.CreateForm(TFormProductData, FormProductData);
   Application.CreateForm(TFormSelectWorksDlg, FormSelectWorksDlg);
   Application.CreateForm(TFormConsole, FormConsole);
+  Application.CreateForm(TFormModbus, FormModbus);
   Application.Run;
 end.

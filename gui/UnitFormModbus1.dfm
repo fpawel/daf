@@ -26,7 +26,6 @@ object FormModbus1: TFormModbus1
     Align = alLeft
     Caption = #1050#1086#1076
     Layout = tlCenter
-    ExplicitTop = 3
     ExplicitHeight = 19
   end
   object Label2: TLabel
@@ -97,7 +96,6 @@ object FormModbus1: TFormModbus1
     Height = 25
     Caption = #1050#1086#1084#1072#1085#1076#1072' 16'
     TabOrder = 2
-    OnClick = Button1Click
   end
   object Button2: TButton
     Left = 407
@@ -106,6 +104,5 @@ object FormModbus1: TFormModbus1
     Height = 25
     Caption = #1050#1086#1084#1072#1085#1076#1072' 3'
     TabOrder = 3
-    OnClick = Button2Click
   end
 end
