@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/ansel1/merry"
+	"github.com/fpawel/comm"
 	"github.com/fpawel/comm/comport"
-	"github.com/fpawel/comm/modbus"
 	"github.com/fpawel/daf/internal"
 	"github.com/fpawel/daf/internal/api/notify"
 	"github.com/fpawel/daf/internal/api/types"
@@ -85,36 +85,32 @@ func newWorker(ctx context.Context, name string) worker {
 		ctx:   ctx,
 		works: []string{name},
 
-		portProducts: comport.NewPort(func() comport.Config {
-			return comport.Config{
-				Baud:        9600,
-				ReadTimeout: time.Millisecond,
-				Name:        cfg.GetConfig().ComportProducts,
-			}
+		portProducts: comport.NewPort(comport.Config{
+			Baud:        9600,
+			ReadTimeout: time.Millisecond,
+			Name:        cfg.GetConfig().ComportProducts,
 		}),
-		portHart: comport.NewPort(func() comport.Config {
-			return comport.Config{
-				Name:        cfg.GetConfig().ComportHart,
-				Baud:        1200,
-				ReadTimeout: time.Millisecond,
-				Parity:      comport.ParityOdd,
-				StopBits:    comport.Stop1,
-			}
+		portHart: comport.NewPort(comport.Config{
+			Name:        cfg.GetConfig().ComportHart,
+			Baud:        1200,
+			ReadTimeout: time.Millisecond,
+			Parity:      comport.ParityOdd,
+			StopBits:    comport.Stop1,
 		}),
 	}
 }
 
-func (x worker) ReaderDaf() modbus.ResponseReader {
-	return x.portProducts.NewResponseReader(x.ctx, cfg.GetConfig().Comm.Daf)
+func (x worker) commDaf() comm.T {
+	return comm.New(x.portProducts, cfg.GetConfig().Comm.Daf)
 }
-func (x worker) Reader6408() modbus.ResponseReader {
-	return x.portProducts.NewResponseReader(x.ctx, cfg.GetConfig().Comm.EN6408)
+func (x worker) comm6408() comm.T {
+	return comm.New(x.portProducts, cfg.GetConfig().Comm.EN6408)
 }
-func (x worker) ReaderGas() modbus.ResponseReader {
-	return x.portProducts.NewResponseReader(x.ctx, cfg.GetConfig().Comm.Gas)
+func (x worker) commGas() comm.T {
+	return comm.New(x.portProducts, cfg.GetConfig().Comm.Gas)
 }
-func (x worker) ReaderHart() modbus.ResponseReader {
-	return x.portHart.NewResponseReader(x.ctx, cfg.GetConfig().Comm.Hart)
+func (x worker) commHart() comm.T {
+	return comm.New(x.portHart, cfg.GetConfig().Comm.Hart)
 }
 
 func (x worker) pause(t time.Duration) {

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/binary"
 	"fmt"
 	"github.com/ansel1/merry"
 	"github.com/fpawel/comm/modbus"
@@ -26,16 +27,22 @@ type EN6408Value struct {
 }
 
 func (x worker) setNetAddress(addr modbus.Addr) error {
-	r := modbus.NewWrite32BCDRequest(0, 0x10, 5, float64(addr))
+	r := modbus.RequestWrite32{
+		Addr:      0,
+		ProtoCmd:  0x10,
+		DeviceCmd: 5,
+		Format:    modbus.BCD,
+		Value:     float64(addr),
+	}
 	if err := x.portProducts.Open(); err != nil {
 		return err
 	}
-	x.log.Info(fmt.Sprintf("% X", r.Data))
-	if _, err := x.portProducts.Write(r.Data); err != nil {
+	x.log.Info(fmt.Sprintf("% X", r.Request().Bytes()))
+	if _, err := x.portProducts.Write(r.Request().Bytes()); err != nil {
 		return err
 	}
 	pause(x.ctx.Done(), time.Second)
-	_, err := modbus.Read3(x.log, x.ReaderDaf(), addr, 0, 2, nil)
+	_, err := modbus.Read3Value(x.log, x.ctx, x.commDaf(), addr, 0, modbus.BCD)
 	return err
 }
 
@@ -46,7 +53,14 @@ func (x worker) writeProduct(p party.Product, cmd dafCmd, arg float64) error {
 		internal.LogKeyHardwareDevice, "daf",
 		internal.LogKeyDafCmd, fmt.Sprintf("`%s`", cmd.Name))
 
-	err := modbus.Write32(log, x.ReaderDaf(), p.Addr, 0x10, cmd.Code, arg)
+	err := modbus.RequestWrite32{
+		Addr:      p.Addr,
+		ProtoCmd:  0x10,
+		DeviceCmd: cmd.Code,
+		Format:    "bcd",
+		Value:     arg,
+	}.GetResponse(log, x.ctx, x.commDaf())
+
 	if err != nil {
 		if isCommErrorOrDeadline(err) {
 			notify.PlaceConnection(nil, types.PlaceConnection{
@@ -67,17 +81,21 @@ func (x worker) writeProduct(p party.Product, cmd dafCmd, arg float64) error {
 func (x worker) read6408(p party.Product) (EN6408Value, error) {
 	log := pkg.LogPrependSuffixKeys(x.log, internal.LogKeyHardwareDevice, "ЭН6408")
 	var result EN6408Value
-	_, err := modbus.Read3(log, x.Reader6408(),
-		32, modbus.Var(p.Addr-1)*2, 2, func(_, response []byte) (string, error) {
-			b := response[3:]
-			result.I = (float64(b[0])*256 + float64(b[1])) / 100
-			result.Thr1 = b[3]&1 == 0
-			result.Thr2 = b[3]&2 == 0
-			return fmt.Sprintf("%+v", result), nil
-		})
+
+	response, err := modbus.RequestRead3{
+		Addr:           32,
+		FirstRegister:  modbus.Var(p.Addr-1) * 2,
+		RegistersCount: 2,
+	}.GetResponse(log, x.ctx, x.commDaf())
 	if err = p.WrapError(err); err != nil {
 		return result, merry.Wrap(err).WithCause(ErrEN6408)
 	}
+
+	b := response[3:]
+	result.I = (float64(b[0])*256 + float64(b[1])) / 100
+	result.Thr1 = b[3]&1 == 0
+	result.Thr2 = b[3]&2 == 0
+
 	notify.PlaceConnection(nil, types.PlaceConnection{
 		Place:  p.Place,
 		Column: "Ток",
@@ -114,7 +132,7 @@ func (x worker) readUInt16(p party.Product, Var modbus.Var, column string, forma
 		notify.PlaceConnection(nil, c)
 	}()
 
-	value, err := modbus.Read3UInt16(log, x.ReaderDaf(), p.Addr, Var)
+	value, err := modbus.Read3UInt16(log, x.ctx, x.commDaf(), p.Addr, Var, binary.BigEndian)
 	if err = p.WrapError(err); err == nil {
 		if formatFunc == nil {
 			formatFunc = strconv.Itoa
@@ -146,7 +164,7 @@ func (x worker) readFloat(p party.Product, Var modbus.Var, column string) (float
 	defer func() {
 		notify.PlaceConnection(nil, c)
 	}()
-	value, err := modbus.Read3BCD(log, x.ReaderDaf(), p.Addr, Var)
+	value, err := modbus.Read3Value(log, x.ctx, x.commDaf(), p.Addr, Var, modbus.BCD)
 	if err = p.WrapError(err); err == nil {
 		c.Ok = true
 		c.Text = pkg.FormatFloat(value, -1)
@@ -199,7 +217,12 @@ func (x worker) read2(p party.Product, Var modbus.Var, column string) ([]byte, e
 	defer func() {
 		notify.PlaceConnection(nil, c)
 	}()
-	bs, err := modbus.Read3(log, x.ReaderDaf(), p.Addr, Var, 2, nil)
+
+	bs, err := modbus.RequestRead3{
+		Addr:           p.Addr,
+		FirstRegister:  Var,
+		RegistersCount: 2,
+	}.GetResponse(log, x.ctx, x.commDaf())
 	if err = p.WrapError(err); err == nil {
 		c.Ok = true
 		c.Text = fmt.Sprintf("% X", bs)
@@ -243,7 +266,7 @@ func (x worker) switchGas(n int) error {
 			ProtoCmd: 0x10,
 			Data:     []byte{0, 32, 0, 1, 2, 0, byte(n)},
 		}
-		if _, err := req.GetResponse(x.log, x.ReaderGas(), nil); err != nil {
+		if _, err := req.GetResponse(x.log, x.ctx, x.commGas()); err != nil {
 			return merry.WithCause(err, ErrGasBlock)
 		}
 		*x.gas = n

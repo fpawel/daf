@@ -31,9 +31,7 @@ func (x worker) testSoftVersion() error {
 			ok := byte(softVer) == c.SoftVersion && uint16(softVerID) == c.SoftVersionID
 			text := fmt.Sprintf("%d ID %X", int(softVer), uint16(softVerID))
 			if !ok {
-				text += fmt.Sprintf(": должно быть %d ID %X",
-					int(c.SoftVersion), uint16(c.SoftVersionID),
-				)
+				text += fmt.Sprintf(": должно быть %d ID %X", c.SoftVersion, c.SoftVersionID)
 			}
 			addTestEntry(p.ProductID, tnSoftVersion, ok, text)
 			return nil

@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 type Config struct {
@@ -119,25 +120,25 @@ var (
 			Comm: Comm{
 				Log: true,
 				Daf: comm.Config{
-					ReadByteTimeoutMillis: 50,
-					ReadTimeoutMillis:     700,
-					MaxAttemptsRead:       3,
+					TimeoutEndResponse: 50 * time.Millisecond,
+					TimeoutGetResponse: 700 * time.Millisecond,
+					MaxAttemptsRead:    3,
 				},
 				Gas: comm.Config{
-					ReadByteTimeoutMillis: 50,
-					ReadTimeoutMillis:     1000,
-					MaxAttemptsRead:       5,
+					TimeoutEndResponse: 50 * time.Millisecond,
+					TimeoutGetResponse: time.Second,
+					MaxAttemptsRead:    5,
 				},
 				EN6408: comm.Config{
-					ReadByteTimeoutMillis: 50,
-					ReadTimeoutMillis:     3000,
-					MaxAttemptsRead:       5,
-					PauseMillis:           100,
+					TimeoutEndResponse: 50 * time.Millisecond,
+					TimeoutGetResponse: 3000 * time.Millisecond,
+					MaxAttemptsRead:    5,
+					Pause:              100 * time.Millisecond,
 				},
 				Hart: comm.Config{
-					ReadByteTimeoutMillis: 100,
-					ReadTimeoutMillis:     2000,
-					MaxAttemptsRead:       5,
+					TimeoutEndResponse: 100 * time.Millisecond,
+					TimeoutGetResponse: 2 * time.Second,
+					MaxAttemptsRead:    5,
 				},
 			},
 		},
