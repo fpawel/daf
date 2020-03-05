@@ -19,14 +19,14 @@ type Config struct {
 }
 
 type AppConfig struct {
-	ComportProducts        string  `toml:"comport_products" comment:"СОМ порт приборов"`
-	ComportHart            string  `toml:"comport_hart" comment:"СОМ порт HART модема"`
-	DurationBlowGasMinutes []int   `toml:"duration_blow_gas" comment:"длительности продувки газов в минутах"`
-	DurationBlowOutMinutes int     `toml:"duration_blow_out" comment:"длительность продувки воздуха в минутах"`
-	SoftVersion            byte    `toml:"soft_version" comment:"Контролирумое значение ВПО ДАФ-М"`
-	SoftVersionID          uint16  `toml:"soft_version_id" comment:"Контролирумое значение цифрового идентификатора ВПО ДАФ-М"`
-	Temperature            float64 `toml:"temperature" comment:"Температура,\"С"`
-	Comm                   Comm    `toml:"comm" comment:"параметры приёмо-передачи оборудования"`
+	ComportProducts string          `yaml:"comport_products"`
+	ComportHart     string          `yaml:"comport_hart"`
+	DurationBlowGas []time.Duration `yaml:"duration_blow_gas"`
+	DurationBlowAir time.Duration   `yaml:"duration_blow_air"`
+	SoftVersion     byte            `yaml:"soft_version"`
+	SoftVersionID   uint16          `yaml:"soft_version_id"`
+	Temperature     float64         `yaml:"temperature"`
+	Comm            Comm            `yaml:"comm"`
 }
 
 type DurationBlowGasMinutes []int
@@ -110,13 +110,13 @@ var (
 	mu            sync.Mutex
 	defaultConfig = Config{
 		AppConfig: AppConfig{
-			ComportProducts:        "COM1",
-			ComportHart:            "COM2",
-			DurationBlowGasMinutes: []int{10, 5, 5, 5},
-			DurationBlowOutMinutes: 1,
-			SoftVersion:            1,
-			SoftVersionID:          0x7116,
-			Temperature:            20,
+			ComportProducts: "COM1",
+			ComportHart:     "COM2",
+			DurationBlowGas: []time.Duration{10 * time.Minute, 5 * time.Minute, 5 * time.Minute, 5 * time.Minute},
+			DurationBlowAir: 45 * time.Minute,
+			SoftVersion:     1,
+			SoftVersionID:   0x7116,
+			Temperature:     20,
 			Comm: Comm{
 				Log: true,
 				Daf: comm.Config{

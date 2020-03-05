@@ -55,7 +55,7 @@ implementation
 
 {$R *.dfm}
 
-uses stringutils, services, server_data_types, comport, UnitFormModbus1;
+uses stringutils, services, server_data_types, comport, UnitFormModbus;
 
 procedure setupCB(cb: TComboBox; s: string);
 begin
@@ -93,8 +93,8 @@ end;
 
 procedure TFormAppConfig.CheckBox1Click(Sender: TObject);
 begin
-    FormModbus1.Height := 51;
-    FormModbus1.Visible := CheckBox1.Checked;
+    FormModbus.Height := 51;
+    FormModbus.Visible := CheckBox1.Checked;
 end;
 
 procedure TFormAppConfig.ComboBoxComportProductsChange(Sender: TObject);

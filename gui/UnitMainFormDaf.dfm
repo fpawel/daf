@@ -25,7 +25,7 @@ object MainFormDaf: TMainFormDaf
     Height = 21
     Align = alBottom
     Caption = 'LabelStatus'
-    ExplicitWidth = 80
+    ExplicitWidth = 79
   end
   object PageControlMain: TPageControl
     Left = 0
@@ -373,7 +373,6 @@ object MainFormDaf: TMainFormDaf
       Margins.Top = 5
       Align = alLeft
       Caption = 'LabelStatusTop'
-      ExplicitLeft = 71
       ExplicitHeight = 18
     end
     object ToolBar3: TToolBar
@@ -425,8 +424,6 @@ object MainFormDaf: TMainFormDaf
       ParentFont = False
       TabOrder = 1
       Visible = False
-      ExplicitLeft = 174
-      ExplicitWidth = 751
       object LabelDelayElepsedTime: TLabel
         AlignWithMargins = True
         Left = 5
@@ -463,7 +460,6 @@ object MainFormDaf: TMainFormDaf
         Font.Style = []
         ParentFont = False
         Layout = tlCenter
-        ExplicitLeft = 679
         ExplicitHeight = 18
       end
       object ToolBar6: TToolBar
@@ -479,7 +475,6 @@ object MainFormDaf: TMainFormDaf
         EdgeOuter = esNone
         Images = ImageList4
         TabOrder = 0
-        ExplicitLeft = 715
         object ToolButtonStop: TToolButton
           Left = 0
           Top = 0
@@ -510,7 +505,6 @@ object MainFormDaf: TMainFormDaf
         ParentBackground = False
         ParentFont = False
         TabOrder = 1
-        ExplicitWidth = 606
         DesignSize = (
           639
           31)
@@ -521,7 +515,6 @@ object MainFormDaf: TMainFormDaf
           Height = 15
           Anchors = [akLeft, akTop, akRight, akBottom]
           TabOrder = 0
-          ExplicitWidth = 600
         end
       end
     end
@@ -539,7 +532,6 @@ object MainFormDaf: TMainFormDaf
       Images = ImageList4
       TabOrder = 2
       Visible = False
-      ExplicitLeft = 33
       object ToolButton2: TToolButton
         Left = 0
         Top = 0
@@ -1418,6 +1410,10 @@ object MainFormDaf: TMainFormDaf
       object N4: TMenuItem
         Caption = #1040#1074#1090#1086#1084#1072#1090#1080#1095#1077#1089#1082#1072#1103' '#1085#1072#1089#1090#1088#1086#1081#1082#1072
         OnClick = N4Click
+      end
+      object N1: TMenuItem
+        Caption = #1054#1090#1095#1105#1090
+        OnClick = N1Click
       end
     end
     object N5: TMenuItem

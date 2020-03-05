@@ -6,10 +6,33 @@ import (
 	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/data"
 	"github.com/fpawel/daf/internal/party"
+	"github.com/fpawel/daf/internal/report"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"strconv"
 )
 
 type PartySvc struct{}
+
+func (_ *PartySvc) Report(_ struct{}, _ *struct{}) error {
+
+	dir := filepath.Join(filepath.Dir(os.Args[0]), "report")
+	if err := os.RemoveAll(dir); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return err
+	}
+	Party := data.LastParty()
+	for _, p := range data.Products(Party.PartyID) {
+		if err := report.WriteProductToFile(dir, Party, p); err != nil {
+			return err
+		}
+	}
+	_ = exec.Command(`explorer`, dir).Run()
+	return nil
+}
 
 func (_ *PartySvc) DeleteTestEntries(x [1]string, _ *struct{}) error {
 	data.DB.MustExec(`

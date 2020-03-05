@@ -59,8 +59,12 @@ type ProductPassport struct {
 }
 
 func (_ *ProductsSvc) ProductPassport(x [1]int64, r *ProductPassport) error {
-	r.T1 = report.IndividualPassport1(x[0])
-	r.T2 = report.IndividualPassport2(x[0])
+	if err := report.IndividualPassport1(x[0], &r.T1); err != nil {
+		return err
+	}
+	if err := report.IndividualPassport2(x[0], &r.T2); err != nil {
+		return err
+	}
 	return data.DB.Get(r, `
 SELECT party.party_id, serial, created_at  FROM product
 INNER JOIN party ON product.party_id = party.party_id

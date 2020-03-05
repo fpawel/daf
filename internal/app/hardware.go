@@ -242,12 +242,23 @@ func (x worker) blowGas(n int) error {
 	}); err != nil {
 		return err
 	}
-	c := cfg.GetConfig().DurationBlowGasMinutes
-	dur := 5
+	c := cfg.GetConfig().DurationBlowGas
+	duration := 5 * time.Minute
 	if n >= 0 && n < len(c) {
-		dur = c[n]
+		duration = c[n]
 	}
-	return delayf(x, minutes(dur), "продувка ПГС%d", n)
+	return delayf(x, duration, "продувка ПГС%d", n)
+}
+
+func (x worker) blowAir() error {
+	if err := x.perform("включение клапана 1", func(x worker) error {
+		return x.performWithWarn(func() error {
+			return x.switchGas(1)
+		})
+	}); err != nil {
+		return err
+	}
+	return delay(x, cfg.GetConfig().DurationBlowAir, "продувка воздухом")
 }
 
 func (x worker) switchGas(n int) error {
@@ -269,7 +280,6 @@ func (x worker) switchGas(n int) error {
 		if _, err := req.GetResponse(x.log, x.ctx, x.commGas()); err != nil {
 			return merry.WithCause(err, ErrGasBlock)
 		}
-		*x.gas = n
 		return nil
 	})
 }

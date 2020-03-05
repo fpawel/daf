@@ -12,24 +12,24 @@ type Party struct {
 }
 
 type PartyConfig struct {
-	ProductType     int     `db:"product_type" toml:"product_type" comment:"код исполнения ДАФ-М согласно ТУ"`
-	Component       int     `db:"component" toml:"component" comment:"код измеряемого компонента согласно ТУ"`
-	C1              float64 `db:"c1" toml:"с1" comment:"концентрация ГСО-ПГС1"`
-	C2              float64 `db:"c2" toml:"с2" comment:"концентрация ГСО-ПГС2"`
-	C3              float64 `db:"c3" toml:"с3" comment:"концентрация ГСО-ПГС3"`
-	C4              float64 `db:"c4" toml:"с4" comment:"концентрация ГСО-ПГС4"`
-	AbsErrorLimit1  float64 `db:"abs_error_limit1" toml:"abs_error_limit1" comment:"предел допускаемой основной погрешности при подаче ГСО-ПГС1"`
-	AbsErrorLimit2  float64 `db:"abs_error_limit2" toml:"abs_error_limit2" comment:"предел допускаемой основной погрешности при подаче ГСО-ПГС2"`
-	AbsErrorLimit3  float64 `db:"abs_error_limit3" toml:"abs_error_limit3" comment:"предел допускаемой основной погрешности при подаче ГСО-ПГС3"`
-	AbsErrorLimit4  float64 `db:"abs_error_limit4" toml:"abs_error_limit4" comment:"предел допускаемой основной погрешности при подаче ГСО-ПГС4"`
-	VariationLimit3 float64 `db:"variation_limit3" toml:"variation_limit3" comment:"предел вариации показаний при ГСО-ПГС3"`
+	ProductType     int     `db:"product_type" yaml:"product_type"`
+	Component       int     `db:"component" yaml:"component"`
+	C1              float64 `db:"c1" yaml:"с1"`
+	C2              float64 `db:"c2" yaml:"с2"`
+	C3              float64 `db:"c3" yaml:"с3"`
+	C4              float64 `db:"c4" yaml:"с4"`
+	AbsErrorLimit1  float64 `db:"abs_error_limit1" yaml:"abs_error_limit1"`
+	AbsErrorLimit2  float64 `db:"abs_error_limit2" yaml:"abs_error_limit2"`
+	AbsErrorLimit3  float64 `db:"abs_error_limit3" yaml:"abs_error_limit3"`
+	AbsErrorLimit4  float64 `db:"abs_error_limit4" yaml:"abs_error_limit4"`
+	VariationLimit3 float64 `db:"variation_limit3" yaml:"variation_limit3"`
 }
 
 type Product struct {
 	ProductID  int64   `db:"product_id"`
 	Serial     int     `db:"serial"`
-	ScaleBegin float64 `db:"scale_begin" toml:"scale_begin" comment:"нижняя граница диапазона измерений"`
-	ScaleEnd   float64 `db:"scale_end" toml:"scale_end" comment:"верхняя граница диапазона измерений"`
+	ScaleBegin float64 `db:"scale_begin" yaml:"scale_begin"`
+	ScaleEnd   float64 `db:"scale_end" yaml:"scale_end"`
 }
 
 type Test struct {

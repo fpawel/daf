@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"github.com/ansel1/merry"
 	"github.com/fpawel/comm/modbus"
-	"github.com/fpawel/daf/internal/api/notify"
-	"github.com/fpawel/daf/internal/cfg"
 	"github.com/fpawel/daf/internal/party"
 	"github.com/powerman/structlog"
 )
@@ -63,25 +61,8 @@ func (_ runner) Write32(cmd modbus.DevCmd, value float64) {
 func (_ runner) RunMainWork(c []bool) {
 	runWork("Настройка ДАФ-М", func(x worker) error {
 
-		closeGasInEnd := func() error {
-			if err := x.switchGas(1); err != nil {
-				return err
-			}
-			if err := delay(x, minutes(cfg.GetConfig().DurationBlowOutMinutes), "продувка ПГС1"); err != nil {
-				return err
-			}
-			return x.switchGas(0)
-		}
-
 		defer func() {
-			if *x.gas == 0 {
-				return
-			}
-			x.log.Info("продувка воздухом по окончании настройки")
-			if err := closeGasInEnd(); err != nil {
-				notify.Warning(nil,
-					fmt.Sprintf("Не удалось продуть воздухом по окончании настройки.\n\nПричина: %v\n\n", err))
-			}
+			_ = x.switchGas(0)
 		}()
 
 		for i, fun := range []func() error{
@@ -90,6 +71,7 @@ func (_ runner) RunMainWork(c []bool) {
 			x.setupCurrent,
 			x.adjust,
 			x.testMeasure,
+			x.testMeasure2,
 		} {
 			if i >= len(c) {
 				x.log.Warn(fmt.Sprintf("работа %d: индекс должен быть от 0 до %d", i, len(c)-1))

@@ -18,4 +18,5 @@ require (
 	github.com/valyala/quicktemplate v1.2.0
 	golang.org/x/sys v0.0.0-20191224085550-c709ea063b76
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200121175148-a6ecf24a6d71
 )

@@ -30,7 +30,6 @@ object FormAppConfig: TFormAppConfig
     Align = alTop
     Caption = #1057#1054#1052' '#1087#1086#1088#1090#1099
     TabOrder = 0
-    ExplicitWidth = 345
     object Panel1: TPanel
       Left = 2
       Top = 23
@@ -40,7 +39,6 @@ object FormAppConfig: TFormAppConfig
       BevelOuter = bvNone
       BorderWidth = 1
       TabOrder = 0
-      ExplicitWidth = 293
       object Shape1: TShape
         Left = 1
         Top = 36
@@ -93,9 +91,6 @@ object FormAppConfig: TFormAppConfig
       BevelOuter = bvNone
       BorderWidth = 1
       TabOrder = 1
-      ExplicitLeft = 3
-      ExplicitTop = 59
-      ExplicitWidth = 341
       object Shape3: TShape
         Left = 1
         Top = 36
@@ -148,9 +143,6 @@ object FormAppConfig: TFormAppConfig
       BevelOuter = bvNone
       BorderWidth = 1
       TabOrder = 2
-      ExplicitLeft = 3
-      ExplicitTop = 97
-      ExplicitWidth = 341
       object Panel4: TPanel
         Left = 1
         Top = 1

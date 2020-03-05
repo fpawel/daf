@@ -41,12 +41,13 @@ type
         TimerPerforming: TTimer;
         LabelStatusBottom1: TLabel;
         TabSheetData: TTabSheet;
-    MainMenu1: TMainMenu;
-    N2: TMenuItem;
-    N3: TMenuItem;
-    N4: TMenuItem;
-    N5: TMenuItem;
-    MODBUS1: TMenuItem;
+        MainMenu1: TMainMenu;
+        N2: TMenuItem;
+        N3: TMenuItem;
+        N4: TMenuItem;
+        N5: TMenuItem;
+        MODBUS1: TMenuItem;
+        N1: TMenuItem;
         procedure FormShow(Sender: TObject);
         procedure FormCreate(Sender: TObject);
         procedure PageControlMainDrawTab(Control: TCustomTabControl;
@@ -60,9 +61,10 @@ type
         procedure ToolButton3Click(Sender: TObject);
         procedure ToolButtonStopClick(Sender: TObject);
         procedure ToolButton1Click(Sender: TObject);
-    procedure N3Click(Sender: TObject);
-    procedure N4Click(Sender: TObject);
-    procedure MODBUS1Click(Sender: TObject);
+        procedure N3Click(Sender: TObject);
+        procedure N4Click(Sender: TObject);
+        procedure MODBUS1Click(Sender: TObject);
+        procedure N1Click(Sender: TObject);
     private
         { Private declarations }
         procedure AppException(Sender: TObject; E: Exception);
@@ -84,7 +86,7 @@ implementation
 
 {$R *.dfm}
 
-uses UnitFormLastParty, vclutils, JclDebug, ioutils, app,
+uses Vcl.FileCtrl, UnitFormLastParty, vclutils, JclDebug, ioutils, app,
     services, UnitFormAppConfig, notify_services, HttpRpcClient, superobject,
     dateutils, math, HttpExceptions, UnitFormData,
     stringgridutils, UnitFormModalMessage, UnitFormEditText, UnitFormDataTable,
@@ -117,7 +119,7 @@ begin
     NotifyServices_SetEnabled(false);
     HttpRpcClient.TIMEOUT_CONNECT := 10;
     TRunnerSvc.Cancel;
-     //notify_services.CloseServerWindow;
+    // notify_services.CloseServerWindow;
 
     fs := TFileStream.Create(ChangeFileExt(paramstr(0), '.position'),
       fmOpenWrite or fmCreate);
@@ -150,7 +152,6 @@ begin
         BorderStyle := bsNone;
         Align := alClient;
     end;
-
 
     with FormLastParty do
     begin
@@ -332,6 +333,11 @@ begin
 
 end;
 
+procedure TMainFormDaf.N1Click(Sender: TObject);
+begin
+    TPartySvc.Report();
+end;
+
 procedure TMainFormDaf.N3Click(Sender: TObject);
 begin
     TThread.CreateAnonymousThread(TRunnerSvc.RunReadVars).Start;
@@ -393,7 +399,7 @@ begin
     begin
         NotifyServices_SetEnabled(false);
         HttpRpcClient.TIMEOUT_CONNECT := 10;
-        //notify_services.CloseServerWindow;
+        // notify_services.CloseServerWindow;
 
         Application.OnException := nil;
         Application.Terminate;
@@ -440,7 +446,7 @@ begin
                 ImageError.Hide;
                 LabelStatusTop.Font.Color := clNavy;
                 RichEditlMessageBoxText.Font.Color := clNavy;
-                PanelMessageBoxTitle.Caption := x.Work ;
+                PanelMessageBoxTitle.Caption := x.Work;
                 LabelStatusTop.Caption := LabelStatusTop.Caption + ': успешно';
             end;
         1:

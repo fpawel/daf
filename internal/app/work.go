@@ -159,8 +159,14 @@ func (x worker) adjust() error {
 		if err := x.writeProducts(tnAdjust, cmdAdjustEnd, c.C4); err != nil {
 			return err
 		}
-		return nil
+		return x.blowAir()
 	})
+}
+func (x worker) testMeasure2() error {
+	if err := delay(x, 16*time.Hour, "технологический прогон"); err != nil {
+		return err
+	}
+	return x.testMeasure()
 }
 
 func (x worker) testMeasure() error {
@@ -169,7 +175,7 @@ func (x worker) testMeasure() error {
 			return err
 		}
 	}
-	return nil
+	return x.blowAir()
 }
 
 func (x worker) testMeasureAt(n, gas int) error {

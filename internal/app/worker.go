@@ -25,7 +25,6 @@ type worker struct {
 	works        []string
 	portProducts *comport.Port
 	portHart     *comport.Port
-	gas          *int
 }
 
 func runWork(workName string, work func(x worker) error) {
@@ -80,7 +79,6 @@ func runWork(workName string, work func(x worker) error) {
 
 func newWorker(ctx context.Context, name string) worker {
 	return worker{
-		gas:   new(int),
 		log:   pkg.NewLogWithSuffixKeys("work", fmt.Sprintf("%s", name)),
 		ctx:   ctx,
 		works: []string{name},

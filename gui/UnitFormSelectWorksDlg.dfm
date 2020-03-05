@@ -3,7 +3,7 @@ object FormSelectWorksDlg: TFormSelectWorksDlg
   Top = 0
   BorderStyle = bsDialog
   Caption = #1042#1099#1073#1086#1088' '#1090#1077#1084#1087#1077#1088#1072#1090#1091#1088
-  ClientHeight = 167
+  ClientHeight = 192
   ClientWidth = 295
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
@@ -20,16 +20,17 @@ object FormSelectWorksDlg: TFormSelectWorksDlg
     Left = 0
     Top = 0
     Width = 295
-    Height = 167
+    Height = 192
     Align = alClient
     BevelKind = bkFlat
     BevelOuter = bvNone
     TabOrder = 0
+    ExplicitHeight = 167
     object CheckListBox1: TCheckListBox
       Left = 0
       Top = 0
       Width = 259
-      Height = 163
+      Height = 188
       Align = alClient
       BevelOuter = bvNone
       BorderStyle = bsNone
@@ -40,15 +41,17 @@ object FormSelectWorksDlg: TFormSelectWorksDlg
         #1059#1089#1090#1072#1085#1086#1074#1082#1072' '#1087#1072#1088#1072#1084#1077#1090#1088#1086#1074
         #1053#1072#1089#1090#1088#1086#1081#1082#1072' '#1090#1086#1082#1086#1074#1086#1075#1086' '#1074#1099#1093#1086#1076#1072
         #1050#1072#1083#1080#1073#1088#1086#1074#1082#1072
-        #1055#1088#1086#1074#1077#1088#1082#1072' '#1076#1080#1072#1087#1072#1079#1086#1085#1072' '#1080#1079#1084#1077#1088#1077#1085#1080#1081)
+        #1055#1088#1086#1074#1077#1088#1082#1072' '#1076#1080#1072#1087#1072#1079#1086#1085#1072' '#1080#1079#1084#1077#1088#1077#1085#1080#1081
+        #1058#1077#1093#1085#1086#1083#1086#1075#1080#1095#1077#1089#1082#1080#1081' '#1087#1088#1086#1075#1086#1085)
       Style = lbOwnerDrawFixed
       TabOrder = 0
+      ExplicitHeight = 201
     end
     object ToolBarStop: TToolBar
       Left = 259
       Top = 0
       Width = 32
-      Height = 163
+      Height = 188
       Align = alRight
       ButtonHeight = 31
       ButtonWidth = 32
@@ -57,6 +60,7 @@ object FormSelectWorksDlg: TFormSelectWorksDlg
       EdgeOuter = esNone
       Images = ImageList3
       TabOrder = 1
+      ExplicitHeight = 163
       object ToolButton2: TToolButton
         Left = 0
         Top = 0

@@ -2,30 +2,30 @@ package cfg
 
 import (
 	"github.com/fpawel/daf/internal/data"
-	"github.com/pelletier/go-toml"
+	"gopkg.in/yaml.v3"
 )
 
 type ConfigSvc struct{}
 
-type tomlConfig struct {
-	App   AppConfig        `toml:"app" comment:"параметры связи и технологического процесса"`
-	Party data.PartyConfig `toml:"party" comment:"параметры текущей загрузки"`
+type configYaml struct {
+	App   AppConfig        `yaml:"app"`
+	Party data.PartyConfig `yaml:"party"`
 }
 
-func getTomlConfig() tomlConfig {
-	return tomlConfig{
+func getConfigYaml() configYaml {
+	return configYaml{
 		App:   GetConfig().AppConfig,
 		Party: data.LastParty().PartyConfig,
 	}
 }
 
-func (x *ConfigSvc) GetConfigToml(_ struct{}, r *string) error {
-	return tomlStringify(r, getTomlConfig())
+func (x *ConfigSvc) GetConfigYaml(_ struct{}, r *string) error {
+	return yamlStringify(r, getConfigYaml())
 }
 
-func (_ *ConfigSvc) SetConfigToml(s [1]string, r *string) error {
-	var p tomlConfig
-	if err := toml.Unmarshal([]byte(s[0]), &p); err != nil {
+func (_ *ConfigSvc) SetConfigYaml(s [1]string, r *string) error {
+	var p configYaml
+	if err := yaml.Unmarshal([]byte(s[0]), &p); err != nil {
 		return err
 	}
 	if _, err := data.DB.NamedExec(`
@@ -47,12 +47,12 @@ WHERE party_id = (SELECT party_id FROM last_party)`, p.Party); err != nil {
 	c := GetConfig()
 	c.AppConfig = p.App
 	ApplyConfig(c)
-	return tomlStringify(r, getTomlConfig())
+	return yamlStringify(r, getConfigYaml())
 }
 
 func (_ *ConfigSvc) SetDefault(_ struct{}, r *string) error {
 	ApplyConfig(defaultConfig)
-	return tomlStringify(r, getTomlConfig())
+	return yamlStringify(r, getConfigYaml())
 }
 
 func (_ *ConfigSvc) SetPlaceChecked(x struct {
@@ -78,8 +78,8 @@ func (_ *ConfigSvc) GetConfig(_ struct{}, r *AppConfig) error {
 	return nil
 }
 
-func tomlStringify(r *string, x interface{}) error {
-	b, err := toml.Marshal(x)
+func yamlStringify(r *string, x interface{}) error {
+	b, err := yaml.Marshal(x)
 	if err != nil {
 		return err
 	}

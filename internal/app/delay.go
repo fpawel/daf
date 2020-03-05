@@ -29,11 +29,21 @@ func delay(x worker, duration time.Duration, name string) error {
 		}
 	}
 
+	testName := "Фоновый опрос: " + name
+	if len(x.works) > 0 {
+		testName = x.works[len(x.works)-1] + ": " + testName
+	}
+
+	clearTestEntries(testName)
+
 	return x.performf("%s: %s", name, pkg.FormatDuration(duration))(func(x worker) error {
 		x.log.Info("задержка начата")
 		defer func() {
 			notify.EndDelay(x.log.Info, "", "elapsed", pkg.FormatDuration(time.Since(startTime)))
 		}()
+
+		mErrors := make(map[int64]struct{})
+
 		for {
 			if len(party.CheckedProducts()) == 0 {
 				return merry.New("для опроса необходимо установить галочку для как минимум одиного прибора")
@@ -55,8 +65,10 @@ func delay(x worker, duration time.Duration, name string) error {
 					return nil // задержка истекла или пропущена пользователем
 				}
 				if err != nil {
-					if err = x.raiseWarning(merry.Append(err, "фоновый опрос")); err != nil {
-						return err
+					if _, f := mErrors[p.ProductID]; !f {
+						x.log.PrintErr(err)
+						addTestEntry(p.ProductID, testName, false, err.Error())
+						mErrors[p.ProductID] = struct{}{}
 					}
 				}
 			}

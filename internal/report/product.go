@@ -48,14 +48,14 @@ func floatCellC(v float64, prec int, ok bool) Cell {
 	return c
 }
 
-func IndividualPassport1(productID int64) Table {
+func IndividualPassport1(productID int64, r *Table) error {
 
 	row6 := func(s string) []Cell {
 		xs := make([]Cell, 7)
 		xs[0] = Cell{Text: s, Alignment: taLeftJustify}
 		return xs
 	}
-	r := []Row{
+	*r = []Row{
 		header([]string{
 			"Параметр", "1. ПГС1", "2. ПГС2", "3. ПГС3", "4. ПГС4", "5. ПГС3", "6. ПГС1",
 		}),
@@ -84,7 +84,7 @@ FROM product_test
 INNER JOIN product USING (product_id)
 WHERE product_id = ? 
 ORDER BY test_number`, productID); err != nil {
-		panic(err)
+		return err
 	}
 
 	var (
@@ -110,20 +110,20 @@ ORDER BY test_number`, productID); err != nil {
 			C3i = Ci
 		}
 
-		r[1][x.Test+1] = floatCellC(x.C, 3, okC)
-		r[2][x.Test+1] = floatCellC(x.I, 3, okCi)
-		r[3][x.Test+1] = floatCellC(Ci, 3, okCi)
-		r[4][x.Test+1] = onOffCell(x.T1, x.T1 == test.MustThr1)
-		r[5][x.Test+1] = onOffCell(x.T2, x.T2 == test.MustThr2)
+		(*r)[1][x.Test+1] = floatCellC(x.C, 3, okC)
+		(*r)[2][x.Test+1] = floatCellC(x.I, 3, okCi)
+		(*r)[3][x.Test+1] = floatCellC(Ci, 3, okCi)
+		(*r)[4][x.Test+1] = onOffCell(x.T1, x.T1 == test.MustThr1)
+		(*r)[5][x.Test+1] = onOffCell(x.T2, x.T2 == test.MustThr2)
 		if x.Test == 4 && C3set && p.C3 != 0 {
 			variation := C3i - Ci
-			r[6][x.Test+1] = floatCellC(variation, 1, math.Abs(variation) < p.VariationLimit3)
+			(*r)[6][x.Test+1] = floatCellC(variation, 1, math.Abs(variation) < p.VariationLimit3)
 		}
 	}
-	return r
+	return nil
 }
 
-func IndividualPassport2(productID int64) Table {
+func IndividualPassport2(productID int64, r *Table) error {
 	var xs []struct {
 		ProductEntryID int64     `db:"product_entry_id"`
 		Test           string    `db:"test"`
@@ -136,9 +136,9 @@ SELECT product_entry_id, test, stored_at, ok, message
 FROM product_entry 
 WHERE product_id = ?
 ORDER BY stored_at`, productID); err != nil {
-		panic(err)
+		return err
 	}
-	r := []Row{
+	*r = []Row{
 		header([]string{
 			"ID", "Время", "Работа", "Результат",
 		}),
@@ -152,7 +152,7 @@ ORDER BY stored_at`, productID); err != nil {
 		if !x.Ok {
 			c.Color = "clRed"
 		}
-		r = append(r, Row{
+		*r = append(*r, Row{
 			Cell{
 				Text:      strconv.Itoa(int(x.ProductEntryID)),
 				Alignment: taCenter,
@@ -168,7 +168,7 @@ ORDER BY stored_at`, productID); err != nil {
 			c,
 		})
 	}
-	return r
+	return nil
 
 }
 
