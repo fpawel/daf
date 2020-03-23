@@ -19,14 +19,15 @@ type Config struct {
 }
 
 type AppConfig struct {
-	ComportProducts string          `yaml:"comport_products"`
-	ComportHart     string          `yaml:"comport_hart"`
-	DurationBlowGas []time.Duration `yaml:"duration_blow_gas"`
-	DurationBlowAir time.Duration   `yaml:"duration_blow_air"`
-	SoftVersion     byte            `yaml:"soft_version"`
-	SoftVersionID   uint16          `yaml:"soft_version_id"`
-	Temperature     float64         `yaml:"temperature"`
-	Comm            Comm            `yaml:"comm"`
+	ComportProducts string                  `yaml:"comport_products"`
+	ComportHart     string                  `yaml:"comport_hart"`
+	DurationBlowGas []time.Duration         `yaml:"duration_blow_gas"`
+	DurationBlowAir time.Duration           `yaml:"duration_blow_air"`
+	SoftVersion     byte                    `yaml:"soft_version"`
+	SoftVersionID   uint16                  `yaml:"soft_version_id"`
+	Temperature     float64                 `yaml:"temperature"`
+	Comm            Comm                    `yaml:"comm"`
+	CurrentAdd      map[modbus.Addr]float64 `yaml:"current_add"`
 }
 
 type DurationBlowGasMinutes []int
@@ -95,6 +96,9 @@ func GetConfig() (result Config) {
 			},
 		}
 	}
+	if result.CurrentAdd == nil {
+		result.CurrentAdd = make(map[modbus.Addr]float64)
+	}
 	return
 }
 
@@ -140,6 +144,9 @@ var (
 					TimeoutGetResponse: 2 * time.Second,
 					MaxAttemptsRead:    5,
 				},
+			},
+			CurrentAdd: map[modbus.Addr]float64{
+				0: 0, 1: 0,
 			},
 		},
 		Network: []Place{

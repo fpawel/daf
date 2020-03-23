@@ -93,6 +93,11 @@ func (x worker) read6408(p party.Product) (EN6408Value, error) {
 
 	b := response[3:]
 	result.I = (float64(b[0])*256 + float64(b[1])) / 100
+
+	c := cfg.GetConfig()
+	d, _ := c.CurrentAdd[p.Addr]
+	result.I += d
+
 	result.Thr1 = b[3]&1 == 0
 	result.Thr2 = b[3]&2 == 0
 
