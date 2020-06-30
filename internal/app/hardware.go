@@ -249,8 +249,8 @@ func (x worker) blowGas(n int) error {
 	}
 	c := cfg.GetConfig().DurationBlowGas
 	duration := 5 * time.Minute
-	if n >= 0 && n < len(c) {
-		duration = c[n]
+	if n > 0 && n <= len(c) {
+		duration = c[n-1]
 	}
 	return delayf(x, duration, "продувка ПГС%d", n)
 }
